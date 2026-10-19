@@ -2,14 +2,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { room, names4, B } from './_helpers.mjs';
-import { makeMap, makeCharacter, makeItem, land, slayCharacter, ctxFor, COL, at, characterOf, currentPlayerId, deathHooks } from './_fixtures-economy.mjs';
+import { makeMap, startRun, makeCharacter, makeItem, land, slayCharacter, ctxFor, COL, at, characterOf, currentPlayerId, deathHooks } from './_fixtures-economy.mjs';
 import { reviveAtGraveyard, killCharacter, nearestGraveyard, gridItems } from '../../packages/shared/handlers/death.js';
 import * as hexm from '../../packages/shared/hex.js';
 
 function started({ seed = 42, mode = 'ffa' } = {}) {
   const r = room({ seed, mode }).join(names4); makeMap(r.state);
   for (const pid of r.state.seats) makeCharacter(r.state, pid, { pos: at('strip', COL.start), gold: 100, level: 3, maxHealth: 120, health: 120 });
-  r.append('RUN_START'); return r;
+  startRun(r); return r;
 }
 const kit = () => ({ grid: [makeItem({ name: 'Potion', baseId: 'potion', slot: 'consumable', qty: 2 }), makeItem({ name: 'Spare Blade' })], worn: { mainhand: makeItem({ name: 'Coin Blade' }), helmet: makeItem({ name: 'Cap', slot: 'helmet' }), boots: makeItem({ name: 'Slippers', slot: 'boots' }) } });
 

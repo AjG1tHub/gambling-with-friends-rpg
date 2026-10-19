@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { room, names4, shared, B } from './_helpers.mjs';
-import { makeMap, makeCharacter, makeItem, land, slayMonster, ctxFor, COL, at, tileHooks, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
+import { makeMap, startRun, makeCharacter, makeItem, land, slayMonster, ctxFor, COL, at, tileHooks, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
 import { generateMonsters, monsterAt, aliveMonsters, respawnRegion, makeMonsterItem, SPECIES, speciesInRegion } from '../../packages/shared/encounters/monsters.js';
 import { openEncounter, gateBlocks, ensureShopStock } from '../../packages/shared/handlers/tiles.js';
 import regionsData from '../../data/regions.json' with { type: 'json' };
@@ -12,7 +12,7 @@ function started({ seed = 42, mode = 'ffa', tier = 1, players = names4 } = {}) {
   const r = room({ seed, mode, tier }).join(players);
   makeMap(r.state);
   for (const pid of r.state.seats) makeCharacter(r.state, pid, { pos: at('strip', COL.start) });
-  r.append('RUN_START');
+  startRun(r);
   return r;
 }
 const byRegion = (state, rid) => Object.values(state.monsters).filter(m => m.regionId === rid && !m.blocker);
@@ -67,14 +67,14 @@ test('generation: counts per region, bosses on gates, raids, the Dealer on the t
   // more players, more monsters
   const r5 = started({ players: [...names4, 'E', 'F'] }); assert.equal(byRegion(r5.state, 'docks').filter(m => !m.boss).length, Math.round(MAP.monstersPerRegion + MAP.monstersPerExtraPlayer * 2));
   // the map may hand a scale
-  const r6 = room().join(names4); makeMap(r6.state); r6.state.map.scale = { monsters: 1 }; for (const pid of r6.state.seats) makeCharacter(r6.state, pid); r6.append('RUN_START'); assert.equal(byRegion(r6.state, 'strip').filter(m => !m.boss).length, 1);
+  const r6 = room().join(names4); makeMap(r6.state, { scale: { monsters: 1 } }); for (const pid of r6.state.seats) makeCharacter(r6.state, pid); startRun(r6); assert.equal(byRegion(r6.state, 'strip').filter(m => !m.boss).length, 1);
 });
 
 test('generation: PvP has no monsters and Encounter tiles become Arenas; without a map nothing happens', () => {
   const r = started({ mode: 'pvp' }); assert.equal(Object.keys(r.state.monsters).length, 0);
   const pid = currentPlayerId(r.state); land(r, pid, at('strip', COL.enc1));
   assert.equal(r.state.pendingPrompt.kind, 'arena'); assert.equal(r.state.fight, null);
-  const r2 = room().join(names4); r2.append('RUN_START'); assert.equal(Object.keys(r2.state.monsters).length, 0);
+  const r2 = room().join(names4); generateMonsters(r2.state, ctxFor(r2)); assert.equal(Object.keys(r2.state.monsters).length, 0);
 });
 
 test('encounter tile: a living monster opens the fight with allies on the hex; a dead one is empty ground; raids need players', () => {

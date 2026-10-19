@@ -10,6 +10,9 @@ import { startRound } from '../../packages/games/adapter.js';
 const err = (r, type, payload, actor) => { const e = r.try(type, payload, actor); assert.ok(e, `${type} should have been refused`); return e; };
 const monsterWith = (r, games, extra = {}) => mkMonster({ id: 'm1', items: games.map((g, i) => makeItem(r.state, { gameId: g, seed: 100 + i })), ...extra });
 const toTurn = (r, pid) => { let g = 0; while (r.cur() !== pid && g++ < 8) r.append('TURN_END', {}, r.cur()); };
+// Every character's Grit cuts damage taken by health.gritReducePerPoint a point (handlers/inventory.js): a monster hit
+// worth `raw` costs a character taken(c, raw).
+const taken = (c, raw) => Math.round(raw * (1 - c.stats.grit * B.health.gritReducePerPoint));
 
 test('FIGHT_START opens an encounter (or a training dummy) for the current player only; a second fight is refused until the first ends', () => {
   const r = playingRoom(); const pid = r.cur(), other = Object.keys(r.state.players).find(p => p !== pid);
@@ -41,11 +44,12 @@ test('alternation: after ITEM_RESOLVE the monster acts (MONSTER_ACT by the TV or
   err(r, 'MONSTER_ACT', { itemId: m.items[0].id, mult: 2 }, pid);                      // a player cannot play the monster
   err(r, 'MONSTER_ACT', { itemId: m.items[0].id, mult: 'lots' }, 'tv');
   r.append('MONSTER_ACT', { itemId: m.items[0].id, mult: 2, label: 'WIN', stake: 10 }, 'tv');
-  assert.equal(c.health, 90); assert.equal(r.state.fight.turn, 'player'); assert.equal(r.state.stats[pid].damageTaken, 10); assert.equal(r.state.fight.log.length, 2); assert.equal(r.state.fight.lastGame.attackerId, 'm1');
+  const d = taken(c, 10);
+  assert.equal(c.health, 100 - d); assert.equal(r.state.fight.turn, 'player'); assert.equal(r.state.stats[pid].damageTaken, d); assert.equal(r.state.fight.log.length, 2); assert.equal(r.state.fight.lastGame.attackerId, 'm1');
   // a monster miss costs the monster its stake
-  r.state.fight.turn = 'monster'; r.append('MONSTER_ACT', { itemId: m.items[1].id, mult: 0, label: 'miss' }, 'gm'); assert.equal(m.health, 40); assert.equal(c.health, 90);
+  r.state.fight.turn = 'monster'; r.append('MONSTER_ACT', { itemId: m.items[1].id, mult: 0, label: 'miss' }, 'gm'); assert.equal(m.health, 40); assert.equal(c.health, 100 - d);
   // the player may still cast a spell on themselves this turn
-  r.append('ITEM_USE', { itemId: r.itemOf(c, 'mend').id }, pid); r.append('ITEM_RESOLVE', { mult: 2, label: 'heal' }, pid); assert.equal(c.health, 100);
+  r.append('ITEM_USE', { itemId: r.itemOf(c, 'mend').id }, pid); r.append('ITEM_RESOLVE', { mult: 2, label: 'heal' }, pid); assert.equal(c.health, Math.min(c.maxHealth, 100 - d + 10));
 });
 test('a full encounter to the death through events: the TV plays the monster headlessly with playMonsterTurn; loot, kills and XP follow', () => {
   const drops = [], xps = []; const onDrop = (s, ctx, info) => drops.push(info.monsterId); lootHooks.onDrop.push(onDrop); const onXp = (s, ctx, info) => xps.push(info); levelHooks.onXp.push(onXp);
@@ -114,7 +118,7 @@ test('FIGHT_FLEE: only between rounds on the player\'s turn, never when called o
   const next = r2.cur(); assert.notEqual(next, p);
   assert.match(err(r2, 'ITEM_USE', { itemId: r2.itemOf(r2.curChar(), 'coinblade').id, targetId: 'm1', targetKind: 'monster' }, next).message, /someone else/);
   r2.append('MONSTER_ACT', { itemId: mm.items[0].id, mult: 2, label: 'WIN' }, 'tv');
-  assert.equal(ch.health, 90); assert.ok(r2.state.fight.done && r2.state.fight.result === 'left');
+  assert.equal(ch.health, 100 - taken(ch, 10)); assert.ok(r2.state.fight.done && r2.state.fight.result === 'left');
   r2.append('TURN_END', {}, next); assert.equal(r2.state.fight, null, 'a finished fight is cleared at the next end of turn');
   // a solo (PvP) fight is spent at the end of the turn too
   const r3 = playingRoom(); const p3 = r3.cur(), c3 = r3.curChar(), t3 = r3.char(p3 === 'p0' ? 1 : 0);

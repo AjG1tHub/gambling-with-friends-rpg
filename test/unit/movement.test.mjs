@@ -127,21 +127,21 @@ test('dice: a monster hex ends the move there; MOVE_PATH walks the shortest path
   // path tap
   const r2 = game({ boots: () => bootsItem('loaded_boots') });
   rig(r2, 'dice', 5); r2.append('MOVE_ROLL', {}, r2.cur);
-  const two = Q.reachableFrom(r2.state, r2.me().pos, 2, r2.me().id).find(x => x.dist === 2);
+  const two = Q.reachableFrom(r2.state, r2.me().pos, 2, r2.me().id).find(x => x.dist === 2 && !x.stops); // the full game seeds monsters: pick a free hex
   r2.append('MOVE_PATH', { to: two.key }, r2.cur);
   assert.equal(r2.me().pos, two.key); assert.equal(r2.state.moveSession.stepsTaken, 2); assert.equal(r2.state.moveSession.done, true); assert.equal(r2.state.moveSession.how, 'path');
   assert.match(r2.try('MOVE_PATH', { to: two.key }, r2.cur).message, /roll first/);
   // a tap further than the roll walks as far as it goes
   const r3 = game({ boots: () => bootsItem('loaded_boots') });
   rig(r3, 'dice', 2); r3.append('MOVE_ROLL', {}, r3.cur);
-  const far = Q.reachableFrom(r3.state, r3.me().pos, 5, r3.me().id).filter(x => x.dist >= 4).at(-1); assert.ok(far);
+  const far = Q.reachableFrom(r3.state, r3.me().pos, 5, r3.me().id).filter(x => x.dist >= 4 && !x.stops).at(-1); assert.ok(far);
   r3.append('MOVE_PATH', { to: far.key }, r3.cur);
   assert.equal(r3.state.moveSession.done, true); assert.equal(r3.state.moveSession.how, 'spent'); assert.equal(r3.state.moveSession.stepsTaken, 2); assert.equal(Q.pathTo(r3.state, r3.me().pos, far.key, r3.me().id).length, far.dist - 2, 'walked two steps of the shortest path');
   assert.match(r3.try('MOVE_PATH', { to: '99,99' }, r3.cur).message, /roll first/);
   // d12: a short tap does not end the move
   const r4 = game({ boots: () => bootsItem('dodeca_sabatons') });
   rig(r4, 'dice', 8); r4.append('MOVE_ROLL', {}, r4.cur);
-  const one = Q.reachableFrom(r4.state, r4.me().pos, 1, r4.me().id)[0];
+  const one = Q.reachableFrom(r4.state, r4.me().pos, 1, r4.me().id).find(x => !x.stops);
   r4.append('MOVE_PATH', { to: one.key }, r4.cur);
   assert.equal(r4.state.moveSession.done, false); assert.equal(r4.state.moveSession.movesLeft, 7);
   assert.match(r4.try('MOVE_PATH', { to: '99,99' }, r4.cur).message, /no path/);

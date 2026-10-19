@@ -54,7 +54,9 @@ export function newPlayer({ id, name = 'Player', deviceId = null, spectator = fa
 export function activeSeats(state) { return state.seats.filter(id => state.players[id] && !state.players[id].kicked && !state.players[id].spectator); }
 export function currentPlayerId(state) {
   const seats = activeSeats(state); if (!seats.length) return null;
-  // Held turns (players away in a challenge) are skipped by derivation, never by editing the order.
+  // While a turn is in progress the mover is fixed (a hold released mid-turn must not hand the turn to someone
+  // else); between turns the mover is derived from turnIdx, skipping held seats (never by editing the order).
+  if (state.moverId && seats.includes(state.moverId) && !state.held[state.moverId]?.challengeId) return state.moverId;
   for (let i = 0; i < seats.length; i++) { const id = seats[(state.turnIdx + i) % seats.length]; if (!state.held[id]) return id; }
   return seats[state.turnIdx % seats.length];
 }

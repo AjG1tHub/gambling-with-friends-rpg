@@ -25,10 +25,15 @@ export const handlerTypes = () => [...HANDLERS.keys()];
 export class EventError extends Error { constructor(msg, code = 'refused') { super(msg); this.code = code; } }
 export const refuse = (msg, code) => { throw new EventError(msg, code); };
 
+// Handlers are atomic: a refusal halfway through a handler (a tile hook that throws after the move was applied)
+// never leaves a half-applied room. With `clone: true` (the default for live clients) the reducer works on a copy
+// and returns it. With `clone: false` (tests, bots) it mutates the caller's object in place — object identity
+// survives a successful event — and on failure restores it structurally from a snapshot taken beforehand.
 export function applyEvent(state, event, { clone = true, strict = false } = {}) {
   const fn = HANDLERS.get(event.type);
   if (!fn) { if (strict) throw new EventError(`no handler for ${event.type}`, 'unknown'); return state; }
   const work = clone ? structuredClone(state) : state;
+  const snapshot = clone ? null : structuredClone(state);
   const ctx = { now: Number(event.ts) || 0, actor: event.actor, isGm: event.actor === 'gm' || event.actor === 'system', payload: event.payload || {}, B: (g) => group(work, g), event };
   try {
     for (const h of BEFORE) h(work, event, ctx);
@@ -40,14 +45,30 @@ export function applyEvent(state, event, { clone = true, strict = false } = {}) 
     work.lastError = null;
     return work;
   } catch (e) {
+    if (!clone) deepRestore(state, snapshot);
     if (strict) throw e;
     // Refusals are normal play (a stale phone taps twice); they are kept on the state for the UI to show.
-    if (!clone) { state.lastError = { type: event.type, actor: event.actor, message: e.message, code: e.code || 'error', ts: ctx.now }; return state; }
-    const out = structuredClone(state);
-    out.lastError = { type: event.type, actor: event.actor, message: e.message, code: e.code || 'error', ts: ctx.now };
+    const err = { type: event.type, actor: event.actor, message: e.message, code: e.code || 'error', ts: ctx.now };
+    const out = clone ? structuredClone(state) : state;
+    out.lastError = err;
     if (!(e instanceof EventError)) note(out, `⚠ ${event.type}: ${e.message}`, 'error', ctx.now);
     return out;
   }
+}
+// Copy `snap` back into `target` key by key, keeping the identity of objects that exist on both sides.
+export function deepRestore(target, snap) {
+  if (Array.isArray(target) && Array.isArray(snap)) {
+    target.length = snap.length;
+    for (let i = 0; i < snap.length; i++) target[i] = mergeInto(target[i], snap[i]);
+    return target;
+  }
+  for (const k of Object.keys(target)) if (!(k in snap)) delete target[k];
+  for (const k of Object.keys(snap)) target[k] = mergeInto(target[k], snap[k]);
+  return target;
+}
+function mergeInto(cur, val) {
+  if (val && typeof val === 'object' && cur && typeof cur === 'object' && Array.isArray(cur) === Array.isArray(val)) return deepRestore(cur, val);
+  return val;
 }
 
 // Rebuild a room from its event log. Events are applied in seq order; the first must be ROOM_CREATED.

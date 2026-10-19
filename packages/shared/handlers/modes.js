@@ -36,7 +36,7 @@ export function modeAdjust(state, R) {
     default: return base;   // ffa, teams, royale: as Free-for-all
   }
 }
-function convertForPvp(state, ctx) {
+export function convertForPvp(state, ctx) {
   if (state.mode !== 'pvp' || !state.map) return false;
   let n = 0;
   for (const h of Object.values(state.map.hexes)) { if (h.type === 'encounter') { h.type = 'arena'; n += 1; } if (h.monsterId) delete h.monsterId; }

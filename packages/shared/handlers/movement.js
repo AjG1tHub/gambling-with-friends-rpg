@@ -375,7 +375,8 @@ export function portalOptions(state, c) {
 // ---- run start: roll the map and seat everyone on the start hex --------------------------------------------------
 
 runHooks.runStart.push((state, ctx) => {
-  generateMap(state, ctx);
+  // A map that already exists (a GM restore, an imported room, a test fixture) is kept.
+  if (!state.map?.hexes || !Object.keys(state.map.hexes).length) generateMap(state, ctx);
   const startRegion = state.map.hexes[state.map.start].regionId;
   for (const pid of activeSeats(state)) { const c = characterOf(state, pid); if (!c) continue; c.pos = state.map.start; c.region = startRegion; c.lastSafePos = state.map.start; }
   Q.reveal(state, startRegion);

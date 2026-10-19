@@ -1,8 +1,9 @@
-// The metagame ledger and the Hall of Fame row for a run (SPEC.md › Runs, End of the run). When the run ends
-// (any path: endCheck, RUN_END, GM_END_RUN) the reducer's after-hook sees phase 'ended' once and fills one
-// state.metaLedger row per seated player — mode, placing, character, what was vaulted (c.vaulted, left to the
-// modes module), the real buy-in the GM typed with META_LEDGER — and pushes one Hall of Fame row. It is a
-// record, not a wallet: nothing here moves money.
+// The metagame ledger and the run record (SPEC.md › Runs, End of the run). When the run ends (any path:
+// endCheck, RUN_END, GM_END_RUN) the reducer's after-hook sees phase 'ended' once and fills one state.metaLedger
+// row per seated player — mode, placing, character, what was vaulted (c.vaulted, left to the modes module), the
+// real buy-in the GM typed with META_LEDGER — and writes state.runRecord, the one-object summary of the night
+// (winner, placings, kills, bosses, the longest-lived). The per-player Hall of Fame rows in state.hallOfFame are
+// the modes module's (handlers/modes.js › recordRun). It is a record, not a wallet: nothing here moves money.
 //
 // Placings: the winner first; then survivors by Free-for-all score (gold + gold.scorePerKill × kills + health);
 // then the dead, the one who lasted longest first. state.metaLedgerFinal guards against running twice.
@@ -40,13 +41,13 @@ export function finalizeLedger(state, ctx) {
     });
   }
   const longest = rows.filter(r => r.c).sort((a, b) => (b.c.turnsTaken || 0) - (a.c.turnsTaken || 0))[0];
-  state.hallOfFame.push({
+  state.runRecord = {
     roomId: state.roomId, code: state.code, mode: state.mode, tier: state.tier, size: state.size, startedAt: state.startedAt, endedAt: state.endedAt, rounds: state.round,
     winner: state.winner, endReason: state.endReason || '', players: rows.map(r => ({ playerId: r.pid, name: state.players[r.pid]?.name, characterName: r.c?.name || null, placing: r.placing, survived: !r.dead, kills: r.c?.kills || 0, level: r.c?.level || null })),
     kills: rows.reduce((s, r) => s + (r.c?.kills || 0), 0), bossesBeaten: Object.values(state.monsters).filter(m => m.dead && (m.boss || m.raid || m.final)).length,
     finalBossDead: !!state.finalBossDeadBy, petsCaught: Object.values(state.stats).reduce((s, x) => s + (x.petsCaught || 0), 0), legendariesDropped: state.legendariesDropped || 0,
     longestLived: longest ? { characterName: longest.c.name, turns: longest.c.turnsTaken || 0 } : null, chaosTier: state.chaos?.tier || 1,
-  });
+  };
   state.metaLedgerFinal = true;
   note(state, `Ledger closed: ${rows.map(r => `${r.placing}. ${state.players[r.pid]?.name}`).join(' · ')}`, 'end', ctx.now);
 }

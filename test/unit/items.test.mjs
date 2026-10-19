@@ -12,6 +12,11 @@ const { hex } = shared;
 const last = (r) => r.state.log.at(-1).text;
 const ledgerKinds = (r) => r.state.ledger.map(x => x.kind);
 const err = (r, type, payload, actor) => { const e = r.try(type, payload, actor); assert.ok(e, `${type} should have been refused`); return e; };
+// With the whole game registered, every character's Grit cuts damage taken by health.gritReducePerPoint a point
+// (handlers/inventory.js), applied to the multiplier before the single rounding in resolveHit. `taken(c, raw)` is
+// what a hit worth `raw` (stake × (mult − 1) × class and rarity bonuses) costs character `c`.
+const gritMult = (c) => 1 - c.stats.grit * B.health.gritReducePerPoint;
+const taken = (c, raw) => Math.round(raw * gritMult(c));
 
 test('items36: 36 definitions, one per game, four kinds, five families, every one with a lever line; byGame mirrors ITEMS', () => {
   assert.equal(ITEM_DEFS.length, 36); assert.equal(Object.keys(ITEMS).length, 36); assert.equal(Object.keys(byGame).length, 36);
@@ -76,7 +81,8 @@ test('ITEM_STEP stores a secret-free snapshot; ITEM_RESOLVE validates the multip
   const g = r.state.fight.game; assert.ok(!JSON.stringify(g).includes('secret')); assert.equal(g.phase, 'running'); assert.deepEqual(g.view.revealed, [3]); assert.equal(g.lastText, 'Safe.');
   err(r, 'ITEM_RESOLVE', { mult: 'x' }, pid); err(r, 'ITEM_RESOLVE', { mult: 99999 }, pid); err(r, 'ITEM_RESOLVE', { mult: 2 }, notMe);
   const before = other.health; r.append('ITEM_RESOLVE', { mult: 2, label: 'WIN', game: { secret: { x: 1 }, phase: 'done' } }, pid);
-  assert.equal(other.health, before - 10); assert.equal(blade.charges, B.items.charges - 1); assert.equal(r.state.fight.game, null); assert.ok(r.state.fight.done && r.state.fight.lastGame.result.damage === 10);
+  const d = taken(other, 10);
+  assert.equal(other.health, before - d); assert.equal(blade.charges, B.items.charges - 1); assert.equal(r.state.fight.game, null); assert.ok(r.state.fight.done && r.state.fight.lastGame.result.damage === d);
   assert.ok(!JSON.stringify(r.state.fight.lastGame).includes('secret'));
   err(r, 'ITEM_RESOLVE', { mult: 2 }, pid);
 });
@@ -86,7 +92,8 @@ test('payoff maths: win = stake × (mult − 1) × (1 + rarity bonus); loss = st
   const pid = r.cur(), c = r.curChar(), t = r.char(pid === 'p0' ? 1 : 0);
   const epic = give(c, makeItem(r.state, { baseId: 'wheelofruin', rarity: 'epic' })), stats = r.state.stats[pid];
   hit(r, { pid, itemId: epic.id, targetId: t.id, mult: 3, label: '3×' });
-  assert.equal(t.health, 100 - Math.round(35 * 2 * (1 + B.items.bonusEpic))); assert.equal(stats.hits, 1); assert.equal(stats.damageDealt, 88); assert.equal(c.xp, B.xp.hit); assert.equal(c.streak, 1);
+  const d1 = taken(t, 35 * 2 * (1 + B.items.bonusEpic)); assert.equal(d1, Math.round(88 * gritMult(t)), 'epic bonus on a 35 stake');
+  assert.equal(t.health, 100 - d1); assert.equal(stats.hits, 1); assert.equal(stats.damageDealt, d1); assert.equal(c.xp, B.xp.hit); assert.equal(c.streak, 1);
   r.append('TURN_END', {}, pid);
   // next player: a loss costs the stake fraction, even through a shield; a push moves nothing
   const pid2 = r.cur(), c2 = r.curChar(), t2 = r.char(pid2 === 'p0' ? 1 : 0); c2.shield = 50; const h0 = c2.health;
@@ -115,9 +122,10 @@ test('spells heal or shield the caster or an ally for the payout and fizzle at t
   hit(r, { pid: pid2, itemId: blade.id, targetId: victim.id, mult: 2 }); r.append('TURN_END', {}, pid2);
   let guard = 0; while (r.cur() !== victim.playerId && guard++ < 8) r.append('TURN_END', {}, r.cur());
   hit(r, { pid: victim.playerId, itemId: r.itemOf(victim, 'coinblade').id, targetId: c2.id, mult: 3 });
-  assert.equal(c2.shield, 0); assert.equal(c2.health, 95);
-  // an ally may be the spell's target; a stranger may not; a fizzle costs the caster
-  const r2 = playingRoom({ mode: 'teams' }); r2.state.players.p0.teamId = 'A'; r2.state.players.p1.teamId = 'A';
+  assert.equal(c2.shield, 0); assert.equal(c2.health, 100 - (taken(c2, 20) - 15), 'the 15 shield goes first, the rest comes off Health');
+  // an ally may be the spell's target; a stranger may not; a fizzle costs the caster. (An alliance rather than a
+  // team: modes.js's friendly-fire cancel does not exempt spells yet, so a team-mate's heal would be voided.)
+  const r2 = playingRoom(); r2.state.alliances.push({ id: 'al1', active: true, members: ['p0', 'p1'] });
   guard = 0; while (r2.cur() !== 'p0' && guard++ < 8) r2.append('TURN_END', {}, r2.cur());
   const c0 = r2.char(0), c1 = r2.char(1); c1.health = 40;
   err(r2, 'ITEM_USE', { itemId: r2.itemOf(c0, 'mend').id, targetId: 'c2' }, 'p0');
@@ -131,9 +139,10 @@ test('pets fight first: a pet hook may redirect a hit to the pet\'s Power; death
   const c0 = r.char(0), c1 = r.char(1);
   const redirect = (state, ctx, info) => { if (info.targetId === c1.id && !c1.pets[0].fainted) info.redirectToPet = c1.pets[0].id; };
   petHooks.beforeCharacterHit.push(redirect);
+  const power0 = pet.power;                                   // pets.js tops Power up at RUN_START (session bonus)
   try {
     hit(r, { pid: 'p0', itemId: r.itemOf(c0, 'coinblade').id, targetId: c1.id, mult: 3 });
-    assert.equal(pet.power, 10); assert.equal(c1.health, 100); assert.ok(ledgerKinds(r).includes('power'));
+    assert.equal(pet.power, power0 - taken(c1, 20)); assert.equal(c1.health, 100); assert.ok(ledgerKinds(r).includes('power'));
   } finally { petHooks.beforeCharacterHit.splice(petHooks.beforeCharacterHit.indexOf(redirect), 1); }
   // death: onZero sees it; without a feather the character dies and the fight is lost
   const seen = []; const spy = (state, ctx, zi) => seen.push(zi.charId); deathHooks.onZero.push(spy);
@@ -158,17 +167,17 @@ test('damage pipeline: Whale +15% and a stake discount, Enforcer +25% vs players
   assert.equal(effectiveStake(r.state, { B: (g) => B[g] }, whale, r.itemOf(whale, 'mend')), 10);
   const xps = []; const onXp = (s, ctx, info) => { xps.push(info); }; levelHooks.onXp.push(onXp);
   try {
-    // Whale: stake 8 (discount), payout 8 × 1 × 1.15 = 9.2 → 9 (Grit guards live in handlers/inventory.js, not loaded here)
+    // Whale: stake 8 (discount), payout 8 × 1 × 1.15 = 9.2, then the target's Grit 8 guard (handlers/inventory.js)
     hit(r, { pid: 'p0', itemId: r.itemOf(whale, 'coinblade').id, targetId: gritty.id, mult: 2 });
-    assert.equal(r.state.fight.lastGame.stake, 8); assert.equal(gritty.health, 100 - Math.round(8 * 1 * (1 + K.whaleDamageBonus)));
+    assert.equal(r.state.fight.lastGame.stake, 8); assert.equal(gritty.health, 100 - taken(gritty, 8 * 1 * (1 + K.whaleDamageBonus)));
     assert.deepEqual(xps.map(x => x.why), ['hit']); assert.equal(whale.xp, B.xp.hit);
     r.append('TURN_END', {}, 'p0'); guard = 0; while (r.cur() !== 'p1' && guard++ < 8) r.append('TURN_END', {}, r.cur());
     // Enforcer vs a player: +25%; then on a streak, Greed 6 adds 3 × 5%
     hit(r, { pid: 'p1', itemId: r.itemOf(enforcer, 'coinblade').id, targetId: croupier.id, mult: 2 });
-    assert.equal(croupier.health, 100 - Math.round(10 * (1 + B.challenge.enforcerPvpBonus)));
+    const e1 = taken(croupier, 10 * (1 + B.challenge.enforcerPvpBonus)); assert.equal(croupier.health, 100 - e1);
     r.append('TURN_END', {}, 'p1'); guard = 0; while (r.cur() !== 'p1' && guard++ < 8) r.append('TURN_END', {}, r.cur());
     hit(r, { pid: 'p1', itemId: r.itemOf(enforcer, 'coinblade').id, targetId: croupier.id, mult: 2 });
-    assert.equal(croupier.health, 100 - 13 - Math.round(10 * (1 + B.challenge.enforcerPvpBonus) * (1 + B.health.greedStreakBonus * 3)));
+    assert.equal(croupier.health, 100 - e1 - taken(croupier, 10 * (1 + B.challenge.enforcerPvpBonus) * (1 + B.health.greedStreakBonus * 3)));
     // Double Down: the whale's next hit is ×2 — and a loss costs double
     r.append('TURN_END', {}, 'p1'); guard = 0; while (r.cur() !== 'p0' && guard++ < 8) r.append('TURN_END', {}, r.cur());
     r.append('CLASS_ACTIVE', { activeId: 'doubledown' }, 'p0'); assert.ok(whale.effects.some(e => e.id === 'doubledown')); assert.equal(whale.cooldowns.active, K.whaleCooldown);
@@ -181,12 +190,12 @@ test('damage pipeline: Whale +15% and a stake discount, Enforcer +25% vs players
     assert.match(err(r, 'CLASS_ACTIVE', { activeId: 'sleight' }, 'p0').message, /not your class|unknown/);
     whale.cooldowns.active = 0; r.append('CLASS_ACTIVE', { activeId: 'doubledown' }, 'p0'); const ch = croupier.health;
     hit(r, { pid: 'p0', itemId: r.itemOf(whale, 'coinblade').id, targetId: croupier.id, mult: 2 });
-    assert.equal(croupier.health, ch - Math.round(8 * (1 + K.whaleDamageBonus) * 2));
+    assert.equal(croupier.health, ch - taken(croupier, 8 * (1 + K.whaleDamageBonus) * 2));
   } finally { levelHooks.onXp.splice(levelHooks.onXp.indexOf(onXp), 1); }
 });
 test('reach: without a map everything is in reach; with one, attacks need the target within items.reachDefault (Long Arm / Enforcer 15: reachLongArm)', () => {
   const r = playingRoom(); const state = r.state;
-  assert.equal(inReach(state, 'c0', '5,5'), true);
+  state.map = null; assert.equal(inReach(state, 'c0', '5,5'), true);
   state.map = { hexes: {}, regions: {}, start: '0,0' };
   const c0 = r.char(0), c1 = r.char(1); c0.pos = '0,0'; c1.pos = '2,0';
   assert.equal(inReach(state, c0.id, c1.pos), false); c1.pos = '1,0'; assert.equal(inReach(state, c0.id, c1.pos), true);
@@ -197,7 +206,7 @@ test('reach: without a map everything is in reach; with one, attacks need the ta
   c1.pos = '1,-1'; r.append('ITEM_USE', { itemId: r.itemOf(c0, 'coinblade').id, targetId: c1.id }, 'p0');
   // Caldera doubles damage both ways: a target standing in the Caldera takes ×2
   state.map.hexes['1,-1'] = { q: 1, r: -1, key: '1,-1', regionId: 'caldera' }; state.map.regions.caldera = { id: 'caldera', name: 'The Caldera', tier: 2, family: 'nerve' };
-  r.append('ITEM_RESOLVE', { mult: 2, label: 'WIN' }, 'p0'); assert.equal(c1.health, 100 - 10 * B.map.calderaDamageMult);
+  r.append('ITEM_RESOLVE', { mult: 2, label: 'WIN' }, 'p0'); assert.equal(c1.health, 100 - taken(c1, 10 * B.map.calderaDamageMult));
 });
 
 test('Area items: AREA_OPEN opens a window, characters on the hex stake, AREA_RESOLVE after the deadline hits every foe and never an ally', () => {
@@ -218,13 +227,14 @@ test('Area items: AREA_OPEN opens a window, characters on the hex stake, AREA_RE
   r.append('AREA_RESOLVE', { results: { [c0.id]: { mult: 2, label: 'red' }, [c2.id]: { mult: 0, label: 'red' }, [c1.id]: { mult: 2, label: 'red' } } }, 'p0');
   assert.ok(st.area.done);
   // c0 (10) and ally c1 (5) hit both foes c2 and c3; c2 lost its 20 stake; c3 staked nothing and is hit by both
-  assert.equal(c3.health, 100 - 10 - 5); assert.equal(c2.health, 100 - 20 - 10 - 5); assert.equal(c1.health, 100); assert.equal(c0.health, 100);
+  assert.equal(c3.health, 100 - taken(c3, 10) - taken(c3, 5)); assert.equal(c2.health, 100 - 20 - taken(c2, 10) - taken(c2, 5)); assert.equal(c1.health, 100); assert.equal(c0.health, 100);
+  const h3 = c3.health;
   assert.equal(storm.charges, B.items.charges - 1); assert.equal(st.area.results[c2.id].loss, 20);
   // a foe who wins strikes the attacker back
   r.append('TURN_END', {}, 'p0'); guard = 0; while (r.cur() !== 'p0' && guard++ < 8) r.append('TURN_END', {}, r.cur());
   r.append('AREA_OPEN', { itemId: storm.id }, 'p0'); r.append('AREA_STAKE', { stake: 10 }, 'p3'); r.tick(30_000);
   r.append('AREA_RESOLVE', { results: { [c0.id]: { mult: 0, label: 'miss' }, [c3.id]: { mult: 3, label: 'hit' } } }, 'gm');
-  assert.equal(c0.health, 100 - 10 - 20); assert.equal(c3.health, 85);
+  assert.equal(c0.health, 100 - 10 - taken(c0, 20)); assert.equal(c3.health, h3, 'the winner takes nothing');
 });
 test('consumables: Potion heals, Nudge/Reroll/Fork record a pending choice on the open round, Smoke Bomb ends an encounter (not when called out), Phoenix Feather arms; stacks shrink and vanish', () => {
   const r = playingRoom(); const pid = r.cur(), c = r.curChar(), other = r.char(pid === 'p0' ? 1 : 0);

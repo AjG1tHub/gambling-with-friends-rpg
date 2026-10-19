@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { room, names4, B } from './_helpers.mjs';
-import { makeMap, makeCharacter, makeItem, land, landHit, slayMonster, slayCharacter, rawEvent, ctxFor, COL, at, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
+import { makeMap, startRun, makeCharacter, makeItem, land, landHit, slayMonster, slayCharacter, rawEvent, ctxFor, COL, at, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
 import { questMet, completeQuest, QUEST_DECK } from '../../packages/shared/handlers/quests.js';
 import { placings } from '../../packages/shared/handlers/ledger.js';
 import { levelHooks } from '../../packages/shared/hooks.js';
@@ -12,7 +12,7 @@ import { openPacts } from '../../packages/shared/handlers/economy.js';
 function started({ seed = 42, mode = 'ffa' } = {}) {
   const r = room({ seed, mode }).join(names4); makeMap(r.state);
   for (const pid of r.state.seats) makeCharacter(r.state, pid, { pos: at('strip', COL.start), gold: 100, health: 90, level: 2, maxHealth: 110 });
-  r.append('RUN_START'); return r;
+  startRun(r); return r;
 }
 const lap = (r) => { for (let i = 0; i < r.state.seats.length; i++) r.append('TURN_END', {}, currentPlayerId(r.state)); };
 
@@ -91,7 +91,7 @@ test('flow: hits complete a regional quest at turn end, holdGold waits for the r
   r.append('GM_QUEST', { title: 'Psst', playerId: a }); assert.equal(r.state.quests.personal[a].at(-1).ownerId, a);
 });
 
-test('ledger: placings (winner, survivors by score, the dead by when they fell), rows keep the GM-typed buy-in, a Hall of Fame row, once', () => {
+test('ledger: placings (winner, survivors by score, the dead by when they fell), rows keep the GM-typed buy-in, one run record, once', () => {
   const r = started(); const [a, b, c, d] = r.state.seats;
   r.append('META_LEDGER', { playerId: a, buyIn: '$20', notes: 'paid cash' });
   const ca = characterOf(r.state, a), cb = characterOf(r.state, b), cc = characterOf(r.state, c), cd = characterOf(r.state, d);
@@ -104,8 +104,8 @@ test('ledger: placings (winner, survivors by score, the dead by when they fell),
   const by = Object.fromEntries(rows.map(x => [x.playerId, x]));
   assert.equal(by[b].placing, 1); assert.equal(by[b].winner, true); assert.equal(by[c].placing, 2); assert.equal(by[d].placing, 3, 'died later'); assert.equal(by[a].placing, 4);
   assert.equal(by[a].buyIn, '$20'); assert.equal(by[a].notes, 'paid cash'); assert.equal(by[a].survived, false); assert.equal(by[c].vaulted.length, 2); assert.equal(by[c].characterName, cc.name); assert.equal(by[c].mode, 'ffa'); assert.equal(by[b].score, 300 + B.gold.scorePerKill + cb.health);
-  const hof = r.state.hallOfFame.at(-1); assert.equal(hof.code, 'ABCD'); assert.equal(hof.winner, b); assert.equal(hof.players.length, 4); assert.equal(hof.players[0].playerId, b); assert.equal(hof.kills, 1); assert.equal(hof.endReason, 'the throne');
-  r.append('META_LEDGER', { playerId: b, buyIn: '$10' }); assert.equal(r.state.hallOfFame.length, 1, 'finalised once'); assert.equal(r.state.metaLedger.find(x => x.playerId === b).buyIn, '$10');
+  const hof = r.state.runRecord; assert.ok(hof, 'one run record for the night'); assert.equal(hof.code, 'ABCD'); assert.equal(hof.winner, b); assert.equal(hof.players.length, 4); assert.equal(hof.players[0].playerId, b); assert.equal(hof.kills, 1); assert.equal(hof.endReason, 'the throne');
+  r.append('META_LEDGER', { playerId: b, buyIn: '$10' }); assert.equal(r.state.runRecord, hof, 'finalised once'); assert.equal(r.state.metaLedger.find(x => x.playerId === b).buyIn, '$10');
   // a team win places the whole team first
   const t = started({ mode: 'teams' }); t.state.gm.teams = { red: { members: [a, b] } }; t.state.players[a].teamId = 'red'; t.state.players[b].teamId = 'red';
   t.state.winner = 'red'; const p = placings(t.state, ctxFor(t)); assert.deepEqual(p.slice(0, 2).map(x => x.pid).sort(), [a, b].sort()); assert.ok(p[0].winner && p[1].winner && !p[2].winner);
@@ -154,7 +154,7 @@ test('a four-character scripted run: fights, loot, pacts, the Collector, Chaos, 
   // the end
   r.append('GM_END_RUN', { winner: D, reason: 'last call' });
   const rows = r.state.metaLedger; assert.equal(rows.find(x => x.playerId === D).placing, 1); assert.equal(rows.find(x => x.playerId === A).buyIn, '$20'); assert.equal(rows.find(x => x.playerId === D).kills, 1);
-  assert.equal(r.state.hallOfFame.length, 1); assert.ok(r.state.hallOfFame[0].bossesBeaten === 0 && r.state.hallOfFame[0].kills === 1);
+  assert.ok(r.state.runRecord); assert.ok(r.state.runRecord.bossesBeaten === 0 && r.state.runRecord.kills === 1);
   assert.ok(r.state.ledger.length >= 12, 'every move of Health and Gold left a ledger row'); assert.ok(r.state.ledger.every(x => x.kind && x.charId && typeof x.amount === 'number'));
   assert.ok(r.state.log.length <= 300);
 });

@@ -89,12 +89,14 @@ const nameOf = (state, pid) => state.players[pid]?.name || pid;
 // The winner's weapon hits once for stake × multiplier, no roll (crit on a flawless win). Runs the same pipeline
 // the items module uses: damageHooks.stake → outgoing → petHooks.beforeCharacterHit → incoming → health() →
 // afterHit → deathHooks.onZero / onDeath. Returns { dmg, killed, prevented, redirected, info }.
+// `info` follows the items module's shape (attackerId / targetId are character ids; the player ids ride along as
+// attackerPlayerId / targetPlayerId) so every module's damage mods see the same fields whichever path hit.
 export function applyChallengeHit(state, ctx, winnerId, loserId, item, { crit = false, why = 'challenge' } = {}) {
   const atk = charOf(state, winnerId), tgt = charOf(state, loserId);
   if (!tgt) refuse('no target character');
   const CH = ctx.B('challenge');
   const stake = Number(item?.stake) || 0;
-  const info = { attackerId: winnerId, targetId: loserId, attackerCharId: atk?.id || null, targetCharId: tgt.id, attacker: atk, target: tgt, targetKind: 'character', item: item || null, gameId: item?.gameId || null, kind: 'challenge', challenge: true, crit: !!crit, base: stake, stake, mult: crit ? CH.critMult : CH.winMult, flat: 0, notes: [], cancel: false, prevented: false, redirectToPet: null };
+  const info = { attackerId: atk?.id || null, attackerKind: 'character', attackerPlayerId: winnerId, targetId: tgt.id, targetPlayerId: loserId, attacker: atk, target: tgt, targetKind: 'character', item: item || null, gameId: item?.gameId || null, kind: 'challenge', challenge: true, crit: !!crit, base: stake, stake, mult: crit ? CH.critMult : CH.winMult, flat: 0, notes: [], cancel: false, prevented: false, redirectToPet: null };
   runMods(damageHooks.stake, state, ctx, info);
   runMods(damageHooks.outgoing, state, ctx, info);
   runMods(petHooks.beforeCharacterHit, state, ctx, info);
@@ -111,24 +113,28 @@ export function applyChallengeHit(state, ctx, winnerId, loserId, item, { crit = 
   runMods(damageHooks.afterHit, state, ctx, info);
   let killed = false;
   if (tgt.health <= 0 && !tgt.dead) {
-    runMods(deathHooks.onZero, state, ctx, info);
-    if (!info.prevented) {
+    // The death hooks' contract (death.js, items.js characterZero): { charId, killerId, killerKind, byId, byKind }.
+    // byKind set tells death.js the kill is already credited here; it pays gold.perKO and the penalties once.
+    const zi = { ...info, charId: tgt.id, killerId: atk?.id || null, killerKind: 'player', byId: atk?.id || null, byKind: 'player', info, prevented: false };
+    runMods(deathHooks.onZero, state, ctx, zi);
+    info.prevented = !!zi.prevented;
+    if (!zi.prevented) {
       tgt.dead = true; tgt.diedTo = 'player'; tgt.deaths = (tgt.deaths || 0) + 1;
       if (atk) atk.kills = (atk.kills || 0) + 1;
       stat(state, winnerId, 'kills'); stat(state, loserId, 'deaths');
-      // KO Gold is paid once, by death.js's onDeath hook.
-      runMods(deathHooks.onDeath, state, ctx, info);
+      runMods(deathHooks.onDeath, state, ctx, zi);
       killed = true;
     }
   }
   return { dmg, killed, prevented: !!info.prevented, redirected: false, info };
 }
-// A flat penalty (time-outs, the circle): through health(), with the death hooks but no damage mods.
+// A flat penalty (time-outs, the circle): through health(), with the death hooks but no damage mods. Nobody is
+// credited; death.js treats a killer-less death as the minor (monster-style) penalty, as items.js does.
 export function applyPenalty(state, ctx, pid, amount, why) {
   const c = charOf(state, pid); if (!c || c.dead || amount <= 0) return false;
   health(state, c, -amount, why, ctx); stat(state, pid, 'damageTaken', amount);
   if (c.health <= 0 && !c.dead) {
-    const info = { attackerId: null, targetId: pid, targetCharId: c.id, target: c, targetKind: 'character', kind: 'penalty', why, prevented: false, dmg: amount };
+    const info = { charId: c.id, killerId: null, byId: null, attackerId: null, targetId: c.id, targetPlayerId: pid, target: c, targetKind: 'character', kind: 'penalty', why, prevented: false, dmg: amount };
     runMods(deathHooks.onZero, state, ctx, info);
     if (!info.prevented) { c.dead = true; c.diedTo = null; c.deaths = (c.deaths || 0) + 1; stat(state, pid, 'deaths'); runMods(deathHooks.onDeath, state, ctx, info); return true; }
   }
@@ -261,7 +267,7 @@ export function challengeView(state, playerId, now = state.lastEventTs) {
     entry: ch.entry ? { id: ch.entry.id, name: ch.entry.name, hosted: ch.entry.hosted, game: ch.entry.game, link: ch.entry.link, rules: ch.entry.rules, players: ch.entry.players } : null,
     deadline: ch.deadline, secondsLeft: ch.deadline ? Math.max(0, Math.ceil((ch.deadline - now) / 1000)) : null,
     canAnswer: role === 'defender' && !ch.spun && ch.call === 'wager' && !ch.accepted,
-    needsWeapon: role === 'defender' && !ch.spun && ch.call !== 'wager' && !ch.defenderItemId,
+    needsWeapon: role === 'defender' && !ch.spun && ch.call !== 'wager' && !ch.defenderItemId && !ch.defenderAnswered,
     hosted: game ? hosted.phoneView(game, playerId, now) : null,
     reportButtons: ch.spun && !ch.done && !(game && hosted.isPurposeBuilt(ch.entry.game)) && role !== 'spectator' ? [ch.attackerId, ch.defenderId].map(id => ({ winnerId: id, name: nameOf(state, id) })).concat([{ winnerId: 'draw', name: 'Draw' }]) : [],
     myReport: ch.reports?.[playerId] ?? null, reports: ch.entry && !ch.entry.hosted ? ch.reports : undefined,
@@ -331,8 +337,11 @@ register({
     if (ch.spun) refuse('the wheel already spun');
     const def = charOf(state, ch.defenderId), p = ctx.payload;
     if (p.accept != null && ch.call !== 'wager') refuse(p.accept ? 'nothing to accept' : 'a Duel or Robbery cannot be declined');
-    const it = p.itemId !== undefined ? weaponOf(def, p.itemId) : null; if (p.itemId !== undefined && !it) refuse('no such weapon');
-    if (it) ch.defenderItemId = it.id;
+    // itemId: an id picks the weapon; null means bare hands (a defender who dropped everything still plays — a win
+    // just lands no hit); undefined leaves the default (main hand) in place.
+    const it = p.itemId ? weaponOf(def, p.itemId) : null; if (p.itemId && !it) refuse('no such weapon');
+    if (it) ch.defenderItemId = it.id; else if (p.itemId === null) { ch.defenderItemId = null; ch.defenderBareHands = true; }
+    ch.defenderAnswered = true;
     if (p.accept === false) { cancelCall(state, ctx, `${nameOf(state, ch.defenderId)} declines the wager`); return; }
     if (p.accept === true) { ch.accepted = true; note(state, `${nameOf(state, ch.defenderId)} accepts the wager`, 'challenge', ctx.now); }
   },

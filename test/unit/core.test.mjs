@@ -59,17 +59,21 @@ test('turns: order is derived from turnIdx, held seats are skipped, clocks bank 
   const r = room().join(names4);
   r.append('RUN_START'); assert.equal(r.state.phase, 'playing'); assert.equal(r.state.seats.length, 4);
   const first = currentPlayerId(r.state); assert.ok(first);
-  assert.equal(remainingMs(r.state, first, r.now()), 90_000);
-  r.tick(10_000); assert.equal(remainingMs(r.state, first, r.now()), 80_000);
+  // With the full reducer, RUN_START gives every seat a default character (creation.js), and Nerve above neutral
+  // adds shot-clock seconds (run.js). The turn clock is therefore perTurn + Nerve bonus, read from the real stats.
+  const turnMs = (pid) => { const c = shared.characterOf(r.state, pid); const bonus = Math.max(0, (c?.stats?.nerve || 0) - B.stats.neutral) * B.health.nerveClockSeconds; return (B.clock.perTurnSeconds + bonus) * 1000; };
+  const firstMs = turnMs(first); assert.ok(firstMs >= B.clock.perTurnSeconds * 1000);
+  assert.equal(remainingMs(r.state, first, r.now()), firstMs);
+  r.tick(10_000); assert.equal(remainingMs(r.state, first, r.now()), firstMs - 10_000);
   assert.match(r.try('TURN_END', {}, 'nobody').message, /cannot act/);
   r.append('TURN_END', {}, first); assert.equal(r.state.turnIdx, 1); assert.notEqual(currentPlayerId(r.state), first);
-  assert.equal(r.state.clocks[first].bankMs, 80_000, 'unused time is banked');
-  // hold the next player: they are skipped by derivation
-  const second = currentPlayerId(r.state); r.state.held[second] = { since: r.now() };
+  assert.equal(r.state.clocks[first].bankMs, firstMs - 10_000, 'unused time is banked');
+  // hold the next player in a challenge: they are skipped by derivation (the mover of a turn in progress is sticky)
+  const second = currentPlayerId(r.state); r.state.held[second] = { since: r.now(), challengeId: 'ch1' };
   assert.notEqual(currentPlayerId(r.state), second); delete r.state.held[second];
   // timeout only at zero
   const cur = currentPlayerId(r.state); assert.match(r.try('TURN_TIMEOUT', {}, 'system').message, /not yet/);
-  r.tick(90_001); r.append('TURN_TIMEOUT', {}, 'system'); assert.notEqual(currentPlayerId(r.state), cur);
+  r.tick(remainingMs(r.state, cur, r.now()) + 1); r.append('TURN_TIMEOUT', {}, 'system'); assert.notEqual(currentPlayerId(r.state), cur);
   // four turns = one round
   for (let i = 0; i < 2; i++) r.append('TURN_END', {}, currentPlayerId(r.state));
   assert.equal(r.state.round, 2);

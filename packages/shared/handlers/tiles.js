@@ -155,19 +155,24 @@ export function dropFromMonster(state, ctx, m, byId, { credited = false } = {}) 
   if (m.linkedTo && state.monsters[m.linkedTo] && !state.monsters[m.linkedTo].dead) { markMonsterDead(state, state.monsters[m.linkedTo]); note(state, `${state.monsters[m.linkedTo].name} dies with its link`, 'fight', ctx.now); }
   const tierScale = 1 + M.lootGoldTierScale * (Math.max(1, state.tier || 1) - 1);
   const moodMult = m.mood?.lootMult || 1;
-  const [lo, hi] = m.loot.gold; const total = Math.round(rng.int(lo, hi) * tierScale * moodMult);
+  // A monster from monsters.json carries loot: { gold: [lo, hi], rarity, egg, dropChance }; a stub from another
+  // module may carry a bare number, or no loot at all.
+  const loot = m.loot && typeof m.loot === 'object' ? m.loot : { gold: Number(m.loot) || 0 };
+  const [lo, hi] = Array.isArray(loot.gold) ? loot.gold : [Number(loot.gold) || 0, Number(loot.gold) || 0];
+  const dropChance = Number(loot.dropChance) || 0, eggChance = Number(loot.egg) || 0;
+  const total = Math.round(rng.int(lo, hi) * tierScale * moodMult);
   const party = (state.fight && state.fight.monsterId === m.id && (m.raid || m.boss)) ? state.fight.playerIds.map(pid => characterOf(state, pid)).filter(c => c && !c.dead) : [];
   const receivers = party.length ? party : killer ? [killer] : [];
   const share = receivers.length ? Math.floor(total / receivers.length) : 0;
   for (const c of receivers) { if (share > 0) { gold(state, c, share, `${m.name} drops`, ctx); if (state.stats[c.playerId]) state.stats[c.playerId].goldEarned += share; } }
   const drops = { gold: total, items: [], egg: false, monsterId: m.id };
   for (const c of receivers) {
-    if (rng.chance(Math.min(1, m.loot.dropChance * moodMult))) {
-      const rarity = rollRarity(state, ctx, { regionId: m.regionId, charId: c.id, weights: m.loot.rarity });
+    if (rng.chance(Math.min(1, dropChance * moodMult))) {
+      const rarity = rollRarity(state, ctx, { regionId: m.regionId, charId: c.id, weights: loot.rarity || null });
       const item = pushLoot(c, { baseId: 'loot', rarity, region: m.regionId, seed: Math.floor(rng.next() * 4294967296) >>> 0 });
       drops.items.push({ charId: c.id, rarity }); note(state, `${m.name} drops a ${rarity} item for ${c.name}`, 'loot', ctx.now);
     }
-    if (rng.chance(Math.min(1, m.loot.egg * M.eggChanceScale))) { pushLoot(c, { baseId: 'egg', slot: 'egg', rarity: 'common', region: m.regionId, seed: Math.floor(rng.next() * 4294967296) >>> 0 }); drops.egg = true; note(state, `${m.name} leaves an egg for ${c.name}`, 'loot', ctx.now); }
+    if (rng.chance(Math.min(1, eggChance * M.eggChanceScale))) { pushLoot(c, { baseId: 'egg', slot: 'egg', rarity: 'common', region: m.regionId, seed: Math.floor(rng.next() * 4294967296) >>> 0 }); drops.egg = true; note(state, `${m.name} leaves an egg for ${c.name}`, 'loot', ctx.now); }
     counter(c, 'monsterKills');
     if (m.boss || m.raid || m.final) { counter(c, 'bosses'); if (!credited && state.stats[c.playerId]) state.stats[c.playerId].bosses += 1; }
   }

@@ -2,14 +2,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { room, names4, B } from './_helpers.mjs';
-import { makeMap, makeCharacter, makeItem, land, slayCharacter, ctxFor, COL, at, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
+import { makeMap, startRun, makeCharacter, makeItem, land, slayCharacter, ctxFor, COL, at, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
 import { pactInterest, scoreOf, sellPriceOf, openPacts } from '../../packages/shared/handlers/economy.js';
 import { spawnMonster } from '../../packages/shared/encounters/monsters.js';
 
 function started({ seed = 42, mode = 'ffa' } = {}) {
   const r = room({ seed, mode }).join(names4); makeMap(r.state);
   for (const pid of r.state.seats) makeCharacter(r.state, pid, { pos: at('strip', COL.start), gold: 500, health: 80 });
-  r.append('RUN_START'); return r;
+  startRun(r); return r;
 }
 const lap = (r) => { for (let i = 0; i < r.state.seats.length; i++) r.append('TURN_END', {}, currentPlayerId(r.state)); };
 
@@ -137,7 +137,9 @@ test('Trades: an offer is checked, answered any time, settled at the next end of
   assert.match(r.try('TRADE_ANSWER', { tradeId: t.id, accept: true }, a).message, /cannot act/);
   r.append('TRADE_ANSWER', { tradeId: t.id, accept: true }, b); assert.equal(t.status, 'accepted'); assert.equal(ca.gold, 500, 'nothing moves yet');
   r.append('TURN_END', {}, currentPlayerId(r.state));
-  assert.equal(t.status, 'settled'); assert.equal(ca.gold, 420); assert.equal(cb.gold, 580); assert.equal(ca.items[blade.id], undefined); assert.equal(ca.grid.cells.length, 0); assert.equal(cb.pendingLoot.at(-1).item.id, blade.id);
+  assert.equal(t.status, 'settled'); assert.equal(ca.gold, 420); assert.equal(cb.gold, 580); assert.equal(ca.items[blade.id], undefined); assert.equal(ca.grid.cells.length, 0);
+  // the blade is handed over as a pendingLoot spec; the inventory module materialises it into the grid at b's turn start
+  assert.ok(cb.items[blade.id] || cb.pendingLoot.some(s => s.item?.id === blade.id), 'the blade is b\'s now');
   assert.deepEqual(cb.pets, []); assert.equal(cb.activePetId, null); assert.equal(ca.pets[0].id, 'pet1'); assert.equal(ca.activePetId, 'pet1');
   // decline; and a trade whose goods vanished fails at settlement
   r.append('TRADE_OFFER', { toId: a, give: { gold: 10 } }, b); r.append('TRADE_ANSWER', { tradeId: r.state.trades[1].id, accept: false }, a); assert.equal(r.state.trades[1].status, 'declined');

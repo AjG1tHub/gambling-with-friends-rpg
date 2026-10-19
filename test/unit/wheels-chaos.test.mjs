@@ -2,14 +2,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { room, names4, B } from './_helpers.mjs';
-import { makeMap, makeCharacter, land, landHit, ctxFor, COL, at, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
+import { makeMap, startRun, makeCharacter, land, landHit, ctxFor, COL, at, characterOf, currentPlayerId } from './_fixtures-economy.mjs';
 import { rollLoot, rollRarity, spinWheel, applyChaosToVictim, chaosTierMult, WHEELS } from '../../packages/shared/handlers/wheels.js';
 import { monsterAt } from '../../packages/shared/encounters/monsters.js';
 
 function started({ seed = 42, mode = 'ffa', tier = 1 } = {}) {
   const r = room({ seed, mode, tier }).join(names4); makeMap(r.state);
   for (const pid of r.state.seats) makeCharacter(r.state, pid, { pos: at('strip', COL.start), gold: 100, health: 60 });
-  r.append('RUN_START'); return r;
+  startRun(r); return r;
 }
 const spinAt = (r, pid, col, wheel, rigLabel = null, region = 'strip') => { if (rigLabel) r.append('GM_RIG', { stream: 'wheels', value: rigLabel }); land(r, pid, at(region, col)); r.append('WHEEL_SPIN', { wheel }, pid); return r.state.lastSpin; };
 
@@ -94,6 +94,7 @@ test('Chaos: tiers rise with the rounds, segments unlock by tier, the tier multi
   assert.equal(r.state.chaos.tier, 2); assert.equal(r.state.chaos.roundsAtTier, 0);
   assert.equal(chaosTierMult(r.state, ctx), B.chaos.tierDamageMult[1]);
   const pid = currentPlayerId(r.state); const c = characterOf(r.state, pid); const m = monsterAt(r.state, at('strip', COL.enc1));
+  c.classId = 'cutpurse';   // a class with no damage passive (the Whale's +15% lives in the items module), so only Chaos touches this hit
   const hit = landHit(r, c.id, m.id); assert.equal(hit.damageMult, B.chaos.tierDamageMult[1]); assert.equal(hit.mult, 2, 'the game multiplier is never touched'); assert.ok(hit.notes.some(n => /Chaos tier/.test(n)));
   // segments on the wheel at tier 2 exclude minTier 3+
   r.append('GM_CHAOS', { tier: 2 }); land(r, pid, at('strip', COL.chaos)); r.append('GM_RIG', { stream: 'wheels', value: 'Mercy' }); r.append('CHAOS_SPIN', {}, pid);

@@ -73,7 +73,7 @@ export function scaleFor(state, ctx = null) {
 // ---- geometry helpers -------------------------------------------------------------------------------------------
 
 function layoutFor(maxN) {
-  let r = 1; while (3 * r * r + 3 * r + 1 < maxN * GROW_SLACK) r++;
+  let r = 1; while (3 * r * r + 3 * r + 1 < maxN * GROW_SLACK) r++;   // literal: hexes in a filled hexagon of radius r
   const S = 2 * r + 2;   // even, so the half-way line between two centres falls on a hex row that belongs to nobody
   const centres = {};
   for (const id of REGION_ORDER) { const u = CENTRE_UNITS[id]; centres[id] = { q: u.q * S, r: u.r * S }; }
@@ -112,7 +112,7 @@ function clusterNeighbourCount(k, cluster) { let n = 0; for (const nb of H.neigh
 // `pull` is the list of neighbouring centres: hexes on the near side towards a neighbour weigh more, so the
 // clusters reach for each other and the gaps the bridges cross stay short.
 function growCluster(rng, centreKey, territory, n, pull, spacing) {
-  const holesWanted = Math.max(1, Math.floor(n / 8));
+  const holesWanted = Math.max(1, Math.floor(n / 8));   // literal: one hole per eight cluster hexes (shape, not a tunable)
   const cluster = new Set([centreKey]);
   const target = Math.min(n + holesWanted, territory.size);
   while (cluster.size < target) {
@@ -129,7 +129,7 @@ function growCluster(rng, centreKey, territory, n, pull, spacing) {
   }
   // Holes: interior hexes whose removal keeps the blob connected.
   const holes = [];
-  let interior = rng.shuffle([...cluster].filter(k => k !== centreKey && clusterNeighbourCount(k, cluster) >= 3));
+  let interior = rng.shuffle([...cluster].filter(k => k !== centreKey && clusterNeighbourCount(k, cluster) >= 3));   // literal: an interior hex touches at least three of its cluster
   for (const k of interior) {
     if (holes.length >= holesWanted || cluster.size <= n) break;
     if (!connected(cluster, k)) continue;
@@ -148,13 +148,13 @@ function growCluster(rng, centreKey, territory, n, pull, spacing) {
 // Shortest bridge of gap hexes from any hex of A to any hex of B. `gapOk(k)` says whether a hex may carry a bridge.
 function findBridge(rng, clusterA, clusterB, gapOk) {
   const prev = new Map(), depth = new Map(), queue = [];
-  const offset = rng.int(0, 5);
+  const offset = rng.int(0, 5);   // literal: one of the six hex directions
   for (const k of rng.shuffle([...clusterA])) { depth.set(k, 0); queue.push(k); }
   while (queue.length) {
     const k = queue.shift(), d = depth.get(k);
     if (d >= MAX_BRIDGE_LEN) continue;
     const h = H.parse(k);
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) {   // literal: the six hex directions
       const nb = H.neighbor(h, i + offset), nk = H.key(nb);
       if (depth.has(nk) || clusterA.has(nk)) continue;
       if (clusterB.has(nk)) { if (d === 0) continue; const out = []; let cur = k; while (depth.get(cur) > 0) { out.unshift(cur); cur = prev.get(cur); } return out; }

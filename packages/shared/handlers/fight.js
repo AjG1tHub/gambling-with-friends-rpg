@@ -3,9 +3,9 @@
 // only through monsterHealth() so the ledger has every row. The TV plays the monster's item headlessly through the
 // adapter (playMonsterTurn) and appends MONSTER_ACT with the result; the reducer applies it through the same payoff
 // path as a player's hit (handlers/items.js › resolveHit).
-import { register, refuse, requirePhase, requireActor, requireGm } from '../reducer.js';
+import { onAfter, register, refuse, requirePhase, requireActor, requireGm } from '../reducer.js';
 import { currentPlayerId, characterOf, playerOfCharacter, note, alive } from '../state.js';
-import { lootHooks, levelHooks } from '../hooks.js';
+import { lootHooks, levelHooks, moveHooks } from '../hooks.js';
 import { hooks as runHooks } from './run.js';
 import { resolveHit, inReach, stripSecret } from './items.js';
 import { startRound } from '../../games/adapter.js';
@@ -27,12 +27,23 @@ export function monsterHealth(state, m, delta, why, ctx) {
 }
 export function makeDummy(state, ctx, { id = 'dummy', health = null, items = [] } = {}) {
   const hp = health ?? ctx.B('monsters').healthCommon;
-  const m = { id, speciesId: 'dummy', name: 'Training Dummy', regionId: null, pos: null, health: hp, maxHealth: hp, stats: { luck: ctx.B('stats').neutral, nerve: ctx.B('stats').neutral, greed: ctx.B('stats').neutral, grit: ctx.B('stats').neutral }, items, boss: false, raid: false, final: false, gmControlled: false, dead: false, linkedTo: null, loot: { gold: 0, items: [], egg: false }, dummy: true };
+  const m = { id, speciesId: 'dummy', name: 'Training Dummy', regionId: null, pos: null, health: hp, maxHealth: hp, stats: { luck: ctx.B('stats').neutral, nerve: ctx.B('stats').neutral, greed: ctx.B('stats').neutral, grit: ctx.B('stats').neutral }, items, boss: false, raid: false, final: false, gmControlled: false, dead: false, linkedTo: null, loot: { gold: [0, 0], items: [], egg: 0, dropChance: 0 }, dummy: true };
   state.monsters[id] = m; return m;
+}
+// A fight whose player ended their turn (run.js marks `passed`) stays open only for the monster's parting blow.
+// If nobody delivered it before another engagement needs the slot, the player has simply walked away.
+export function settleStaleFight(state, ctx) {
+  const f = state.fight; if (!f || f.done || !f.passed || f.turn !== 'monster') return false;
+  f.done = true; f.result = 'left'; f.endedAt = ctx.now;
+  state.lastFight = { id: f.id, kind: f.kind, monsterId: f.monsterId, result: f.result, endedAt: ctx.now };
+  note(state, `${characterOf(state, f.playerId)?.name || f.playerId} leaves ${state.monsters[f.monsterId]?.name || 'the fight'} behind`, 'fight', ctx.now);
+  state.fight = null;
+  return true;
 }
 export function openFight(state, ctx, pid, monsterId) {
   const m = state.monsters[monsterId]; if (!m || m.dead) refuse('no such monster', 'target');
   const c = characterOf(state, pid); if (!c) refuse('no character');
+  settleStaleFight(state, ctx);
   if (state.fight && !state.fight.done && state.fight.kind !== 'solo') refuse('a fight is already open', 'busy');
   if (!inReach(state, c.id, m.pos, ctx)) refuse('the monster is not here', 'reach');
   state.fight = { id: `fight-${ctx.now.toString(36)}-${(state.eventCount || 0).toString(36)}`, kind: m.final ? 'boss' : m.raid ? 'raid' : m.boss ? 'boss' : 'encounter', monsterId, playerIds: [pid], playerId: pid, turn: 'player', game: null, log: [], done: false, result: null, startedAt: ctx.now, rig: null, fled: false };
@@ -131,6 +142,9 @@ register({
   },
 });
 
+// A mover landing on a tile (tiles.js may open an encounter there) finds the slot free of a walked-away fight.
+moveHooks.afterMove.push((state, ctx) => { settleStaleFight(state, ctx); });
+
 // End of turn: a solo (PvP) fight is spent; a done encounter is cleared; an open encounter hands the monster its move
 // (run.js already marks fight.passed) and the fight ends after that blow if its player is no longer up.
 runHooks.turnEnd.push((state, ctx, pid) => {
@@ -142,4 +156,11 @@ runHooks.turnEnd.push((state, ctx, pid) => {
     if (m && !m.dead && alive(characterOf(state, pid))) f.turn = 'monster';
     else { f.done = true; f.result = f.result || 'left'; }
   }
+});
+
+// When the mover's fight ends (won, fled, left, lost) while the tile is still resolving, the turn moves on to the
+// action phase so the phone shows Shop/Bag/End turn instead of waiting on a finished fight.
+onAfter((state) => {
+  const f = state.fight; if (!f || !f.done || state.phase !== 'playing') return;
+  if (state.turnPhase === 'resolve' && !state.pendingPrompt && (f.playerId === currentPlayerId(state) || f.kind === 'solo')) state.turnPhase = 'action';
 });

@@ -15,7 +15,9 @@ export const hooks = { runStart: [], turnStart: [], turnEnd: [], roundEnd: [], e
 export function beginTurn(state, ctx) {
   let guard = 0;
   while (guard++ < 64) {
+    state.moverId = null;
     const pid = currentPlayerId(state); if (!pid) return;
+    state.moverId = pid;
     const p = state.players[pid], c = ensureCharacterShape(characterOf(state, pid));
     state.turnStartedAt = ctx.now; state.turnPhase = 'move'; state.moveSession = null; state.pendingPrompt = null;
     state.stats[pid] && (state.stats[pid].turns += 1);
@@ -31,6 +33,7 @@ export function beginTurn(state, ctx) {
 }
 export function finishTurn(state, ctx, pid, how) {
   stopClock(state, pid, ctx.now);
+  state.moverId = null;
   for (const h of hooks.turnEnd) h(state, ctx, pid, how);
   const seats = activeSeats(state), before = state.turnIdx;
   state.turnIdx += 1;
@@ -40,7 +43,9 @@ export function finishTurn(state, ctx, pid, how) {
 }
 export function endTurn(state, ctx, how = 'ended') {
   const pid = currentPlayerId(state); if (!pid) return;
-  if (state.fight && state.fight.playerId === pid && !state.fight.done) { state.fight.passed = true; }
+  // Leaving an encounter mid-fight: the monster gets a parting blow (the TV plays it), then the fight closes as 'left'.
+  if (state.fight && state.fight.playerId === pid && !state.fight.done && state.fight.kind !== 'solo') { state.fight.passed = true; state.fight.turn = 'monster'; if (state.fight.game && !state.fight.game.result) { state.fight.abandonedGame = state.fight.game; state.fight.game = null; } }
+  if (state.fight && state.fight.kind === 'solo' && state.fight.playerId === pid) state.fight.done = true;
   finishTurn(state, ctx, pid, how);
   if (state.phase === 'playing') beginTurn(state, ctx);
 }

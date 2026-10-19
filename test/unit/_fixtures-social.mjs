@@ -1,12 +1,21 @@
-// Fixtures for the challenge / social / modes suites: a seated table with characters, weapons, Gold and a small
-// hex map built directly per docs/STATE.md (no map or characters module needed).
+// Fixtures for the challenge / social / modes suites: a seated table run through the full reducer (RUN_START with
+// every module active), then dressed for the suites: the fixture's characters (same ids as the defaults creation
+// makes, so nothing is orphaned), hand-built weapons and Gold, and a small hex map with known keys per docs/STATE.md
+// in place of the generated one, so the tests can reason about reach, tiles and the Royale circle by hand.
 import { room, shared, currentPlayerId, characterOf } from './_helpers.mjs';
 import '../../packages/shared/handlers/challenge.js';
 import '../../packages/shared/handlers/social.js';
 import '../../packages/shared/handlers/modes.js';
+import { convertForPvp } from '../../packages/shared/handlers/modes.js';
 import * as hex from '../../packages/shared/hex.js';
 
 export { room, shared, currentPlayerId, characterOf, hex };
+
+// The suites count damage in round stakes (a 10-stake hit lands for 10). Grit trims every hit by
+// health.gritReducePerPoint per point and the default class (Whale) discounts stakes and adds damage, so those
+// three knobs are zeroed per room; a test that wants the real numbers passes `neutral: false`.
+export const NEUTRAL_BALANCE = { health: { gritReducePerPoint: 0 }, classes: { whaleStakeDiscount: 0, whaleDamageBonus: 0 } };
+const mergeBalance = (a, b) => { const out = structuredClone(a || {}); for (const [g, keys] of Object.entries(b || {})) out[g] = { ...(out[g] || {}), ...keys }; return out; };
 
 let n = 0;
 export function makeItem({ id, name = 'Loaded Dice', stake = 10, kind = 'attack', gameId = 'dice', rarity = 'common', slot = 'weapon', reach = null, baseId = 'loadeddice', legendaryId = null, extra = {} } = {}) {
@@ -16,14 +25,14 @@ export function makeItem({ id, name = 'Loaded Dice', stake = 10, kind = 'attack'
 export function makeCharacter(pid, { name = pid, classId = 'whale', pos = '0,0', gold = 100, health = 100, maxHealth = 100, level = 1, stake = 10, upgrades = [], items = [], helmet = null } = {}) {
   const weapon = makeItem({ id: `${pid}-weapon`, stake });
   const all = { [weapon.id]: weapon }; for (const it of items) all[it.id] = it; if (helmet) all[helmet.id] = helmet;
-  return {
+  return shared.ensureCharacterShape({
     id: `c-${pid}`, playerId: pid, rosterId: `r-${pid}`, name, crest: '🂠', look: { body: 0, skin: 0, face: 0, hair: 0, coat: '#000' }, classId, level, xp: 0, statPoints: 0, stats: { luck: 3, nerve: 3, greed: 3, grit: 3 },
     health, maxHealth, shield: 0, gold, bank: 0, chips: 0, pos, lastSafePos: pos, region: 'strip',
     worn: { mainhand: weapon, offhand: null, spell1: null, spell2: null, helmet, torso: null, pants: null, gloves: null, boots: null, ring1: null, ring2: null, ring3: null, ring4: null, necklace: null, cape: null },
     grid: { cols: 8, rows: 6, cells: [] }, items: all, pets: [], activePetId: null,
-    dead: false, missTurns: 0, deaths: 0, graveyardPos: null, diedTo: null, cooldowns: { active: 0 }, activeUses: 0, effects: [], pactIds: [], wanted: 0, kills: 0, titles: [], quests: [], upgrades,
+    dead: false, missTurns: 0, deaths: 0, graveyardPos: null, diedTo: null, cooldowns: { active: 0 }, activeUses: {}, effects: [], pactIds: [], wanted: 0, kills: 0, titles: [], quests: [], upgrades,
     usedThisTurn: { attack: 0, spell: 0, moved: false }, turnsTaken: 0, streak: 0, freeRestakeUsed: false, freeSmokeBombs: 0, buyinSpun: true, locked: true, creation: null,
-  };
+  });
 }
 // A filled hexagon of radius `radius` around 0,0: plain hexes, a few encounters, the courier post, start and throne.
 export function makeMap({ radius = 3, courier = '2,0', start = '0,0', throne = '-3,0', encounters = ['1,1', '-1,-1', '2,-2'] } = {}) {
@@ -36,18 +45,23 @@ export function makeMap({ radius = 3, courier = '2,0', start = '0,0', throne = '
 }
 // Four seats, characters placed by seat order after RUN_START so seat 0 and seat 1 are adjacent:
 // positions default to 0,0 / 1,0 / 0,1 / 1,-1 (every pair within 2, the first two adjacent).
-export function table({ names = ['Aj', 'Nick', 'Sam', 'Vin'], mode = 'ffa', seed = 42, tier = 1, size = 'regular', gold = 100, start = true, positions = ['0,0', '1,0', '0,1', '1,-1', '-1,1', '2,-1', '-1,0', '0,-1'], char = {}, balance = null, map = {} } = {}) {
-  const r = room({ seed, mode, tier, size, balance }).join(names);
+// `map`: options for makeMap, or 'generated' to keep the map RUN_START built. `neutral: false` keeps Grit and the
+// Whale's stake/damage passives live (see NEUTRAL_BALANCE).
+export function table({ names = ['Aj', 'Nick', 'Sam', 'Vin'], mode = 'ffa', seed = 42, tier = 1, size = 'regular', gold = 100, start = true, positions = ['0,0', '1,0', '0,1', '1,-1', '-1,1', '2,-1', '-1,0', '0,-1'], char = {}, balance = null, map = {}, neutral = true } = {}) {
+  const r = room({ seed, mode, tier, size, balance: neutral ? mergeBalance(NEUTRAL_BALANCE, balance) : balance }).join(names);
   const ids = names.map((_, i) => 'p' + i);
-  r.state.map = makeMap(map);
-  if (start) r.append('RUN_START');
+  if (start) r.append('RUN_START');   // the whole game starts: seats, default characters, the generated map, monsters, quests
   const order = start ? r.state.seats.slice() : ids.slice();
+  // The hand-built map replaces the generated one (and in PvP is converted the way the game converts a late map).
+  if (map !== 'generated') {
+    r.state.map = makeMap(map); r.state.monsters = {};
+    for (const h of Object.values(r.state.map.hexes)) if (h.monsterId) r.state.monsters[h.monsterId] = { id: h.monsterId, speciesId: 'card_shark', name: 'Card Shark', regionId: 'strip', pos: h.key, health: 60, maxHealth: 60, stats: {}, items: [], boss: false, raid: false, final: false, gmControlled: false, dead: false, linkedTo: null, loot: {} };
+    if (start && mode === 'pvp') convertForPvp(r.state, { now: r.now(), B: (g) => shared.group(r.state, g) });
+  }
   for (const pid of ids) {
     const c = makeCharacter(pid, { name: r.state.players[pid].name, gold, pos: positions[order.indexOf(pid)] || '0,0', ...(typeof char === 'function' ? char(pid) : char) });
     r.state.characters[c.id] = c; r.state.players[pid].characterId = c.id;
   }
-  // Monsters for the encounter hexes so PvP conversion and the final-boss check have something to look at.
-  for (const h of Object.values(r.state.map.hexes)) if (h.monsterId) r.state.monsters[h.monsterId] = { id: h.monsterId, speciesId: 'card_shark', name: 'Card Shark', regionId: 'strip', pos: h.key, health: 60, maxHealth: 60, stats: {}, items: [], boss: false, raid: false, final: false, gmControlled: false, dead: false, linkedTo: null, loot: {} };
   const api = {
     r, ids, order, get state() { return r.state; },
     char: (pid) => characterOf(r.state, pid),

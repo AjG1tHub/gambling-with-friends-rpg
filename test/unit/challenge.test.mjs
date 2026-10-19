@@ -205,23 +205,38 @@ test('robbery: success takes the Gold; failure pays it back and makes the robber
 
 test('the hit runs the damage pipeline and the death hooks; a flawless win is a crit; pets take it first', () => {
   const t = table(); const [a, b] = t.order;
-  const seen = []; const out = (s, c, info) => { seen.push(info.kind); info.mult += 0.5; }; const died = []; const onDeath = (s, c, info) => died.push(info.targetId);
+  const ctx = (now) => ({ now, B: (g) => shared.group(t.state, g) });
+  // info carries character ids like the items pipeline; the death hooks get { charId, killerId, killerKind }
+  const seen = []; const out = (s, c, info) => { seen.push(info.kind); info.mult += 0.5; }; const died = []; const onDeath = (s, c, info) => died.push([info.charId, info.killerId, info.killerKind]);
   damageHooks.outgoing.push(out); deathHooks.onDeath.push(onDeath);
   try {
-    let r = applyChallengeHit(t.state, { now: 1, B: (g) => B[g] }, a, b, t.char(a).worn.mainhand, { crit: false });
+    let r = applyChallengeHit(t.state, ctx(1), a, b, t.char(a).worn.mainhand, { crit: false });
     assert.equal(r.dmg, 15); assert.equal(t.char(b).health, 85); assert.deepEqual(seen, ['challenge']);
-    r = applyChallengeHit(t.state, { now: 2, B: (g) => B[g] }, a, b, t.char(a).worn.mainhand, { crit: true });
+    assert.equal(r.info.attackerId, t.char(a).id); assert.equal(r.info.targetId, t.char(b).id); assert.equal(r.info.targetPlayerId, b);
+    r = applyChallengeHit(t.state, ctx(2), a, b, t.char(a).worn.mainhand, { crit: true });
     assert.equal(r.dmg, 25, 'crit: stake × (critMult + 0.5)');
-    t.char(b).shield = 10; r = applyChallengeHit(t.state, { now: 3, B: (g) => B[g] }, a, b, t.char(a).worn.mainhand); assert.equal(t.char(b).health, 60 - 5, 'shield absorbs first');
-    t.char(b).health = 4; r = applyChallengeHit(t.state, { now: 4, B: (g) => B[g] }, a, b, t.char(a).worn.mainhand);
-    assert.equal(r.killed, true); assert.deepEqual(died, [b]); assert.equal(t.char(b).dead, true); assert.equal(t.char(a).gold, 100 + B.gold.perKO);
+    t.char(b).shield = 10; r = applyChallengeHit(t.state, ctx(3), a, b, t.char(a).worn.mainhand); assert.equal(t.char(b).health, 60 - 5, 'shield absorbs first');
+    t.char(b).health = 4; r = applyChallengeHit(t.state, ctx(4), a, b, t.char(a).worn.mainhand);
+    assert.equal(r.killed, true); assert.deepEqual(died, [[t.char(b).id, t.char(a).id, 'player']]); assert.equal(t.char(b).dead, true);
+    // death.js's penalties ran: KO Gold paid once, turns missed, the body at the Graveyard (the start here), the killer offered the worn gear
+    assert.equal(t.char(a).gold, 100 + B.gold.perKO); assert.equal(t.char(a).kills, 1); assert.equal(t.state.stats[a].kills, 1); assert.equal(t.state.stats[b].deaths, 1);
+    assert.equal(t.char(b).missTurns, B.death.playerMissTurns); assert.equal(t.char(b).pos, t.state.map.start); assert.equal(t.state.pendingPrompt?.kind, 'takeWorn'); assert.equal(t.state.pendingPrompt.playerId, a);
+    assert.ok(t.state.wall.includes(t.char(b).name), 'the name goes on the Wall');
     // a pet in front takes the hit
     const c = t.order[2]; t.char(c).pets = [{ id: 'pet1', name: 'Mucky', power: 30, fainted: false }];
-    const redirect = (s, cx, info) => { if (info.targetId === c) info.redirectToPet = 'pet1'; };
+    const redirect = (s, cx, info) => { if (info.targetPlayerId === c) info.redirectToPet = 'pet1'; };
     petHooks.beforeCharacterHit.push(redirect);
-    try { r = applyChallengeHit(t.state, { now: 5, B: (g) => B[g] }, a, c, t.char(a).worn.mainhand); assert.equal(r.redirected, true); assert.equal(t.char(c).pets[0].power, 15); assert.equal(t.char(c).health, 100); }
+    try { r = applyChallengeHit(t.state, ctx(5), a, c, t.char(a).worn.mainhand); assert.equal(r.redirected, true); assert.equal(t.char(c).pets[0].power, 15); assert.equal(t.char(c).health, 100); }
     finally { petHooks.beforeCharacterHit.splice(petHooks.beforeCharacterHit.indexOf(redirect), 1); }
   } finally { damageHooks.outgoing.splice(damageHooks.outgoing.indexOf(out), 1); deathHooks.onDeath.splice(deathHooks.onDeath.indexOf(onDeath), 1); }
+  // the real pets module redirects to the active pet on its own
+  const d = t.order[3]; t.char(d).pets = [{ id: 'pet2', name: 'Chips', power: 40, maxPower: 40, fainted: false, attacks: [] }]; t.char(d).activePetId = 'pet2';
+  const rp = applyChallengeHit(t.state, ctx(6), a, d, t.char(a).worn.mainhand); assert.equal(rp.redirected, true); assert.equal(t.char(d).pets[0].power, 30); assert.equal(t.char(d).health, 100);
+  // with the table's neutralisers off, the other modules' mods apply: the Whale's stake discount and damage bonus, the target's Grit
+  const live = table({ neutral: false }); const [x, y] = live.order;
+  const rl = applyChallengeHit(live.state, { now: 7, B: (g) => shared.group(live.state, g) }, x, y, live.char(x).worn.mainhand);
+  assert.equal(rl.dmg, Math.round(10 * (1 - B.classes.whaleStakeDiscount) * (1 + B.classes.whaleDamageBonus) * (1 - live.char(y).stats.grit * B.health.gritReducePerPoint)));
+  assert.ok(rl.info.notes.includes('Whale') && rl.info.notes.some(n => /grit/.test(n)), rl.info.notes.join('; '));
 });
 
 test('Enforcer Call Out reaches three hexes and marks the challenge; a non-Enforcer cannot', () => {

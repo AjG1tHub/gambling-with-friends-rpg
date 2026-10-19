@@ -121,7 +121,8 @@ test('inventory hooks: stake discounts, damage affixes, guard + grit, ward refun
   assert.equal(a.worn.helmet, null, 'crumbled'); assert.ok(!a.items[gilt.id]);
   // Greedy necklace pays extra Gold on a KO; Enforcer kill heal
   const neck = give(r, pid, gen.makeGear(st, 'necklace', { seed: 7 })); neck.affixes = [{ id: 'greedy', kind: 'economy', effect: 'gold', target: null, value: 0.5, text: '' }]; r.append('GRID_EQUIP', { itemId: neck.id }, pid);
-  const gold0 = a.gold; for (const h of hooks.deathHooks.onDeath) h(st, ctx, { charId: t.id, killerId: a.id, cause: 'player' }); assert.equal(a.gold, gold0 + Math.round(B.gold.perKO * 0.5)); assert.ok(st.wall.includes(t.name), 'the Wall');
+  // death.js pays the bank's KO Gold on the same hook; the Greedy necklace adds its 50% on top
+  const gold0 = a.gold; for (const h of hooks.deathHooks.onDeath) h(st, ctx, { charId: t.id, killerId: a.id, cause: 'player' }); assert.equal(a.gold, gold0 + B.gold.perKO + Math.round(B.gold.perKO * 0.5)); assert.ok(st.wall.includes(t.name), 'the Wall');
   a.classId = 'enforcer'; a.upgrades.push('killheal'); a.health = 10; for (const h of hooks.deathHooks.onDeath) h(st, ctx, { charId: t.id, killerId: a.id }); assert.equal(a.health, 10 + B.classes.enforcerKillHeal);
   // class hooks: enforcer vs players, first hit; pit boss heal and monster guard; croupier cards
   a.upgrades.push('firsthit'); st.fight.id = 'pvp1'; const e1 = mk(); for (const h of hooks.damageHooks.outgoing) h(st, ctx, e1); assert.ok(Math.abs(e1.mult - 2 * 1.2 * (1 + B.challenge.enforcerPvpBonus) ** 2) < 1e-9, 'pvp + first hit');

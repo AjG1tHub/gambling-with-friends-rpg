@@ -1,8 +1,9 @@
 // Fixtures for the encounters / economy / wheels / death / quests suites. Builds characters, a small five-region
-// map and fake fights directly in the STATE.md shapes, so these suites run without the map, items, characters or
-// fight modules. Importing this file registers the module under test (every handler file registers on import).
+// map and fake fights directly in the STATE.md shapes, so these suites aim at fixed hexes while the whole game
+// (every handler module, via _helpers → packages/shared/index.js) is registered. `startRun` is RUN_START plus
+// putting the fixture map back under everyone (see there).
 import { shared, applyEvent } from './_helpers.mjs';
-import '../../packages/shared/encounters/monsters.js';
+import { generateMonsters } from '../../packages/shared/encounters/monsters.js';
 import '../../packages/shared/handlers/wheels.js';
 import '../../packages/shared/handlers/tiles.js';
 import '../../packages/shared/handlers/death.js';
@@ -51,7 +52,7 @@ const TYPE_AT = Object.fromEntries(Object.entries(COL).map(([k, v]) => [v, typeO
 export const REGION_ROW = { strip: 0, docks: 1, blackwood: 2, caldera: 3, citadel: 4 };
 export const at = (regionId, col) => `${col},${REGION_ROW[regionId]}`;
 
-export function makeMap(state, { regions = ['strip', 'docks', 'blackwood', 'caldera', 'citadel'] } = {}) {
+export function makeMap(state, { regions = ['strip', 'docks', 'blackwood', 'caldera', 'citadel'], scale = null } = {}) {
   const hexes = {}, regs = {};
   for (const rid of regions) {
     const def = regionsData.regions.find(r => r.id === rid); const r = REGION_ROW[rid];
@@ -69,8 +70,29 @@ export function makeMap(state, { regions = ['strip', 'docks', 'blackwood', 'cald
       hexes[key] = h; regs[rid].hexKeys.push(key);
     }
   }
-  state.map = { hexes, regions: regs, start: at('strip', COL.start), throne: regions.includes('citadel') ? at('citadel', COL.throne) : null, courier: at('strip', COL.courier), revealed: { strip: true }, size: state.size, seed: state.seed };
+  state.map = { hexes, regions: regs, start: at('strip', COL.start), throne: regions.includes('citadel') ? at('citadel', COL.throne) : null, courier: at('strip', COL.courier), revealed: { strip: true }, size: state.size, seed: state.seed, fixture: true };
+  if (scale) state.map.scale = scale;
   return state.map;
+}
+
+// RUN_START with the full reducer, then the fixture map back in place. The movement module's runStart hook rolls
+// a real map over whatever `state.map` held (movement.js › runHooks.runStart) and seats everyone on its start
+// hex, and the encounters hook then populates that map. These suites aim at fixed columns, so when the fixture
+// map was replaced we put it back, re-seat every character on its start and roll the monsters on it again from
+// the stream positions the real roll started at (so a seed places the same monsters it always did).
+export function startRun(r, mapOpts = {}) {
+  const before = { ...r.state.rng }, scale = r.state.map?.scale || null;
+  r.append('RUN_START');
+  const state = r.state;
+  if (state.map?.fixture) return state;
+  for (const s of ['map', 'colours', 'monsters']) if (before[s] != null) state.rng[s] = before[s];
+  makeMap(state, { scale, ...mapOpts });
+  const start = state.map.start, region = state.map.hexes[start].regionId;
+  for (const c of Object.values(state.characters)) { c.pos = start; c.lastSafePos = start; c.region = region; c.prevPos = null; }
+  state.monsters = {}; state.monsterSeq = 0; state.shops = {}; state.tileLoot = {};
+  for (const h of Object.values(state.map.hexes)) h.monsterId = null;
+  generateMonsters(state, ctxFor(r, 'system'));
+  return state;
 }
 
 // A reducer-shaped ctx for calling hooks directly from a test.
@@ -80,8 +102,9 @@ export const ctxFor = (r, actor = 'gm') => ({ now: r.now(), actor, isGm: actor =
 export function land(r, pid, hexKey, actor = 'gm') {
   const c = characterOf(r.state, pid); const hex = r.state.map.hexes[hexKey]; if (!hex) throw new Error(`no hex ${hexKey}`);
   c.prevPos = c.pos; c.pos = hexKey; r.state.turnPhase = 'resolve';
-  const fn = tileHooks[hex.type]; if (!fn) throw new Error(`no tile hook for ${hex.type}`);
-  fn(r.state, ctxFor(r, actor), pid, hex);
+  // Like movement's finishMove: a type with no hook (void kinds, plain ground) just moves on to the action phase.
+  const fn = tileHooks[hex.type]; if (fn) fn(r.state, ctxFor(r, actor), pid, hex);
+  if (r.state.turnPhase === 'resolve' && !(r.state.fight && !r.state.fight.done) && !r.state.pendingPrompt) r.state.turnPhase = 'action';
   return r.state;
 }
 

@@ -44,7 +44,7 @@ export function give(c, item, { wear = null } = {}) {
 }
 export function mkMonster({ id = 'm1', name = 'Pit Hound', health = null, stats = null, items = [], boss = false, pos = null } = {}) {
   const hp = health ?? B.monsters.healthCommon;
-  return { id, speciesId: 'pithound', name, regionId: null, pos, health: hp, maxHealth: hp, stats: stats || { luck: 3, nerve: 3, greed: 3, grit: 3 }, items, boss, raid: false, final: false, gmControlled: false, dead: false, linkedTo: null, loot: { gold: 0, items: [], egg: false } };
+  return { id, speciesId: 'pithound', name, regionId: null, pos, health: hp, maxHealth: hp, stats: stats || { luck: 3, nerve: 3, greed: 3, grit: 3 }, items, boss, raid: false, final: false, gmControlled: false, dead: false, linkedTo: null, loot: { gold: [0, 0], items: [], egg: 0, dropChance: 0 } };   // the monsters.json loot shape: nothing drops
 }
 export function mkPet({ id = 'pet1', name = 'Muckling', power = 40 } = {}) {
   return { id, speciesId: 'muckling', name, element: 'muck', stage: 1, power, maxPower: power, attacks: [{ gameId: 'fifty', name: 'Nip', stake: 5 }], heldItem: null, fainted: false, bodies: 1, caughtAt: 0 };

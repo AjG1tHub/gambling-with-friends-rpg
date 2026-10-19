@@ -8,6 +8,8 @@ import { letterHooks } from '../../packages/shared/hooks.js';
 
 const B = shared.B;
 const send = (t, from, to, text, extra = {}) => { t.r.append('LETTER_SEND', { toId: to, text, ...extra }, from); return t.state.letters.at(-1); };
+// Every event commits a fresh copy of the state, so a letter captured before one is re-read by id.
+const fresh = (t, l) => t.state.letters.find(x => x.id === l.id);
 const rps = (t, a, b) => { t.until(a); t.rigEntry('rps5'); t.r.append('CHALLENGE_CALL', { defenderId: b, call: 'duel' }, a); t.r.append('CHALLENGE_SPIN', {}, a); };
 
 test('letters: unlimited on your turn, one off it, delivered at the start of the recipient\'s second turn', () => {
@@ -20,10 +22,10 @@ test('letters: unlimited on your turn, one off it, delivered at the start of the
   const l = t.state.letters[0]; assert.equal(l.deliveredAt, null); assert.equal(l.deliverAfterTurns, B.social.letterDelayTurns); assert.equal(l.sealed, false);
   const delivered = []; const spy = (s, c, info) => delivered.push(info.letter.id); letterHooks.onDeliver.push(spy);
   try {
-    t.endTurn(); assert.equal(t.cur(), s1); assert.equal(l.deliveredAt, null, 'first recipient turn: not yet'); assert.deepEqual(inbox(t.state, s1), []);
+    t.endTurn(); assert.equal(t.cur(), s1); assert.equal(fresh(t, l).deliveredAt, null, 'first recipient turn: not yet'); assert.deepEqual(inbox(t.state, s1), []);
     t.endTurn(); assert.equal(t.cur(), s2); assert.equal(t.state.offTurnLetters[s2], 0, 'the off-turn allowance resets on your own turn');
-    t.endTurn(); t.endTurn(); assert.equal(t.cur(), s0); assert.equal(l.deliveredAt, null);
-    t.endTurn(); assert.equal(t.cur(), s1); assert.ok(l.deliveredAt, 'second recipient turn: delivered'); assert.equal(inbox(t.state, s1).length, 4); assert.equal(delivered.length, 4);
+    t.endTurn(); t.endTurn(); assert.equal(t.cur(), s0); assert.equal(fresh(t, l).deliveredAt, null);
+    t.endTurn(); assert.equal(t.cur(), s1); assert.ok(fresh(t, l).deliveredAt, 'second recipient turn: delivered'); assert.equal(inbox(t.state, s1).length, 4); assert.equal(delivered.length, 4);
     assert.ok(t.state.letters.slice(0, 3).every(x => x.deliveredAt));
   } finally { letterHooks.onDeliver.splice(letterHooks.onDeliver.indexOf(spy), 1); }
   // the text cap
@@ -45,11 +47,11 @@ test('interception: the courier post reads everything in transit; pass lets it t
     t.r.append('LETTER_INTERCEPT', { letterId: b.id, action: 'destroy' }, s2);
   } finally { letterHooks.onIntercept.splice(letterHooks.onIntercept.indexOf(spy), 1); }
   assert.deepEqual(seen, ['pass', 'destroy']);
-  assert.deepEqual(a.intercepted, { byId: s2, action: 'pass', at: t.r.now(), forgedText: null }); assert.equal(b.destroyed, true);
+  assert.deepEqual(fresh(t, a).intercepted, { byId: s2, action: 'pass', at: t.r.now(), forgedText: null }); assert.equal(fresh(t, b).destroyed, true);
   assert.deepEqual(interceptable(t.state, s2), [], 'a letter is read once on the way');
   assert.match(t.r.try('LETTER_INTERCEPT', { letterId: a.id, action: 'destroy' }, s2).message, /not passing/);
   for (let i = 0; i < 8; i++) t.endTurn();
-  assert.ok(a.deliveredAt, 'passed: delivered'); assert.equal(b.deliveredAt, null, 'destroyed: never arrives'); assert.deepEqual(inbox(t.state, s3), []);
+  assert.ok(fresh(t, a).deliveredAt, 'passed: delivered'); assert.equal(fresh(t, b).deliveredAt, null, 'destroyed: never arrives'); assert.deepEqual(inbox(t.state, s3), []);
   assert.match(t.r.try('LETTER_INTERCEPT', { letterId: a.id, action: 'pass' }, s2).message, /not passing/);
 });
 
@@ -62,7 +64,7 @@ test('forging needs a level-5 Cutpurse; the Impostor\'s Visor seals a sender\'s 
   t.char(cut).level = 5;
   assert.match(t.r.try('LETTER_INTERCEPT', { letterId: l.id, action: 'forge' }, cut).message, /forgedText required/);
   t.r.append('LETTER_INTERCEPT', { letterId: l.id, action: 'forge', forgedText: 'attack sam next round' }, cut);
-  assert.equal(l.text, 'attack sam next round'); assert.equal(l.originalText, 'attack vin next round'); assert.equal(l.intercepted.action, 'forge');
+  assert.equal(fresh(t, l).text, 'attack sam next round'); assert.equal(fresh(t, l).originalText, 'attack vin next round'); assert.equal(fresh(t, l).intercepted.action, 'forge');
   // a whale with the forge upgrade flag is still not a Cutpurse; a level-1 Cutpurse with the upgrade can forge
   const t2 = table({ char: (pid) => (pid === 'p2' ? { classId: 'cutpurse', upgrades: ['forge'] } : { upgrades: ['forge'] }) }); const [u0, u1] = t2.order;
   const l2 = send(t2, u0, u1, 'hi'); const notCut = t2.order.find(id => id !== u0 && id !== u1 && id !== 'p2');
@@ -97,7 +99,7 @@ test('alliances travel by letter and are accepted on arrival; allies read as all
   assert.equal(prop.kind, 'alliance'); assert.ok(prop.text.length);
   assert.match(t.r.try('ALLIANCE_ANSWER', { letterId: prop.id, accept: true }, s1).message, /not arrived/);
   assert.match(t.r.try('ALLIANCE_ANSWER', { letterId: prop.id, accept: true }, s2).message, /not addressed to you/);
-  for (let i = 0; i < 5; i++) t.endTurn(); assert.ok(prop.deliveredAt);
+  for (let i = 0; i < 5; i++) t.endTurn(); assert.ok(fresh(t, prop).deliveredAt);
   assert.equal(shared.allied(t.state, s0, s1), false);
   t.r.append('ALLIANCE_ANSWER', { letterId: prop.id, accept: true }, s1);
   assert.equal(t.state.alliances.length, 1); assert.deepEqual(t.state.alliances[0].members, [s0, s1]); assert.equal(shared.allied(t.state, s0, s1), true); assert.equal(shared.allied(t.state, s0, s2), false);
@@ -109,7 +111,7 @@ test('alliances travel by letter and are accepted on arrival; allies read as all
   assert.equal(t.state.alliances[0].active, false); assert.equal(shared.allied(t.state, s0, s1), false);
   // a declined proposal
   send(t, s2, s0, '', { kind: 'alliance' }); const p3 = t.state.letters.at(-1); p3.deliveredAt = 1;
-  t.r.append('ALLIANCE_ANSWER', { letterId: p3.id, accept: false }, s0); assert.equal(p3.accepted, false); assert.equal(t.state.alliances.length, 1);
+  t.r.append('ALLIANCE_ANSWER', { letterId: p3.id, accept: false }, s0); assert.equal(fresh(t, p3).accepted, false); assert.equal(t.state.alliances.length, 1);
 });
 
 test('votes: a Chaos vote is secret, closes when all have voted or at the deadline, majority wins, ties go to the seeded pick', () => {

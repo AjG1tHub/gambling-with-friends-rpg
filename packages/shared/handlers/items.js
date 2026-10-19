@@ -85,9 +85,10 @@ export function characterZero(state, ctx, c, info) {
   if (!c.dead) {   // no death module registered: the minimal record so the fight can end
     c.dead = true; c.diedTo = byKind; c.deaths = (c.deaths || 0) + 1; c.diedAt = ctx.now;
     const s = statsOf(state, c.id); if (s) s.deaths += 1;
-    const k = info.attackerKind === 'character' ? state.characters[info.attackerId] : null;
-    if (k && k.id !== c.id) { k.kills = (k.kills || 0) + 1; const ks = statsOf(state, k.id); if (ks) ks.kills += 1; }
   }
+  // The kill is credited here whether or not a death module recorded the death (death.js relies on it when byKind is set).
+  const k = info.attackerKind === 'character' ? state.characters[info.attackerId] : null;
+  if (k && k.id !== c.id) { k.kills = (k.kills || 0) + 1; const ks = statsOf(state, k.id); if (ks) ks.kills += 1; }
   if (info.attackerKind === 'character' && info.attackerId !== c.id) xp(state, ctx, info.attackerId, ctx.B('xp').ko, 'ko');
   const p = playerOfCharacter(state, c.id);
   if (state.fight && p && (state.fight.playerId === p.id || (state.fight.playerIds || []).includes(p.id)) && !state.fight.done) { state.fight.done = true; state.fight.result = 'lost'; state.fight.endedAt = ctx.now; }
@@ -125,7 +126,8 @@ export function resolveHit(state, ctx, { attackerId, attackerKind = 'character',
   const attacker = attackerKind === 'monster' ? state.monsters[attackerId] : state.characters[attackerId];
   const who = nameOf(state, attackerId, attackerKind);
   if (info.cancel) { info.notes.push('cancelled'); note(state, `${who}'s ${item?.name || info.gameId}: ${info.cancelText || 'voided'}`, 'fight', ctx.now); return info; }
-  const payout = won ? Math.max(0, r0(info.stake * info.mult * (1 + bonusFor(state, item?.rarity || 'common')) + info.flat)) : 0;
+  // info.damageMult is the Chaos / region / monster-tier scale (handlers/wheels.js); it scales the whole hit.
+  const payout = won ? Math.max(0, r0((info.stake * info.mult * (1 + bonusFor(state, item?.rarity || 'common')) + info.flat) * (info.damageMult ?? 1))) : 0;
   info.payout = payout;
   if (info.kind === 'spell') {
     const t = state.characters[targetKind === 'self' ? attackerId : targetId] || attacker;

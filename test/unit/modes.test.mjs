@@ -23,17 +23,24 @@ test('modeAdjust: multipliers per mode, set on state before any other runStart h
 });
 
 test('pvp: Encounter hexes become Arenas and the monsters go, at RUN_START or at the first turn if the map came later', () => {
+  const encounters = (state) => Object.values(state.map.hexes).filter(h => h.type === 'encounter').length;
   const t = table({ mode: 'pvp' });
-  assert.equal(Object.values(t.state.map.hexes).filter(h => h.type === 'encounter').length, 0);
+  assert.equal(encounters(t.state), 0);
   assert.equal(Object.values(t.state.map.hexes).filter(h => h.type === 'arena').length, 3);
   assert.ok(Object.values(t.state.map.hexes).every(h => !h.monsterId)); assert.deepEqual(t.state.monsters, {});
   assert.equal(t.state.modeAdjust.pvpConverted, true);
-  // map arrives after RUN_START (another module's hook ran later): converted when the first turn starts
-  const r = room({ mode: 'pvp' }).join(['A', 'B']); r.append('RUN_START');
-  assert.equal(r.state.modeAdjust.pvpPending, true);
-  r.state.map = makeMap(); r.append('TURN_END', {}, shared.currentPlayerId(r.state));
-  assert.equal(r.state.modeAdjust.pvpPending, false); assert.equal(Object.values(r.state.map.hexes).filter(h => h.type === 'encounter').length, 0);
-  const ffa = table({ mode: 'ffa' }); assert.equal(Object.values(ffa.state.map.hexes).filter(h => h.type === 'encounter').length, 3, 'other modes keep their encounters');
+  // the generated map: the map module's runStart hook builds it after this module's conversion hook ran, so the
+  // conversion is left pending and the first turn start does it, before anyone moves
+  const seen = []; const spy = (state) => seen.push({ pending: state.modeAdjust?.pvpPending, encounters: encounters(state) }); shared.runHooks.runStart.push(spy);
+  try {
+    const g = table({ mode: 'pvp', map: 'generated' });
+    assert.deepEqual(seen.map(s => s.pending), [true]); assert.ok(seen[0].encounters > 0, 'the generated map arrives with Encounters');
+    assert.equal(g.state.modeAdjust.pvpPending, false); assert.equal(g.state.modeAdjust.pvpConverted, true);
+    assert.equal(encounters(g.state), 0); assert.ok(Object.values(g.state.map.hexes).filter(h => h.type === 'arena').length >= seen[0].encounters);
+    assert.deepEqual(g.state.monsters, {}); assert.ok(Object.values(g.state.map.hexes).every(h => !h.monsterId));
+  } finally { shared.runHooks.runStart.splice(shared.runHooks.runStart.indexOf(spy), 1); }
+  const ffa = table({ mode: 'ffa' }); assert.equal(encounters(ffa.state), 3, 'other modes keep their encounters');
+  assert.ok(encounters(table({ mode: 'ffa', map: 'generated' }).state) > 0);
 });
 
 test('friendly fire: PvE cancels every character-on-character hit; Teams cancels it inside a team only', () => {
@@ -110,21 +117,31 @@ test('royale: the circle closes every shrinkEveryRounds rounds toward the throne
 });
 
 test('vault and veterans: only after the run ends; survivors bank 3, the dead 1, the Platter adds one; only survivors return', () => {
-  const t = table(); const [a, b] = t.order;
+  // VAULT_BANK / VETERAN_SAVE are roster.js's: the payload names the seat, vaulted items leave the character and
+  // land on the roster mirror, the cap counts across calls, extraVault / vaultBonus widen it, and anyone who died
+  // at any point in the run (deaths > 0) counts as dead.
+  const t = table(); const [a, b, c] = t.order; const weapon = `${a}-weapon`;
   const extra = [makeItem({ id: 'x1', name: 'X1' }), makeItem({ id: 'x2', name: 'X2' }), makeItem({ id: 'x3', name: 'X3' })];
   for (const id of [a, b]) for (const it of extra) t.char(id).items[it.id] = structuredClone(it);
-  assert.match(t.r.try('VAULT_BANK', { itemIds: ['x1'] }, a).message, /not in ended/);
-  kill(t, b); t.r.append('GM_END_RUN', { reason: 'the GM called it' }); assert.equal(t.state.phase, 'ended');
-  assert.match(t.r.try('VAULT_BANK', { itemIds: ['x1', 'x2', 'x3', `${a}-weapon`] }, a).message, /a survivor may vault 3/);
-  assert.match(t.r.try('VAULT_BANK', { itemIds: ['x1', 'nope'] }, a).message, /not yours/);
+  assert.match(t.r.try('VAULT_BANK', { playerId: a, itemIds: ['x1'] }, a).message, /not in ended/);
+  kill(t, b); t.char(c).deaths = 1; t.r.append('GM_END_RUN', { reason: 'the GM called it' }); assert.equal(t.state.phase, 'ended');
+  assert.match(t.r.try('VAULT_BANK', { playerId: a, itemIds: ['x1', 'x2', 'x3', weapon] }, a).message, /you may vault 3 items/);
+  assert.match(t.r.try('VAULT_BANK', { playerId: a, itemIds: ['x1', 'nope'] }, a).message, /not yours/);
   assert.match(t.r.try('VAULT_BANK', { playerId: b, itemIds: ['x1'] }, a).message, /cannot act/);
-  t.r.append('VAULT_BANK', { itemIds: ['x1', `${a}-weapon`, 'x1'] }, a);
-  assert.deepEqual(t.char(a).vaulted.map(i => i.id), ['x1', `${a}-weapon`], 'duplicates collapse; worn items count');
-  assert.match(t.r.try('VAULT_BANK', { itemIds: ['x2'] }, a).message, /already vaulted/);
-  assert.match(t.r.try('VAULT_BANK', { playerId: b, itemIds: ['x1', 'x2'] }).message, /the dead may vault 1/);
-  t.char(b).vaultBonus = 1; t.r.append('VAULT_BANK', { playerId: b, itemIds: ['x1', 'x2'] }); assert.equal(t.char(b).vaulted.length, 2);
+  t.r.append('VAULT_BANK', { playerId: a, itemIds: ['x1', weapon, 'x1'] }, a);
+  assert.deepEqual(t.char(a).vaulted.map(i => i.id), ['x1', weapon], 'duplicates collapse; worn items count');
+  assert.equal(t.char(a).items.x1, undefined); assert.equal(t.char(a).worn.mainhand, null, 'vaulted items leave the character');
+  assert.deepEqual(t.state.roster[t.char(a).rosterId].vault.map(i => i.id), ['x1', weapon], 'the roster mirror carries the vault');
+  t.r.append('VAULT_BANK', { playerId: a, itemIds: ['x2'] }, a); assert.equal(t.char(a).vaulted.length, 3, 'the cap counts across calls');
+  assert.match(t.r.try('VAULT_BANK', { playerId: a, itemIds: ['x3'] }, a).message, /you may vault 3 items/);
+  t.char(a).flags.extraVault = 1; t.r.append('VAULT_BANK', { playerId: a, itemIds: ['x3'] }, a); assert.equal(t.char(a).vaulted.length, 4, 'extraVault widens the cap');
+  assert.match(t.r.try('VAULT_BANK', { playerId: b, itemIds: ['x1', 'x2'] }).message, /you may vault 1 item\b/);
+  t.char(b).vaultBonus = 1; t.r.append('VAULT_BANK', { playerId: b, itemIds: ['x1', 'x2'] }); assert.equal(t.char(b).vaulted.length, 2, 'the Platter adds one');
+  assert.match(t.r.try('VAULT_BANK', { playerId: c, itemIds: [`${c}-weapon`, 'x9'] }).message, /you may vault 1 item\b/, 'a death earlier in the run counts');
   t.r.append('VETERAN_SAVE', { playerId: a }, a); assert.equal(t.char(a).veteran, true);
+  assert.equal(t.state.roster[t.char(a).rosterId].alive, true); assert.equal(t.state.roster[t.char(b).rosterId].alive, false);
   assert.match(t.r.try('VETERAN_SAVE', { playerId: b }).message, /did not survive/);
+  assert.match(t.r.try('VETERAN_SAVE', { playerId: c }).message, /did not survive/);
 });
 
 test('hall of fame rows, tier cleared, the season counter and the roster rollover', () => {
