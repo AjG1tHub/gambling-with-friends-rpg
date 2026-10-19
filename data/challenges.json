@@ -1,0 +1,60 @@
+{
+  "_about": "The Challenge Wheel presets (SPEC.md › PvP: the Challenge Wheel). Three named lists the GM can switch per run and edit mid-run from the console; the editor's JSON import/export uses exactly this shape: { presets: { id: { name, entries: [entry] } } }. Entry: id, name, hosted (played on the two phones) or not (run at the table / on Discord), game (hosted only: a purpose-built duel in packages/shared/challenge/hosted.js — quickdraw, speedmath, memorymatch, trivia, highestcard, typingrace, emojimemory — or one of the four Versus items clash, diceduel, shellgame, holdemduel, hosted by the items adapter), link (external only), rules (shown on both phones), capSeconds (null = balance challenge.hostedCapSeconds / externalCapSeconds at runtime), players ('1v1', or 'team': relay-able, played best-of-three), weight on the wheel, enabled.",
+  "presets": {
+    "inperson": {
+      "name": "In Person",
+      "entries": [
+        { "id": "clash",        "name": "Clash (War)",        "hosted": true,  "game": "clash",       "link": null, "rules": "One card each from a fresh deck, high card wins. Ties go to war: three down, one up.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "diceduel",     "name": "Dice Duel",          "hosted": true,  "game": "diceduel",    "link": null, "rules": "Roll and stack. Stop when you like; bust past the threshold and you lose. Highest total standing wins.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "shellgame",    "name": "Shell Game",         "hosted": true,  "game": "shellgame",   "link": null, "rules": "The defender hides the pea, the attacker picks a shell. Find it to win.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "holdemduel",   "name": "Hold'em Duel",       "hosted": true,  "game": "holdemduel",  "link": null, "rules": "Heads-up hold'em, one hand, all-in. Best five cards win.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "quickdraw",    "name": "Quick-Draw",         "hosted": true,  "game": "quickdraw",   "link": null, "rules": "Watch the TV. When it flashes, tap. First tap wins; tap early and you lose.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "speedmath",    "name": "Speed Math",         "hosted": true,  "game": "speedmath",   "link": null, "rules": "Five sums. First to five right wins; most right when the clock runs out.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "memorymatch",  "name": "Memory Match",       "hosted": true,  "game": "memorymatch", "link": null, "rules": "Twelve cards, six pairs, taking turns. A match keeps your turn. Most pairs wins.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "trivia",       "name": "Trivia",             "hosted": true,  "game": "trivia",      "link": null, "rules": "Five questions from the GM's bank. Most right wins; the faster player breaks a tie.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "highestcard",  "name": "Highest Card",       "hosted": true,  "game": "highestcard", "link": null, "rules": "One card each. Highest wins; ties redraw.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "rps5",         "name": "Rock-Paper-Scissors (best of 5)", "hosted": false, "game": null, "link": null, "rules": "Best of five throws, on three. Tell the phones who won.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "armwrestle",   "name": "Arm Wrestle",        "hosted": false, "game": null, "link": null, "rules": "Elbows on the table, one pull. Back of the hand touches, you lose.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "thumbwar",     "name": "Thumb War",          "hosted": false, "game": null, "link": null, "rules": "One, two, three, four. Pin for a count of three.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "staring",      "name": "Staring Contest",    "hosted": false, "game": null, "link": null, "rules": "No blinking, no talking, no faces. The table judges.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "freethrows",   "name": "Paper-Ball Free Throws", "hosted": false, "game": null, "link": null, "rules": "Three throws each into the bin from the agreed line. Most in wins; sudden death on a tie.", "capSeconds": null, "players": "team", "weight": 2, "enabled": true },
+        { "id": "cupstack",     "name": "Cup Stack Race",     "hosted": false, "game": null, "link": null, "rules": "Stack and unstack the pyramid. First back to flat wins.", "capSeconds": null, "players": "team", "weight": 2, "enabled": true },
+        { "id": "drawing",      "name": "One-Minute Drawing", "hosted": false, "game": null, "link": null, "rules": "The GM names a thing. One minute to draw it. The table votes the better one.", "capSeconds": null, "players": "team", "weight": 1, "enabled": true },
+        { "id": "liarsdice",    "name": "Liar's Dice",        "hosted": false, "game": null, "link": null, "rules": "Five dice each under the cup. Bid or call liar. First to lose all five dice loses.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true }
+      ]
+    },
+    "discord": {
+      "name": "Discord",
+      "entries": [
+        { "id": "clash",        "name": "Clash (War)",        "hosted": true,  "game": "clash",       "link": null, "rules": "One card each from a fresh deck, high card wins. Ties go to war: three down, one up.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "diceduel",     "name": "Dice Duel",          "hosted": true,  "game": "diceduel",    "link": null, "rules": "Roll and stack. Stop when you like; bust past the threshold and you lose. Highest total standing wins.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "shellgame",    "name": "Shell Game",         "hosted": true,  "game": "shellgame",   "link": null, "rules": "The defender hides the pea, the attacker picks a shell. Find it to win.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "holdemduel",   "name": "Hold'em Duel",       "hosted": true,  "game": "holdemduel",  "link": null, "rules": "Heads-up hold'em, one hand, all-in. Best five cards win.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "quickdraw",    "name": "Quick-Draw",         "hosted": true,  "game": "quickdraw",   "link": null, "rules": "Watch the stream. When the TV flashes, tap. First tap wins; tap early and you lose.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "speedmath",    "name": "Speed Math",         "hosted": true,  "game": "speedmath",   "link": null, "rules": "Five sums. First to five right wins; most right when the clock runs out.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "memorymatch",  "name": "Memory Match",       "hosted": true,  "game": "memorymatch", "link": null, "rules": "Twelve cards, six pairs, taking turns. A match keeps your turn. Most pairs wins.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "trivia",       "name": "Trivia",             "hosted": true,  "game": "trivia",      "link": null, "rules": "Five questions from the GM's bank. Most right wins; the faster player breaks a tie.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "highestcard",  "name": "Highest Card",       "hosted": true,  "game": "highestcard", "link": null, "rules": "One card each. Highest wins; ties redraw.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "typingrace",   "name": "Typing Race",        "hosted": true,  "game": "typingrace",  "link": null, "rules": "Type the sentence. First to finish with two mistakes or fewer wins.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "emojimemory",  "name": "Emoji Memory",       "hosted": true,  "game": "emojimemory", "link": null, "rules": "A growing emoji sequence. Repeat it back each round. Longest run wins.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "chess3",       "name": "Chess, 3 minutes",   "hosted": false, "game": null, "link": "https://lichess.org/?time=3+0#friend", "rules": "Open the link, challenge each other, 3+0. Loser or the draw reports.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "tetris",       "name": "Tetris 1v1",         "hosted": false, "game": null, "link": "https://jstris.jezevec10.com/", "rules": "Make a private room on jstris, one game. Last one topped out wins.", "capSeconds": null, "players": "team", "weight": 2, "enabled": true },
+        { "id": "skribbl",      "name": "skribbl.io 1v1",     "hosted": false, "game": null, "link": "https://skribbl.io/", "rules": "Private room, two rounds. Higher score wins.", "capSeconds": null, "players": "team", "weight": 2, "enabled": true },
+        { "id": "geoguessr",    "name": "GeoGuessr Duel",     "hosted": false, "game": null, "link": "https://www.geoguessr.com/duels", "rules": "One duel. Winner reports.", "capSeconds": null, "players": "1v1", "weight": 1, "enabled": true },
+        { "id": "anygame",      "name": "Any Installed 1v1",  "hosted": false, "game": null, "link": null, "rules": "A 1v1 in whatever game you both have installed. Agree the game before the timer starts.", "capSeconds": null, "players": "1v1", "weight": 1, "enabled": true },
+        { "id": "triviabot",    "name": "Trivia Bot Round",   "hosted": false, "game": null, "link": null, "rules": "One round of the server's trivia bot, just the two of you answering. Higher score wins.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true },
+        { "id": "photohunt",    "name": "Photo Hunt",         "hosted": false, "game": null, "link": null, "rules": "The GM names a household object. First to post a photo of theirs in the channel wins.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true }
+      ]
+    },
+    "quick": {
+      "name": "Quick",
+      "entries": [
+        { "id": "quickdraw",    "name": "Quick-Draw",         "hosted": true,  "game": "quickdraw",   "link": null, "rules": "Watch the TV. When it flashes, tap. First tap wins; tap early and you lose.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "highestcard",  "name": "Highest Card",       "hosted": true,  "game": "highestcard", "link": null, "rules": "One card each. Highest wins; ties redraw.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "clash",        "name": "Clash (War)",        "hosted": true,  "game": "clash",       "link": null, "rules": "One card each from a fresh deck, high card wins. Ties go to war: three down, one up.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "diceduel",     "name": "Dice Duel",          "hosted": true,  "game": "diceduel",    "link": null, "rules": "Roll and stack. Stop when you like; bust past the threshold and you lose. Highest total standing wins.", "capSeconds": null, "players": "1v1", "weight": 3, "enabled": true },
+        { "id": "rps3",         "name": "Rock-Paper-Scissors (best of 3)", "hosted": false, "game": null, "link": null, "rules": "Best of three throws, on three. Tell the phones who won.", "capSeconds": null, "players": "1v1", "weight": 2, "enabled": true }
+      ]
+    }
+  }
+}

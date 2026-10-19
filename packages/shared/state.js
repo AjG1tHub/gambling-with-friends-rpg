@@ -67,6 +67,24 @@ export const livingCharacters = (state) => Object.values(state.characters).filte
 export const teamOf = (state, playerId) => state.players[playerId]?.teamId ?? null;
 export function sameTeam(state, a, b) { if (a === b) return true; const ta = teamOf(state, a), tb = teamOf(state, b); return ta != null && ta === tb; }
 export function allied(state, a, b) { return sameTeam(state, a, b) || state.alliances.some(al => al.active && al.members.includes(a) && al.members.includes(b)); }
+// Fill every optional field a character may lack (roster imports, GM-created characters, test fixtures), so no
+// module has to guard against undefined. Idempotent; never overwrites a value that is present.
+const WORN_SLOTS = ['mainhand', 'offhand', 'spell1', 'spell2', 'helmet', 'torso', 'pants', 'gloves', 'boots', 'ring1', 'ring2', 'ring3', 'ring4', 'necklace', 'cape'];
+export function ensureCharacterShape(c) {
+  if (!c) return c;
+  const d = (k, v) => { if (c[k] === undefined || c[k] === null) c[k] = v; };
+  d('level', 1); d('xp', 0); d('statPoints', 0); d('stats', { luck: 3, nerve: 3, greed: 3, grit: 3 });
+  for (const s of ['luck', 'nerve', 'greed', 'grit']) if (c.stats[s] == null) c.stats[s] = 3;
+  d('maxHealth', 100); d('health', c.maxHealth); d('shield', 0); d('gold', 0); d('bank', 0);
+  d('worn', {}); for (const slot of WORN_SLOTS) if (c.worn[slot] === undefined) c.worn[slot] = null;
+  d('grid', { cols: 8, rows: 6, cells: [] }); d('items', {}); d('pets', []); d('activePetId', null);
+  d('dead', false); d('missTurns', 0); d('deaths', 0); d('diedTo', null);
+  d('cooldowns', { active: 0 }); d('activeUses', {}); d('effects', []); d('pactIds', []); d('wanted', 0); d('kills', 0);
+  d('titles', []); d('quests', []); d('upgrades', []); d('usedThisTurn', { attack: 0, spell: 0, moved: false }); d('turnsTaken', 0); d('streak', 0);
+  d('setBonuses', {}); d('passives', {}); d('flags', {}); d('pendingLoot', []); d('gridEffects', []); d('questCounters', {}); d('visitedRegions', []);
+  d('freeSmokeBombs', 0); d('locked', true); d('crest', '🂠'); d('look', { body: 0, skin: 0, face: 0, hair: 0, coat: '#5a1218' });
+  return c;
+}
 // A short human line for the TV log; the event stream is the real record.
 export function note(state, text, kind = 'info', ts = state.lastEventTs) {
   state.log.push({ ts, text, kind });

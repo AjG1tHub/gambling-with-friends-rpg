@@ -1,0 +1,80 @@
+{
+  "_about": "Base items per slot (SPEC.md › Gear and item generation, Inventory grid). Weapons and spells come from data/items36.json; boots from data/boots.json when the map module ships it, otherwise the `boots` list here (same ids). Footprints: rings, necklaces, consumables 1x1; gloves, boots 2x1; helmet, pants, eggs 2x2; torso 2x3; one-hand weapon or spell 1x3; two-hand 2x4. `sprite` is the manifest key for the icon; the worn layer is `worn/<baseId>` (see characters/sprites.js).",
+  "dropWeights": { "weapon": 20, "spell": 10, "helmet": 8, "torso": 8, "pants": 8, "gloves": 8, "boots": 8, "ring": 12, "necklace": 8, "consumable": 10 },
+  "consumableWeights": { "potion": 30, "nudge": 15, "reroll": 15, "fork": 10, "smokebomb": 8, "phoenixfeather": 4, "petrevive": 4, "satchel": 6, "spyglass": 5, "egg": 3 },
+  "footprints": {
+    "ring": { "w": 1, "h": 1 }, "necklace": { "w": 1, "h": 1 }, "consumable": { "w": 1, "h": 1 }, "tool": { "w": 1, "h": 1 },
+    "gloves": { "w": 2, "h": 1 }, "boots": { "w": 2, "h": 1 },
+    "helmet": { "w": 2, "h": 2 }, "pants": { "w": 2, "h": 2 }, "egg": { "w": 2, "h": 2 }, "satchel": { "w": 1, "h": 1 },
+    "torso": { "w": 2, "h": 3 }, "cape": { "w": 2, "h": 3 },
+    "weapon": { "w": 1, "h": 3 }, "spell": { "w": 1, "h": 3 }, "offhand": { "w": 1, "h": 3 },
+    "twohand": { "w": 2, "h": 4 }
+  },
+  "helmet": [
+    { "id": "iron_helm",       "name": "Iron Helm",        "sprite": "worn/iron_helm" },
+    { "id": "croupier_visor",  "name": "Croupier's Visor", "sprite": "worn/croupier_visor" },
+    { "id": "bone_crown",      "name": "Bone Crown",       "sprite": "worn/bone_crown" },
+    { "id": "velvet_hood",     "name": "Velvet Hood",      "sprite": "worn/velvet_hood" },
+    { "id": "brass_mask",      "name": "Brass Mask",       "sprite": "worn/brass_mask" }
+  ],
+  "torso": [
+    { "id": "dealers_coat",    "name": "Dealer's Coat",    "sprite": "worn/dealers_coat" },
+    { "id": "oxblood_jerkin",  "name": "Oxblood Jerkin",   "sprite": "worn/oxblood_jerkin" },
+    { "id": "chip_hauberk",    "name": "Chip Hauberk",     "sprite": "worn/chip_hauberk" },
+    { "id": "candle_robe",     "name": "Candle Robe",      "sprite": "worn/candle_robe" },
+    { "id": "pit_plate",       "name": "Pit Plate",        "sprite": "worn/pit_plate" }
+  ],
+  "pants": [
+    { "id": "felt_breeches",   "name": "Felt Breeches",    "sprite": "worn/felt_breeches" },
+    { "id": "brass_greaves",   "name": "Brass Greaves",    "sprite": "worn/brass_greaves" },
+    { "id": "gamblers_slacks", "name": "Gambler's Slacks", "sprite": "worn/gamblers_slacks" },
+    { "id": "sootcloth_legs",  "name": "Sootcloth Legs",   "sprite": "worn/sootcloth_legs" }
+  ],
+  "gloves": [
+    { "id": "card_sharps",     "name": "Card Sharp's Gloves", "sprite": "worn/card_sharps" },
+    { "id": "knuckle_wraps",   "name": "Knuckle Wraps",       "sprite": "worn/knuckle_wraps" },
+    { "id": "velvet_gauntlets","name": "Velvet Gauntlets",    "sprite": "worn/velvet_gauntlets" },
+    { "id": "bone_mitts",      "name": "Bone Mitts",          "sprite": "worn/bone_mitts" }
+  ],
+  "boots": [
+    { "id": "cobblers_slippers",    "name": "Cobbler's Slippers",   "bootMode": "dice",  "die": 4,  "sprite": "worn/cobblers_slippers" },
+    { "id": "loaded_boots",         "name": "Loaded Boots",         "bootMode": "dice",  "die": 6,  "sprite": "worn/loaded_boots" },
+    { "id": "knucklebone_greaves",  "name": "Knucklebone Greaves",  "bootMode": "dice",  "die": 8,  "sprite": "worn/knucklebone_greaves" },
+    { "id": "decahedron_striders",  "name": "Decahedron Striders",  "bootMode": "dice",  "die": 10, "sprite": "worn/decahedron_striders" },
+    { "id": "dodeca_sabatons",      "name": "Dodeca Sabatons",      "bootMode": "dice",  "die": 12, "sprite": "worn/dodeca_sabatons" },
+    { "id": "fateful_treads",       "name": "Fateful Treads",       "bootMode": "dice",  "die": 20, "sprite": "worn/fateful_treads" },
+    { "id": "croupiers_heels",      "name": "Croupier's Heels",     "bootMode": "wheel", "die": null, "sprite": "worn/croupiers_heels" },
+    { "id": "breaking_wheel_boots", "name": "Breaking-Wheel Boots", "bootMode": "wheel", "die": null, "sprite": "worn/breaking_wheel_boots" },
+    { "id": "dyers_boots",          "name": "Dyer's Boots",         "bootMode": "card",  "die": null, "sprite": "worn/dyers_boots" },
+    { "id": "painted_soles",        "name": "Painted Soles",        "bootMode": "card",  "die": null, "sprite": "worn/painted_soles" }
+  ],
+  "ring": [
+    { "id": "signet_ring",     "name": "Signet Ring",      "sprite": "worn/signet_ring" },
+    { "id": "chip_band",       "name": "Chip Band",        "sprite": "worn/chip_band" },
+    { "id": "knuckle_ring",    "name": "Knuckle Ring",     "sprite": "worn/knuckle_ring" },
+    { "id": "bone_loop",       "name": "Bone Loop",        "sprite": "worn/bone_loop" },
+    { "id": "brass_coil",      "name": "Brass Coil",       "sprite": "worn/brass_coil" },
+    { "id": "garnet_ring",     "name": "Garnet Ring",      "sprite": "worn/garnet_ring" },
+    { "id": "dealers_ring",    "name": "Dealer's Ring",    "sprite": "worn/dealers_ring" },
+    { "id": "oathring",        "name": "Oathring",         "sprite": "worn/oathring" }
+  ],
+  "necklace": [
+    { "id": "chip_chain",      "name": "Chip Chain",       "sprite": "worn/chip_chain" },
+    { "id": "tooth_pendant",   "name": "Tooth Pendant",    "sprite": "worn/tooth_pendant" },
+    { "id": "brass_locket",    "name": "Brass Locket",     "sprite": "worn/brass_locket" },
+    { "id": "candle_amulet",   "name": "Candle Amulet",    "sprite": "worn/candle_amulet" },
+    { "id": "die_on_a_string", "name": "Die on a String",  "sprite": "worn/die_on_a_string" }
+  ],
+  "consumable": [
+    { "id": "potion",         "name": "Potion",          "slot": "consumable", "stackable": true,  "sprite": "item/potion",         "text": "Heals 25" },
+    { "id": "nudge",          "name": "Nudge",           "slot": "consumable", "stackable": true,  "sprite": "item/nudge",          "text": "Nudge a dice or wheel result one step" },
+    { "id": "reroll",         "name": "Reroll",          "slot": "consumable", "stackable": true,  "sprite": "item/reroll",         "text": "Redraw a card result" },
+    { "id": "fork",           "name": "Fork",            "slot": "consumable", "stackable": true,  "sprite": "item/fork",           "text": "Split any binary outcome" },
+    { "id": "smokebomb",      "name": "Smoke Bomb",      "slot": "consumable", "stackable": true,  "sprite": "item/smokebomb",      "text": "Ends an encounter" },
+    { "id": "phoenixfeather", "name": "Phoenix Feather", "slot": "consumable", "stackable": true,  "sprite": "item/phoenixfeather", "text": "Cancels one KO" },
+    { "id": "petrevive",      "name": "Pet Revive",      "slot": "consumable", "stackable": true,  "sprite": "item/petrevive",      "text": "Stands a fainted pet back up" },
+    { "id": "satchel",        "name": "Satchel",         "slot": "satchel",    "stackable": false, "sprite": "item/satchel",        "text": "Adds a column to your grid (max 10)" },
+    { "id": "spyglass",       "name": "Spyglass",        "slot": "tool",       "stackable": false, "sprite": "item/spyglass",       "text": "Reveal a region's tiles on your phone" },
+    { "id": "egg",            "name": "Pet Egg",         "slot": "egg",        "stackable": false, "sprite": "item/egg",            "text": "Hatch on the Triple Pet Wheel" }
+  ]
+}

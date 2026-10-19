@@ -1,0 +1,30 @@
+{
+  "_about": "Blockcraft armour (SPEC.md › Named Legendaries, the set table): the one set line in the game, five four-piece sets over Helmet, Torso, Pants and Boots. Pieces drop singly from Chests (generateItem gives armour slots an `items.setDropChance` roll). `perPiece` effects are keyed to balance.json `sets.*`; `bonus` is the four-piece bonus the code switches on (`sets.pieces` pieces worn). Hide is dyeable: the piece carries `dye` (a hex colour) the sprite layer tints with. Chainmail pieces carry the engraved `note`. Sprite key: worn/<setId>_<slot>.",
+  "slots": ["helmet", "torso", "pants", "boots"],
+  "sets": [
+    { "id": "hide", "name": "Hide", "rarity": "common", "flavour": "Smells like the cow it came from.",
+      "perPiece": [ { "kind": "guard", "target": null, "valueKey": "hideGuard", "text": "Guard 5% all families" } ],
+      "dyeable": true,
+      "bonus": { "key": "move", "valueKey": "hideMove", "owner": "movement", "text": "Movement +1" },
+      "pieceNames": { "helmet": "Hide Cap", "torso": "Hide Tunic", "pants": "Hide Leggings", "boots": "Hide Boots" } },
+    { "id": "gilt", "name": "Gilt", "rarity": "rare", "flavour": "Beautiful, useless, gone by morning.",
+      "perPiece": [ { "kind": "guard", "target": null, "valueKey": "giltGuard", "text": "Guard 5% all families" }, { "kind": "stat", "stat": "luck", "valueKey": "giltLuck", "text": "+2 Luck" } ],
+      "crumbles": { "chargesKey": "giltCharges", "text": "Loses a charge every fight and crumbles at 0" },
+      "bonus": { "key": "lootUp", "valueKey": null, "owner": "encounters", "text": "Loot Wheel rolls one rarity higher" },
+      "pieceNames": { "helmet": "Gilt Helm", "torso": "Gilt Cuirass", "pants": "Gilt Leggings", "boots": "Gilt Boots" } },
+    { "id": "iron", "name": "Iron", "rarity": "rare", "flavour": "Does the job.",
+      "perPiece": [ { "kind": "guard", "target": null, "valueKey": "ironGuard", "text": "Guard 15% all families" } ],
+      "bonus": { "key": "pactHalf", "valueKey": null, "owner": "economy", "text": "Blood Pact interest halved" },
+      "pieceNames": { "helmet": "Iron Helm", "torso": "Iron Chestplate", "pants": "Iron Leggings", "boots": "Iron Boots" } },
+    { "id": "gem", "name": "Gem", "rarity": "epic", "flavour": "The one everyone digs for.",
+      "perPiece": [ { "kind": "guard", "target": null, "valueKey": "gemGuard", "text": "Guard 25% all families" }, { "kind": "stat", "stat": "grit", "valueKey": "gemGrit", "text": "+1 Grit" } ],
+      "bonus": { "key": "firstHitImmune", "valueKey": null, "owner": "characters", "text": "Immune to the first hit of every fight" },
+      "pieceNames": { "helmet": "Gem Helm", "torso": "Gem Chestplate", "pants": "Gem Leggings", "boots": "Gem Boots" } },
+    { "id": "chainmail", "name": "Chainmail", "rarity": "rare", "flavour": "I didn't forget about you, but you're still terrible.",
+      "perPiece": [ { "kind": "guard", "target": null, "valueKey": "chainGuard", "text": "Guard 10%" } ],
+      "foundOnly": true,
+      "note": "I didn't forget about you, but you're still terrible.",
+      "bonus": { "key": "nothing", "valueKey": null, "owner": "characters", "text": "Nothing. The note is the bonus." },
+      "pieceNames": { "helmet": "Chainmail Coif", "torso": "Chainmail Shirt", "pants": "Chainmail Leggings", "boots": "Chainmail Boots" } }
+  ]
+}

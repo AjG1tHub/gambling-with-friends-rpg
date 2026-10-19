@@ -36,7 +36,9 @@
     "collectorPerTurn": { "v": 10, "unit": "Health", "spec": "Health economy", "note": "What the Collector takes each turn a pact is overdue." },
     "maxPacts": { "v": 2, "unit": "pacts", "spec": "Health economy", "note": "Open pacts at once." },
     "greedInterestPerPoint": { "v": 0.02, "unit": "fraction", "spec": "Stats", "note": "Extra interest per Greed point above 3." },
-    "docksDiscount": { "v": 0.25, "unit": "fraction", "spec": "Map", "note": "Interest reduction in The Docks." }
+    "docksDiscount": { "v": 0.25, "unit": "fraction", "spec": "Map", "note": "Interest reduction in The Docks." },
+    "ironSetFraction": { "v": 0.5, "unit": "fraction", "spec": "Blockcraft", "note": "Interest multiplier with the Iron four-piece bonus (halved)." },
+    "collectorFloor": { "v": 1, "unit": "Health", "spec": "Health economy", "note": "The Collector never takes a character below this Health." }
   },
   "gold": {
     "perKO": { "v": 50, "unit": "Gold", "spec": "Health economy", "note": "Gold paid by the bank for a KO." },
@@ -45,7 +47,10 @@
     "shopSellFraction": { "v": 0.5, "unit": "fraction", "spec": "Tiles", "note": "The Shop buys back at this fraction of price." },
     "robberyMaxFraction": { "v": 0.25, "unit": "fraction", "spec": "Challenge Wheel", "note": "A Robbery may name up to this share of the target's Gold." },
     "wantedTurns": { "v": 3, "unit": "turns", "spec": "Challenge Wheel", "note": "How long a failed robber is Wanted." },
-    "arenaCrowdBonus": { "v": 25, "unit": "Gold", "spec": "Tiles", "note": "Crowd bonus paid to the Arena winner." }
+    "arenaCrowdBonus": { "v": 25, "unit": "Gold", "spec": "Tiles", "note": "Crowd bonus paid to the Arena winner." },
+    "chestGold": { "v": 40, "unit": "Gold", "spec": "RPG layer", "note": "Gold from a Chest when the Loot Wheel lands on Gold, at region tier 1." },
+    "chestGoldPerTier": { "v": 20, "unit": "Gold", "spec": "RPG layer", "note": "Extra Chest Gold per region tier above 1." },
+    "bountyMin": { "v": 25, "unit": "Gold", "spec": "Health economy", "note": "Smallest bounty a player may post at a Bounty Board." }
   },
   "xp": {
     "turn": { "v": 5, "unit": "XP", "spec": "Characters", "note": "XP for taking a turn." },
@@ -58,7 +63,16 @@
     "levelCap": { "v": 20, "unit": "levels", "spec": "Characters", "note": "Highest level." },
     "perLevelBase": { "v": 100, "unit": "XP", "spec": "Characters", "note": "XP needed from level 1 to 2; each level needs this much more than the last." },
     "statPointsPerLevel": { "v": 1, "unit": "points", "spec": "Characters", "note": "Stat points per level." },
-    "upgradeLevels": { "v": [5, 10, 15, 20], "unit": "levels", "spec": "Classes", "note": "Levels that unlock a stronger class active." }
+    "upgradeLevels": { "v": [5, 10, 15, 20], "unit": "levels", "spec": "Classes", "note": "Levels that unlock a stronger class active." },
+    "titleDamage": { "v": 500, "unit": "Health", "spec": "Characters", "note": "Damage dealt for Glass Cannon and taken for Punching Bag." },
+    "titleKills": { "v": 3, "unit": "kills", "spec": "Characters", "note": "Kills for the Headhunter title." },
+    "titleBosses": { "v": 1, "unit": "bosses", "spec": "Characters", "note": "Bosses beaten for the Dragon Slayer title." },
+    "titleTurns": { "v": 20, "unit": "turns", "spec": "Characters", "note": "Turns survived without dying for the Undying title." },
+    "titlePets": { "v": 3, "unit": "pets", "spec": "Characters", "note": "Pets caught for the Tamer title." },
+    "titleGold": { "v": 1000, "unit": "Gold", "spec": "Characters", "note": "Gold earned for the Tycoon title." },
+    "titleCrits": { "v": 3, "unit": "crits", "spec": "Characters", "note": "Critical hits for the Sharpshooter title." },
+    "titleChallenges": { "v": 3, "unit": "wins", "spec": "Characters", "note": "Challenge Wheel wins for the Duelist title." },
+    "titleDeaths": { "v": 2, "unit": "deaths", "spec": "Characters", "note": "Deaths survived for the Lazarus title." }
   },
   "stats": {
     "min": { "v": 1, "unit": "points", "spec": "Characters", "note": "Floor for any stat." },
@@ -76,12 +90,14 @@
     "greedPayoutPerPoint": { "v": 0.05, "unit": "fraction", "spec": "Creation", "note": "Creation payouts rise this much per Greed point." },
     "bloodHealthPerChip": { "v": 10, "unit": "Health", "spec": "Creation", "note": "Max Health staked per chip in the Blood option." },
     "bloodMax": { "v": 30, "unit": "Health", "spec": "Creation", "note": "Most max Health the Blood option may stake." },
-    "safePointPerChip": { "v": 1, "unit": "points", "spec": "Creation", "note": "Unstaked chips become this many stat points each." }
+    "safePointPerChip": { "v": 1, "unit": "points", "spec": "Creation", "note": "Unstaked chips become this many stat points each." },
+    "gambleGames": { "v": ["fifty", "dice", "hilo", "buyin"], "unit": "games", "spec": "Creation", "note": "Games a stat may be gambled on: the starter kit's three plus a Buy-in Wheel spin." }
   },
   "clock": {
     "perTurnSeconds": { "v": 90, "unit": "seconds", "spec": "A turn", "note": "Added to a player's clock at the start of their turn." },
     "bankCapSeconds": { "v": 300, "unit": "seconds", "spec": "A turn", "note": "Unused time banks up to this." },
-    "warningSeconds": { "v": 15, "unit": "seconds", "spec": "A turn", "note": "The clock-warning sound plays with this much left." }
+    "warningSeconds": { "v": 15, "unit": "seconds", "spec": "A turn", "note": "The clock-warning sound plays with this much left." },
+    "timeoutSlackMs": { "v": 250, "unit": "ms", "spec": "A turn", "note": "A TURN_TIMEOUT appended this close to zero is accepted (covers clock skew between the TV and the backend)." }
   },
   "items": {
     "stakeCommon": { "v": 10, "unit": "Health", "spec": "Attacks and spells", "note": "Stake of a Common weapon or spell." },
@@ -103,7 +119,10 @@
     "affixesLegendary": { "v": 4, "unit": "affixes", "spec": "Gear", "note": "Affixes on a Legendary, plus its unique." },
     "legendaryPerRun": { "v": 1, "unit": "items", "spec": "Legendaries", "note": "Most Legendaries that drop in one run." },
     "starterPotions": { "v": 2, "unit": "items", "spec": "Before the run", "note": "Potions in the starter kit (with Coin Blade, Loaded Dice, Mend)." },
-    "critXpMultiplierThreshold": { "v": 1.0, "unit": "fraction", "spec": "Attacks and spells", "note": "A result at or above this fraction of the game's top multiplier is a crit." }
+    "critXpMultiplierThreshold": { "v": 1.0, "unit": "fraction", "spec": "Attacks and spells", "note": "A result at or above this fraction of the game's top multiplier is a crit." },
+    "leverPenaltyPerPoint": { "v": 0.05, "unit": "fraction", "spec": "Attacks and spells", "note": "Threshold levers (\"at 5\", \"at 6\") have no graded downside, so below the neutral stat each point instead trims win payouts by this fraction." },
+    "monsterStakeFraction": { "v": 1.0, "unit": "fraction", "spec": "Attacks and spells", "note": "A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool)." },
+    "setDropChance": { "v": 0.15, "unit": "fraction", "spec": "Blockcraft", "note": "Chance an armour drop (helmet, torso, pants, boots) is a Blockcraft set piece instead of a rolled base." }
   },
   "affix": {
     "damageMin": { "v": 0.10, "unit": "fraction", "spec": "Gear", "note": "Smallest Damage affix roll." },
@@ -116,7 +135,15 @@
     "wardMax": { "v": 0.50, "unit": "fraction", "spec": "Gear", "note": "Largest Ward refund." },
     "tempoMin": { "v": 1, "unit": "turns", "spec": "Gear", "note": "Smallest Tempo cooldown cut." },
     "tempoMax": { "v": 2, "unit": "turns", "spec": "Gear", "note": "Largest Tempo cooldown cut." },
-    "tierScale": { "v": 0.25, "unit": "fraction", "spec": "Gear", "note": "Affix strength rises this fraction per region tier above 1." }
+    "tierScale": { "v": 0.25, "unit": "fraction", "spec": "Gear", "note": "Affix strength rises this fraction per region tier above 1." },
+    "oddsUses": { "v": 1, "unit": "uses", "spec": "Gear", "note": "Extra peeks, rerolls or safe picks an Odds affix grants per use of the named game." },
+    "economyGold": { "v": 0.25, "unit": "fraction", "spec": "Gear", "note": "Extra Gold from KOs on a Greedy (Economy) affix." },
+    "economyXp": { "v": 0.2, "unit": "fraction", "spec": "Gear", "note": "Extra XP on a Studious (Economy) affix." },
+    "economyRarity": { "v": 1, "unit": "rarity steps", "spec": "Gear", "note": "Loot rarity shift in the named region on a Fortunate (Economy) affix." },
+    "helmetNerveSeconds": { "v": 5, "unit": "seconds", "spec": "Gear", "note": "Shot clock seconds on the Helmet utility affix." },
+    "torsoMaxHealth": { "v": 10, "unit": "Health", "spec": "Gear", "note": "Max Health on the Torso utility affix while worn." },
+    "pantsStakeCap": { "v": 30, "unit": "Health", "spec": "Gear", "note": "A losing stake costs at most this much Health with the Pants utility affix." },
+    "glovesPeeks": { "v": 1, "unit": "peeks", "spec": "Gear", "note": "Free hidden-pick peeks per night on the Gloves utility affix." }
   },
   "grid": {
     "cols": { "v": 8, "unit": "cells", "spec": "Inventory grid", "note": "Grid columns at level 1." },
@@ -131,6 +158,7 @@
   "movement": {
     "barefoot": { "v": 2, "unit": "hexes", "spec": "Boots", "note": "Steps without boots." },
     "cardRange": { "v": 4, "unit": "hexes", "spec": "Boots", "note": "Card boots look this far for a colour." },
+    "cardRangeExtended": { "v": 6, "unit": "hexes", "spec": "Boots", "note": "Card range with the range6 boots affix." },
     "cardNoMatchStep": { "v": 1, "unit": "hexes", "spec": "Boots", "note": "Steps when no hex of the colour is in range." },
     "wheelSprint": { "v": 8, "unit": "hexes", "spec": "Boots", "note": "Movement wheel Sprint segment." },
     "wheelStumble": { "v": 0, "unit": "hexes", "spec": "Boots", "note": "Movement wheel Stumble segment." },
@@ -166,7 +194,9 @@
     "itemsMax": { "v": 3, "unit": "items", "spec": "Attacks and spells", "note": "Most items a monster carries." },
     "pitBossReduce": { "v": 0.10, "unit": "fraction", "spec": "Classes", "note": "Pit Boss takes this much less from monsters." },
     "raidMinPlayers": { "v": 2, "unit": "players", "spec": "RPG layer", "note": "Players needed on the tile to start a raid." },
-    "snareThreshold": { "v": 0.25, "unit": "fraction", "spec": "Legendaries", "note": "Tamer's Snare catches below this Health fraction." }
+    "snareThreshold": { "v": 0.25, "unit": "fraction", "spec": "Legendaries", "note": "Tamer's Snare catches below this Health fraction." },
+    "lootGoldTierScale": { "v": 0.5, "unit": "fraction", "spec": "Runs", "note": "Monster Gold drops rise this fraction per difficulty tier above 1." },
+    "eggChanceScale": { "v": 1, "unit": "multiplier", "spec": "Pets", "note": "Multiplier on every species' egg drop chance (0 turns eggs off)." }
   },
   "challenge": {
     "hostedCapSeconds": { "v": 120, "unit": "seconds", "spec": "Challenge Wheel", "note": "Time cap for hosted entries." },
@@ -174,7 +204,20 @@
     "timeoutDamage": { "v": 10, "unit": "Health", "spec": "Challenge Wheel", "note": "Both take this when the timer runs out with no result." },
     "noRepeatMinEntries": { "v": 4, "unit": "entries", "spec": "Challenge Wheel", "note": "With at least this many enabled entries the same one cannot repeat in a fight." },
     "callOutRange": { "v": 3, "unit": "hexes", "spec": "Classes", "note": "Enforcer Call Out reach." },
-    "enforcerPvpBonus": { "v": 0.25, "unit": "fraction", "spec": "Classes", "note": "Enforcer damage bonus against players." }
+    "enforcerPvpBonus": { "v": 0.25, "unit": "fraction", "spec": "Classes", "note": "Enforcer damage bonus against players." },
+    "gmWindowSeconds": { "v": 6, "unit": "seconds", "spec": "Challenge Wheel", "note": "After a spin the GM sees the result this long before the TV animation; reroll or force within it." },
+    "winMult": { "v": 1, "unit": "multiplier", "spec": "Challenge Wheel", "note": "The winner's weapon hits for stake times this, no roll." },
+    "critMult": { "v": 2, "unit": "multiplier", "spec": "Challenge Wheel", "note": "A flawless win is a crit: the hit uses this multiplier instead." },
+    "seriesWins": { "v": 2, "unit": "wins", "spec": "Challenge Wheel", "note": "Wins needed in a team (best-of-three) entry." },
+    "quickdrawMinDelayMs": { "v": 1500, "unit": "ms", "spec": "Challenge Wheel", "note": "Quick-Draw: shortest wait before the TV flashes." },
+    "quickdrawMaxDelayMs": { "v": 5000, "unit": "ms", "spec": "Challenge Wheel", "note": "Quick-Draw: longest wait before the TV flashes." },
+    "quickdrawFlawlessMs": { "v": 300, "unit": "ms", "spec": "Challenge Wheel", "note": "Quick-Draw: a winning reaction at or under this is flawless." },
+    "speedMathQuestions": { "v": 5, "unit": "questions", "spec": "Challenge Wheel", "note": "Speed Math: questions per duel; first to answer them all correctly wins." },
+    "speedMathMaxOperand": { "v": 20, "unit": "number", "spec": "Challenge Wheel", "note": "Speed Math: largest operand rolled." },
+    "triviaQuestions": { "v": 5, "unit": "questions", "spec": "Challenge Wheel", "note": "Trivia: questions drawn from the bank per duel." },
+    "memoryPairs": { "v": 6, "unit": "pairs", "spec": "Challenge Wheel", "note": "Memory Match: pairs in the grid (6 pairs = 4 by 3)." },
+    "emojiSequenceLength": { "v": 10, "unit": "emoji", "spec": "Challenge Wheel", "note": "Emoji Memory: length of the full sequence; reaching it is flawless." },
+    "typingMaxErrors": { "v": 2, "unit": "characters", "spec": "Challenge Wheel", "note": "Typing Race: a submission with at most this many errors counts as finished." }
   },
   "pets": {
     "teamMax": { "v": 6, "unit": "pets", "spec": "Pets", "note": "Pets a player carries." },
@@ -186,7 +229,11 @@
     "rareWheelBlanks": { "v": 2, "unit": "segments", "spec": "Pets", "note": "Dud-egg segments on the rare pet wheel." },
     "beastmasterPowerMult": { "v": 2, "unit": "multiplier", "spec": "Classes", "note": "Beastmaster pets earn Power at this multiple." },
     "beastmasterAttackBonus": { "v": 0.15, "unit": "fraction", "spec": "Classes", "note": "Beastmaster pet attack bonus at level 10." },
-    "swarmBodies": { "v": 5, "unit": "bodies", "spec": "Legendaries", "note": "Bodies in a Mucklings swarm." }
+    "swarmBodies": { "v": 5, "unit": "bodies", "spec": "Legendaries", "note": "Bodies in a Mucklings swarm." },
+    "evolveAt": { "v": [100, 200], "unit": "Power", "spec": "Pets", "note": "Power thresholds at which a pet reaches its second and third stage." },
+    "winPower": { "v": 5, "unit": "Power", "spec": "Pets", "note": "Power a pet earns when one of its attacks wins." },
+    "battleMaxRounds": { "v": 12, "unit": "rounds", "spec": "Pets", "note": "Pet-versus-pet battles end after this many rounds; higher Power left wins." },
+    "wheelSegments": { "v": 8, "unit": "segments", "spec": "Pets", "note": "Segments on each of the three pet wheels." }
   },
   "social": {
     "letterDelayTurns": { "v": 2, "unit": "recipient turns", "spec": "PvP and social", "note": "Delivery delay of a letter." },
@@ -194,7 +241,11 @@
     "smokeBombFree": { "v": 1, "unit": "uses", "spec": "Classes", "note": "Free Smoke Bombs for the Cutpurse per run." },
     "sideBetsOn": { "v": 0, "unit": "on/off", "spec": "Attacks and spells", "note": "Side bets for players not in the fight." },
     "tableVotesPerNight": { "v": 1, "unit": "votes", "spec": "PvP and social", "note": "Table votes to send someone to the Graveyard." },
-    "impostorTurns": { "v": 2, "unit": "turns", "spec": "Legendaries", "note": "Impostor's Visor disguise length." }
+    "impostorTurns": { "v": 2, "unit": "turns", "spec": "Legendaries", "note": "Impostor's Visor disguise length." },
+    "letterMaxChars": { "v": 280, "unit": "characters", "spec": "PvP and social", "note": "Longest letter a phone may send." },
+    "sideBetMax": { "v": 20, "unit": "Health", "spec": "Attacks and spells", "note": "Largest side bet a spectator or bystander may place." },
+    "voteSeconds": { "v": 30, "unit": "seconds", "spec": "PvP and social", "note": "How long a vote stays open when the opener names no deadline." },
+    "emoteKeep": { "v": 20, "unit": "emotes", "spec": "PvP and social", "note": "Emotes kept for the TV to float over avatars." }
   },
   "classes": {
     "whaleStakeDiscount": { "v": 0.25, "unit": "fraction", "spec": "Classes", "note": "Whale weapon stakes cost this much less." },
@@ -225,13 +276,19 @@
     "lootWeightRare": { "v": 27, "unit": "weight", "spec": "Wheels", "note": "Loot Wheel weight of Rare." },
     "lootWeightEpic": { "v": 11, "unit": "weight", "spec": "Wheels", "note": "Loot Wheel weight of Epic." },
     "lootWeightLegendary": { "v": 2, "unit": "weight", "spec": "Wheels", "note": "Loot Wheel weight of Legendary (subject to the per-run cap)." },
-    "luckRarityShiftPerPoints": { "v": 4, "unit": "points", "spec": "RPG layer", "note": "Luck points per one-step rarity shift." }
+    "luckRarityShiftPerPoints": { "v": 4, "unit": "points", "spec": "RPG layer", "note": "Luck points per one-step rarity shift." },
+    "fateMissTurns": { "v": 1, "unit": "turns", "spec": "Wheels", "note": "Turns lost on the Fate Wheel's Lose a Turn." },
+    "chaosClassRounds": { "v": 2, "unit": "rounds", "spec": "Wheels", "note": "Length of a class-targeted Chaos effect." }
   },
   "runs": {
     "tiers": { "v": 3, "unit": "tiers", "spec": "Runs", "note": "Difficulty tiers; each unlocks by clearing the one before." },
     "seasonNights": { "v": 8, "unit": "nights", "spec": "RPG layer", "note": "Nights in a season." },
     "tierLevelBand": { "v": 7, "unit": "levels", "spec": "Runs", "note": "Width of each tier's level band; a veteran cannot enter a tier below its band." },
-    "legendaryTier": { "v": 3, "unit": "tier", "spec": "Legendaries", "note": "Deepest tier; Infernal Mantle is awarded for clearing it without dying." }
+    "legendaryTier": { "v": 3, "unit": "tier", "spec": "Legendaries", "note": "Deepest tier; Infernal Mantle is awarded for clearing it without dying." },
+    "scorePerHealth": { "v": 1, "unit": "score", "spec": "End of the run", "note": "Score per point of Health remaining in the Free-for-all tiebreak." },
+    "pvpChestMult": { "v": 2, "unit": "multiplier", "spec": "Runs", "note": "PvP only: chest tiles per region are multiplied by this (no monsters, more loot)." },
+    "pveExtraMonsters": { "v": 1, "unit": "monsters", "spec": "Runs", "note": "PvE only: extra monsters rolled per region." },
+    "pveBossMult": { "v": 1.25, "unit": "multiplier", "spec": "Runs", "note": "PvE only: boss Health multiplier." }
   },
   "legendaries": {
     "pedestalLevel": { "v": 10, "unit": "level", "spec": "Legendaries", "note": "Pedestal Blade cannot be drawn under this level." },
@@ -256,7 +313,10 @@
     "poolDamage": { "v": 5, "unit": "Health", "spec": "Legendaries", "note": "Health lost per turn in the pool." },
     "cameraShots": { "v": 3, "unit": "shots", "spec": "Legendaries", "note": "Camera Obscura shots per run." },
     "cameraDamage": { "v": 15, "unit": "Health", "spec": "Legendaries", "note": "Camera Obscura damage to a revenant or wraith." },
-    "pedestalFullHealth": { "v": 1.0, "unit": "fraction", "spec": "Legendaries", "note": "Health fraction counted as full for the Pedestal Blade." }
+    "pedestalFullHealth": { "v": 1.0, "unit": "fraction", "spec": "Legendaries", "note": "Health fraction counted as full for the Pedestal Blade." },
+    "busterDamage": { "v": 0.5, "unit": "fraction", "spec": "Legendaries", "note": "Oversized Buster Cleaver damage bonus." },
+    "jokerCritMult": { "v": 2, "unit": "multiplier", "spec": "Legendaries", "note": "The Joker's five-of-a-kind crit multiplier." },
+    "coatMinStake": { "v": 20, "unit": "Health", "spec": "Legendaries", "note": "The Croupier's Coat: opponents must stake at least this much against the wearer." }
   },
   "sets": {
     "hideGuard": { "v": 0.05, "unit": "fraction", "spec": "Blockcraft", "note": "Hide piece Guard." },
@@ -267,7 +327,8 @@
     "gemGuard": { "v": 0.25, "unit": "fraction", "spec": "Blockcraft", "note": "Gem piece Guard." },
     "gemGrit": { "v": 1, "unit": "points", "spec": "Blockcraft", "note": "Gem piece Grit." },
     "chainGuard": { "v": 0.10, "unit": "fraction", "spec": "Blockcraft", "note": "Chainmail piece Guard." },
-    "pieces": { "v": 4, "unit": "pieces", "spec": "Blockcraft", "note": "Pieces for the set bonus." }
+    "pieces": { "v": 4, "unit": "pieces", "spec": "Blockcraft", "note": "Pieces for the set bonus." },
+    "giltCharges": { "v": 5, "unit": "charges", "spec": "Blockcraft", "note": "Fights a Gilt piece survives before it crumbles." }
   },
   "shop": {
     "potion": { "v": 40, "unit": "Gold", "spec": "Tiles", "note": "Potion price." },
@@ -283,26 +344,40 @@
     "itemRare": { "v": 120, "unit": "Gold", "spec": "Tiles", "note": "Rare gear price." },
     "itemEpic": { "v": 250, "unit": "Gold", "spec": "Tiles", "note": "Epic gear price." },
     "stock": { "v": 5, "unit": "items", "spec": "Tiles", "note": "Items on a Shop's shelf." },
-    "revive": { "v": 100, "unit": "Gold", "spec": "Tiles", "note": "Early revive at the Shop." }
+    "revive": { "v": 100, "unit": "Gold", "spec": "Tiles", "note": "Early revive at the Shop." },
+    "itemLegendary": { "v": 500, "unit": "Gold", "spec": "Tiles", "note": "Price a Legendary sells back from (never stocked)." },
+    "cutpurseConsumableFraction": { "v": 0.5, "unit": "fraction", "spec": "Classes", "note": "What a Cutpurse pays for Fork and Nudge (half)." },
+    "restockRounds": { "v": 3, "unit": "rounds", "spec": "Tiles", "note": "A Shop refills its shelf this many rounds after it was first opened." }
   },
   "chaos": {
     "tierDamageMult": { "v": [1, 1.25, 1.5, 2, 3], "unit": "multiplier", "spec": "Wheels", "note": "Damage multiplier per Chaos tier (tiers 1 to 5)." },
     "tierUpEveryRounds": { "v": 4, "unit": "rounds", "spec": "Wheels", "note": "Chaos tier rises every this many rounds." },
     "maxTier": { "v": 5, "unit": "tier", "spec": "Wheels", "note": "Highest Chaos tier." },
-    "collectorTakes": { "v": 10, "unit": "Health", "spec": "Wheels", "note": "What the Collector takes when Chaos sends them." }
+    "collectorTakes": { "v": 10, "unit": "Health", "spec": "Wheels", "note": "What the Collector takes when Chaos sends them." },
+    "regionMult": { "v": 2, "unit": "multiplier", "spec": "Wheels", "note": "Damage multiplier of a region-targeted Chaos effect (double damage in the Docks)." },
+    "classMult": { "v": 2, "unit": "multiplier", "spec": "Wheels", "note": "Damage multiplier against a Chaos-marked class." },
+    "voteSeconds": { "v": 30, "unit": "seconds", "spec": "PvP and social", "note": "How long the table has to vote a Chaos victim." }
   },
   "quests": {
     "perRun": { "v": 3, "unit": "quests", "spec": "RPG layer", "note": "Public quests dealt at the start." },
     "personalPerPlayer": { "v": 1, "unit": "quests", "spec": "RPG layer", "note": "Secret quests per player." },
     "goldReward": { "v": 100, "unit": "Gold", "spec": "RPG layer", "note": "Gold for a quest." },
-    "holdGold": { "v": 2000, "unit": "Gold", "spec": "RPG layer", "note": "Gold to hold for the hoarder quest." }
+    "holdGold": { "v": 2000, "unit": "Gold", "spec": "RPG layer", "note": "Gold to hold for the hoarder quest." },
+    "bankGold": { "v": 500, "unit": "Gold", "spec": "RPG layer", "note": "Banked Gold needed for the banker quest." },
+    "winsInRegion": { "v": 3, "unit": "hits", "spec": "RPG layer", "note": "Hits landed in the named region for the regional quests." },
+    "monsterKills": { "v": 3, "unit": "kills", "spec": "RPG layer", "note": "Monster kills for the hunter quest." },
+    "surviveChaosTier": { "v": 3, "unit": "tier", "spec": "RPG layer", "note": "Chaos tier to be alive at for the survivor quest." },
+    "reachLevel": { "v": 5, "unit": "level", "spec": "RPG layer", "note": "Level for the climber quest." },
+    "openChests": { "v": 2, "unit": "chests", "spec": "RPG layer", "note": "Chests for the looter quest." }
   },
   "auction": {
     "minBid": { "v": 10, "unit": "Gold", "spec": "Health economy", "note": "Smallest sealed bid." },
-    "windowSeconds": { "v": 30, "unit": "seconds", "spec": "Health economy", "note": "Bid window." }
+    "windowSeconds": { "v": 30, "unit": "seconds", "spec": "Health economy", "note": "Bid window." },
+    "houseCut": { "v": 0.1, "unit": "fraction", "spec": "Health economy", "note": "Share of the winning bid the house keeps when a player sells at auction." }
   },
   "royale": {
     "shrinkEveryRounds": { "v": 3, "unit": "rounds", "spec": "Polish", "note": "Rounds between map shrinks in Royale." },
-    "outsideDamage": { "v": 10, "unit": "Health", "spec": "Polish", "note": "Damage per turn outside the circle." }
+    "outsideDamage": { "v": 10, "unit": "Health", "spec": "Polish", "note": "Damage per turn outside the circle." },
+    "minRadius": { "v": 1, "unit": "hexes", "spec": "Polish", "note": "The circle never shrinks closer than this to the throne." }
   }
 }

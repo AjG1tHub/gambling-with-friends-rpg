@@ -1,0 +1,53 @@
+{
+  "_about": "The Boots slot is the movement engine (SPEC.md › Boots and movement modes). `bases` are the rollable boots: mode decides whether you roll, spin or draw; `die` is the movement die; `stop` mirrors the balance rule (movement.halfStopDice / fullWalkDice decide at runtime): any = stop whenever, half = only after half the roll, never = walk it all unless blocked. `wheel.segments` is the movement wheel in order; a segment with `stepsKey` reads its step count from balance.json › movement. `colourDeck` describes the per-run card deck: one card per secret colour times `perColour`, plus `movement.colourDoubles` doubles (one per colour). `uniques` and `affixes` are the ids handlers/movement.js honours on a worn boots item (`item.unique`, `item.affixes[].id` with kind 'movement').",
+  "footprint": { "w": 2, "h": 1 },
+  "dieSizes": [4, 6, 8, 10, 12, 20],
+  "defaults": { "chooseModeDie": 6, "skatesDie": 6, "skatesDice": 2 },
+  "bases": [
+    { "id": "cobblers_slippers",   "name": "Cobbler's Slippers",   "mode": "dice",  "die": 4,  "stop": "any",   "rarityFloor": "common", "text": "Roll a d4. Stop whenever you like." },
+    { "id": "loaded_boots",        "name": "Loaded Boots",         "mode": "dice",  "die": 6,  "stop": "any",   "rarityFloor": "common", "text": "Roll a d6. Stop whenever you like." },
+    { "id": "knucklebone_greaves", "name": "Knucklebone Greaves",  "mode": "dice",  "die": 8,  "stop": "half",  "rarityFloor": "rare",   "text": "Roll a d8. You may stop once half the roll is walked." },
+    { "id": "decahedron_striders", "name": "Decahedron Striders",  "mode": "dice",  "die": 10, "stop": "half",  "rarityFloor": "rare",   "text": "Roll a d10. You may stop once half the roll is walked." },
+    { "id": "dodeca_sabatons",     "name": "Dodeca Sabatons",      "mode": "dice",  "die": 12, "stop": "never", "rarityFloor": "epic",   "text": "Roll a d12 and walk every step of it." },
+    { "id": "fateful_treads",      "name": "Fateful Treads",       "mode": "dice",  "die": 20, "stop": "never", "rarityFloor": "epic",   "text": "Roll a d20 and walk every step of it." },
+    { "id": "croupiers_heels",     "name": "Croupier's Heels",     "mode": "wheel", "die": null, "stop": "any", "rarityFloor": "common", "text": "Spin the movement wheel: 1 to 6, Sprint, Stumble, Teleport, Swap." },
+    { "id": "breaking_wheel_boots","name": "Breaking-Wheel Boots", "mode": "wheel", "die": null, "stop": "any", "rarityFloor": "rare",   "text": "Spin the movement wheel. The wheel is a breaking wheel." },
+    { "id": "dyers_boots",         "name": "Dyer's Boots",         "mode": "card",  "die": null, "stop": "any", "rarityFloor": "common", "text": "Draw a colour and go to the nearest hex of that colour in range." },
+    { "id": "painted_soles",       "name": "Painted Soles",        "mode": "card",  "die": null, "stop": "any", "rarityFloor": "rare",   "text": "Draw a colour and go to the nearest hex of that colour in range." }
+  ],
+  "wheel": {
+    "segments": [
+      { "id": "1", "label": "1", "steps": 1, "weight": 1 },
+      { "id": "2", "label": "2", "steps": 2, "weight": 1 },
+      { "id": "3", "label": "3", "steps": 3, "weight": 1 },
+      { "id": "4", "label": "4", "steps": 4, "weight": 1 },
+      { "id": "5", "label": "5", "steps": 5, "weight": 1 },
+      { "id": "6", "label": "6", "steps": 6, "weight": 1 },
+      { "id": "sprint",   "label": "Sprint",   "stepsKey": "wheelSprint",  "weight": 1 },
+      { "id": "stumble",  "label": "Stumble",  "stepsKey": "wheelStumble", "weight": 1 },
+      { "id": "teleport", "label": "Teleport", "special": "teleport", "weight": 1 },
+      { "id": "swap",     "label": "Swap",     "special": "swap", "weight": 1 }
+    ],
+    "boost": { "id": "boost", "label": "Boost", "stepsKey": "wheelSprint", "weight": 1 }
+  },
+  "colourDeck": { "coloursKey": "map.secretColours", "perColour": 2, "doublesKey": "movement.colourDoubles" },
+  "uniques": {
+    "choosemode": { "name": "Choose your mode", "text": "Pick dice, wheel or card at the start of every move (payload.mode)." },
+    "movetwice":  { "name": "Move twice",       "text": "After your tile resolves you may roll a second move this turn." },
+    "skates":     { "name": "Skates of the Sixth", "text": "Roll 2d6, cannot stop early, and slide one extra hex in your last direction." },
+    "octane":     { "name": "Octane Treads",    "text": "The movement wheel loses Stumble and gains two Boost segments; ending next to a player bumps them 1 hex." }
+  },
+  "affixes": {
+    "dieUp":       { "mode": "dice",  "text": "One die size up" },
+    "twoDice":     { "mode": "dice",  "text": "Two dice one size down instead of one" },
+    "rerollOnes":  { "mode": "dice",  "text": "Reroll a 1 once" },
+    "keepStop":    { "mode": "dice",  "text": "Keep the stop-early right on a big die" },
+    "homeBonus":   { "mode": "dice",  "text": "+1 step in the region these boots came from" },
+    "noStumble":   { "mode": "wheel", "text": "The wheel loses Stumble" },
+    "extraSprint": { "mode": "wheel", "text": "A second Sprint on the wheel" },
+    "peekTop":     { "mode": "card",  "text": "See the top card of the colour deck" },
+    "drawTwo":     { "mode": "card",  "text": "Draw two, keep one" },
+    "range6":      { "mode": "card",  "text": "Look further for a colour (movement.cardRangeExtended)" },
+    "moreDoubles": { "mode": "card",  "text": "Twice the doubles in the deck" }
+  }
+}

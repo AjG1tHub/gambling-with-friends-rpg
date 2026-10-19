@@ -1,0 +1,56 @@
+{
+  "_about": "The five region templates the map generator rolls from (SPEC.md › Map, Art direction). Order is play order: strip is the start, citadel the endgame behind a Boss Gate. `neighbours` is the region graph the generator bridges (`map.bridgesPerPair` bridge hexes per pair). `tiles` are weights for the hexes left over after the guaranteed tiles (inn, shop, graveyard, bloodbank, chaos, `map.chestsPerRegion` chests, one bossgate, one portal) are placed. `modifier.key` is what other modules switch on; the numbers behind them live in balance.json under `map`. `monsterTable` ids are species in data/monsters.json (owned by the encounters module); `bossId` is the region boss, `raidBossId` an optional raid. `voidFlavour` is the hex type of the impassable hexes drawn around and inside the cluster.",
+  "regions": [
+    {
+      "id": "strip", "name": "Casino Strip", "tier": 1, "accent": "#ff3fa4", "accentName": "magenta",
+      "family": "picks", "voidFlavour": "wall", "neighbours": ["docks", "blackwood"],
+      "modifier": { "key": "start", "text": "Where every run begins. The House is still friendly here." },
+      "look": "Rain-slick street of shuttered parlours, one sign still lit",
+      "signature": "The first Encounter is a drunk croupier revenant under the sign",
+      "tiles": { "encounter": 6, "wheel": 3, "event": 2, "arena": 1, "bounty": 1, "plain": 2, "chaos": 1 },
+      "monsterTable": ["drunk_revenant", "croupier_revenant", "slot_golem", "card_shark"],
+      "bossId": "boss_strip", "raidBossId": null
+    },
+    {
+      "id": "docks", "name": "The Docks", "tier": 2, "accent": "#7dff5a", "accentName": "absinthe green",
+      "family": "dice", "voidFlavour": "water", "neighbours": ["strip", "caldera"],
+      "modifier": { "key": "cheapPacts", "text": "Blood Pacts are cheaper on the pier; the Blood Banks stand on stilts." },
+      "look": "Drowned pier, lantern fog, Blood Banks on stilts",
+      "signature": "The loan shark is a shark",
+      "tiles": { "encounter": 6, "wheel": 2, "event": 2, "arena": 1, "bounty": 2, "plain": 1, "chaos": 1, "bloodbank": 1 },
+      "monsterTable": ["loan_shark_eel", "card_shark", "roulette_wraith", "croupier_revenant"],
+      "bossId": "boss_docks", "raidBossId": null
+    },
+    {
+      "id": "blackwood", "name": "Blackwood", "tier": 2, "accent": "#a86bff", "accentName": "violet",
+      "family": "cards", "voidFlavour": "wall", "neighbours": ["strip", "caldera"],
+      "modifier": { "key": "doubleChaos", "text": "Twice the Chaos tiles; the Chaos tiles are hanging trees." },
+      "look": "Gallows forest with dice hanging from the ropes",
+      "signature": "Chaos tiles are hanging trees",
+      "tiles": { "encounter": 6, "wheel": 2, "event": 2, "arena": 1, "bounty": 1, "plain": 1, "chaos": 1 },
+      "monsterTable": ["gallows_spirit", "roulette_wraith", "card_shark", "slot_golem"],
+      "bossId": "boss_blackwood", "raidBossId": "the_litter"
+    },
+    {
+      "id": "caldera", "name": "The Caldera", "tier": 3, "accent": "#ff7a1f", "accentName": "ember orange",
+      "family": "nerve", "voidFlavour": "chasm", "neighbours": ["docks", "blackwood", "citadel"],
+      "modifier": { "key": "doubleDamage", "text": "Damage is doubled both ways in the forge-pit." },
+      "look": "Forge-pit casino, molten chips, salamander dealers",
+      "signature": "The Boss Gate is a furnace door",
+      "tiles": { "encounter": 7, "wheel": 2, "event": 2, "arena": 2, "bounty": 1, "plain": 1, "chaos": 1 },
+      "monsterTable": ["salamander_dealer", "slot_golem", "roulette_wraith", "gallows_spirit"],
+      "bossId": "boss_caldera", "raidBossId": null
+    },
+    {
+      "id": "citadel", "name": "Sky Citadel", "tier": 3, "accent": "#ffd466", "accentName": "cold gold",
+      "family": "wheels", "voidFlavour": "chasm", "neighbours": ["caldera"],
+      "modifier": { "key": "citadel", "text": "Loot rolls one rarity higher; entry needs level 10 or a key. The throne is the Dealer's chair." },
+      "look": "Gilded high-roller tower above the clouds, cold gold",
+      "signature": "The throne is the Dealer's chair",
+      "gate": { "levelKey": "citadelLevel", "keyItem": "citadel_key" },
+      "tiles": { "encounter": 7, "wheel": 3, "event": 2, "arena": 1, "bounty": 1, "plain": 1, "chaos": 1, "chest": 1 },
+      "monsterTable": ["highroller_angel", "the_grey", "roulette_wraith", "salamander_dealer"],
+      "bossId": "boss_citadel", "raidBossId": "high_table", "finalBossId": "the_dealer"
+    }
+  ]
+}

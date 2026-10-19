@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--gwf-placeholder-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<g id="rim"><circle cx="512" cy="512" r="500" fill="#120d10"/><circle cx="512" cy="512" r="492" fill="none" stroke="#c9a24a" stroke-width="10"/></g>
+<g id="segments"><path id="seg-0" data-index="0" d="M512,512 L512.0,32.0 A480,480 0 0,1 927.7,752.0 Z" fill="#17111a" stroke="#9c7a2e" stroke-width="3"/><path id="seg-1" data-index="1" d="M512,512 L927.7,752.0 A480,480 0 0,1 96.3,752.0 Z" fill="#5a1a1a" stroke="#9c7a2e" stroke-width="3"/><path id="seg-2" data-index="2" d="M512,512 L96.3,752.0 A480,480 0 0,1 512.0,32.0 Z" fill="#17111a" stroke="#9c7a2e" stroke-width="3"/></g>
+<g id="labels"><text data-index="0" x="794.7" y="348.8" transform="rotate(-30.0 794.7 348.8)" fill="#e8dfc8" font-size="40" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, Georgia, serif">Item</text><text data-index="1" x="512.0" y="838.4" transform="rotate(90.0 512.0 838.4)" fill="#e8dfc8" font-size="40" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, Georgia, serif">Gold</text><text data-index="2" x="229.3" y="348.8" transform="rotate(210.0 229.3 348.8)" fill="#e8dfc8" font-size="40" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, Georgia, serif">Egg</text></g>
+<g id="hub"><circle cx="512" cy="512" r="70" fill="#0b080c" stroke="#c9a24a" stroke-width="8"/><text x="512" y="522" fill="#e8dfc8" font-size="26" text-anchor="middle" font-family="Cinzel, Georgia, serif">Loot Wheel</text></g>
+</svg>

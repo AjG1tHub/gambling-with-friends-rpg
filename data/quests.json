@@ -1,0 +1,27 @@
+{
+  "_about": "The quest deck (SPEC.md › RPG layer). quests.perRun are dealt public at RUN_START and shown on the TV; quests.personalPerPlayer are dealt secret to each player. `cond` is checked by packages/shared/handlers/quests.js at every turnEnd (the mover) and roundEnd (everyone): the `type` names a check, `key` names a tunable in balance.json › quests that supplies the number, `n` is a fixed count where no tunable applies, `regionId` names a region. `pool`: public | personal | any. rewardMult scales quests.goldReward (XP is xp.quest). GM_QUEST adds hand-written rows with type `manual`, completed from the console.",
+  "quests": [
+    { "id": "blackwood_hits",  "title": "Cards in the Dark",     "text": "Land {n} hits in Blackwood.",                       "pool": "any",      "cond": { "type": "hitsInRegion", "regionId": "blackwood", "key": "winsInRegion" }, "rewardMult": 1 },
+    { "id": "docks_hits",      "title": "Pier Pressure",         "text": "Land {n} hits in The Docks.",                       "pool": "any",      "cond": { "type": "hitsInRegion", "regionId": "docks", "key": "winsInRegion" }, "rewardMult": 1 },
+    { "id": "caldera_hits",    "title": "Forged in It",          "text": "Land {n} hits in The Caldera.",                     "pool": "any",      "cond": { "type": "hitsInRegion", "regionId": "caldera", "key": "winsInRegion" }, "rewardMult": 1.25 },
+    { "id": "hoarder",         "title": "Dragon's Hoard",        "text": "Hold {n} Gold at the end of a round.",              "pool": "public",   "cond": { "type": "holdGold", "key": "holdGold" }, "rewardMult": 1.5 },
+    { "id": "banker",          "title": "Trust the House",       "text": "Have {n} Gold in the Bank at the end of a round.",  "pool": "any",      "cond": { "type": "bankGold", "key": "bankGold" }, "rewardMult": 1 },
+    { "id": "duelist",         "title": "Beat {target}",         "text": "Beat {target} in a duel.",                          "pool": "personal", "cond": { "type": "beatPlayer" }, "rewardMult": 1.5 },
+    { "id": "headhunter",      "title": "Headhunter",            "text": "KO {target}.",                                      "pool": "personal", "cond": { "type": "killPlayer" }, "rewardMult": 2 },
+    { "id": "tourist",         "title": "Grand Tour",            "text": "Set foot in every region.",                         "pool": "any",      "cond": { "type": "visitAllRegions" }, "rewardMult": 1.5 },
+    { "id": "pilgrim",         "title": "Pilgrim",               "text": "Set foot in {region}.",                             "pool": "any",      "cond": { "type": "visitRegion", "regionId": "citadel" }, "rewardMult": 1.25 },
+    { "id": "bossslayer",      "title": "Regicide",              "text": "Kill a region boss.",                               "pool": "public",   "cond": { "type": "bosses", "n": 1 }, "rewardMult": 2 },
+    { "id": "hunter",          "title": "Pest Control",          "text": "Kill {n} monsters.",                                "pool": "any",      "cond": { "type": "monsterKills", "key": "monsterKills" }, "rewardMult": 1 },
+    { "id": "tamer",           "title": "Something Small",       "text": "Catch or hatch a pet.",                             "pool": "any",      "cond": { "type": "petsCaught", "n": 1 }, "rewardMult": 1 },
+    { "id": "postman",         "title": "Sealed with Wax",       "text": "Send a letter.",                                    "pool": "personal", "cond": { "type": "lettersSent", "n": 1 }, "rewardMult": 0.5 },
+    { "id": "survivor",        "title": "Still Standing",        "text": "Be alive when Chaos reaches tier {n}.",             "pool": "public",   "cond": { "type": "surviveChaos", "key": "surviveChaosTier" }, "rewardMult": 1 },
+    { "id": "climber",         "title": "Climber",               "text": "Reach level {n}.",                                  "pool": "any",      "cond": { "type": "reachLevel", "key": "reachLevel" }, "rewardMult": 1 },
+    { "id": "looter",          "title": "Finders Keepers",       "text": "Open {n} chests.",                                  "pool": "any",      "cond": { "type": "openChests", "key": "openChests" }, "rewardMult": 1 },
+    { "id": "debtor",          "title": "Sign Here",             "text": "Take a Blood Pact and repay it in full.",           "pool": "personal", "cond": { "type": "pactRepaid", "n": 1 }, "rewardMult": 1 },
+    { "id": "innkeeper",       "title": "A Bed for the Night",   "text": "Rest at an Inn.",                                   "pool": "personal", "cond": { "type": "innRests", "n": 1 }, "rewardMult": 0.5 },
+    { "id": "auctioneer",      "title": "Going Once",            "text": "Win an auction.",                                   "pool": "any",      "cond": { "type": "auctionsWon", "n": 1 }, "rewardMult": 1 },
+    { "id": "untouched",       "title": "Not a Scratch",         "text": "Finish a round at full Health.",                    "pool": "personal", "cond": { "type": "fullHealthRound" }, "rewardMult": 1 },
+    { "id": "spinner",         "title": "Wheel Addict",          "text": "Spin {n} wheels.",                                  "pool": "any",      "cond": { "type": "spins", "n": 3 }, "rewardMult": 0.75 },
+    { "id": "bountyhunter",    "title": "Dead or Alive",         "text": "Collect a bounty.",                                 "pool": "any",      "cond": { "type": "bountiesCollected", "n": 1 }, "rewardMult": 1 }
+  ]
+}

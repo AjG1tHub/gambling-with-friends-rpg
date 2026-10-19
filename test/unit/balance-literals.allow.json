@@ -1,0 +1,4 @@
+{
+  "_about": "Lines test/unit/balance-literals.test.mjs may skip. Entries are 'path:line' (one line) or 'path::value' (every occurrence of that literal in the file). Prefer a `// literal` comment on the line, or an ALL_CAPS data-table constant, over an entry here; keep this list for cases where neither reads well.",
+  "allow": []
+}

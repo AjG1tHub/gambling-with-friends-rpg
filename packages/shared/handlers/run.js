@@ -6,7 +6,7 @@
 //   hooks.roundEnd(state, ctx)        when turnIdx wraps the table (Chaos tier, tile loot sweep)
 //   hooks.endCheck(state, ctx)        after every event while playing; return { winner, reason } to end the run
 import { register, refuse, requireGm, requirePhase, requireActor, onAfter } from '../reducer.js';
-import { activeSeats, currentPlayerId, characterOf, note } from '../state.js';
+import { activeSeats, currentPlayerId, characterOf, note, ensureCharacterShape } from '../state.js';
 import { startClock, stopClock } from '../clock.js';
 import { streamRng, rigAwareWeightedIndex } from '../rng.js';
 
@@ -16,7 +16,7 @@ export function beginTurn(state, ctx) {
   let guard = 0;
   while (guard++ < 64) {
     const pid = currentPlayerId(state); if (!pid) return;
-    const p = state.players[pid], c = characterOf(state, pid);
+    const p = state.players[pid], c = ensureCharacterShape(characterOf(state, pid));
     state.turnStartedAt = ctx.now; state.turnPhase = 'move'; state.moveSession = null; state.pendingPrompt = null;
     state.stats[pid] && (state.stats[pid].turns += 1);
     if (c) { c.turnsTaken = (c.turnsTaken || 0) + 1; c.usedThisTurn = { attack: 0, spell: 0, moved: false }; }
@@ -29,7 +29,7 @@ export function beginTurn(state, ctx) {
     return;
   }
 }
-function finishTurn(state, ctx, pid, how) {
+export function finishTurn(state, ctx, pid, how) {
   stopClock(state, pid, ctx.now);
   for (const h of hooks.turnEnd) h(state, ctx, pid, how);
   const seats = activeSeats(state), before = state.turnIdx;
@@ -81,6 +81,7 @@ register({
     const seats = activeSeats(state); if (!seats.length) refuse('nobody at the table');
     state.seats = streamRng(state, 'misc').shuffle(seats);
     state.phase = 'playing'; state.startedAt = ctx.now; state.turnIdx = 0; state.round = 1;
+    for (const c of Object.values(state.characters)) ensureCharacterShape(c);
     for (const h of hooks.runStart) h(state, ctx);
     note(state, `The run begins. Order: ${state.seats.map(id => state.players[id].name).join(' → ')}`, 'start', ctx.now);
     beginTurn(state, ctx);
@@ -96,7 +97,7 @@ register({
     requirePhase(state, 'playing');
     const pid = currentPlayerId(state); if (!pid) return;
     const c = state.clocks[pid]; if (!c || c.runningSince == null) return;
-    if (c.bankMs - (ctx.now - c.runningSince) > 250) refuse('clock not yet at zero', 'early');
+    if (c.bankMs - (ctx.now - c.runningSince) > ctx.B('clock').timeoutSlackMs) refuse('clock not yet at zero', 'early');
     note(state, `${state.players[pid].name} ran out of time`, 'turn', ctx.now);
     endTurn(state, ctx, 'timeout');
   },

@@ -1,0 +1,28 @@
+{
+  "_about": "Every hex type the map can hold (SPEC.md › What each tile does). The 13 tile types players land on, plus start/throne/plain/courier and the three void flavours. `glyph` is the emoji placeholder until the tile art lands; `acts` is who acts on the phone; `resolves` says whether landing on it triggers a tile hook (void hexes are never entered). The encounters/tiles module registers the hook per type through hooks.js › tileHooks.",
+  "tiles": {
+    "encounter": { "name": "Encounter",    "glyph": "👁", "letter": "E", "resolves": true,  "acts": "Mover; allies on the tile may join", "text": "A monster from the region's table appears with its own Health and two moves. Fight it with your items; it drops Gold, an item or an egg when it dies." },
+    "wheel":     { "name": "Wheel",        "glyph": "🎡", "letter": "W", "resolves": true,  "acts": "Mover", "text": "Spin the Fortune Wheel for Health, Gold or an item." },
+    "shop":      { "name": "Shop",         "glyph": "🏪", "letter": "$", "resolves": true,  "acts": "Mover", "text": "Buy items, potions and trinkets with Gold; sell back at half price." },
+    "inn":       { "name": "Inn",          "glyph": "🛏", "letter": "I", "resolves": true,  "acts": "Mover", "text": "Safe tile: heal once per visit, buy potions, the Collector skips you this round." },
+    "bloodbank": { "name": "Blood Bank",   "glyph": "🩸", "letter": "B", "resolves": true,  "acts": "Mover", "text": "Take or repay a Blood Pact." },
+    "graveyard": { "name": "Graveyard",    "glyph": "🪦", "letter": "G", "resolves": true,  "acts": "Mover", "text": "Dead players wake here after their missed turns; what they dropped stays where they fell." },
+    "arena":     { "name": "Arena",        "glyph": "⚔", "letter": "A", "resolves": true,  "acts": "Mover, then the challenged player", "text": "Challenge a player to a Challenge Wheel fight or a pet battle with a Gold wager and a crowd bonus." },
+    "chaos":     { "name": "Chaos",        "glyph": "🌀", "letter": "X", "resolves": true,  "acts": "Mover; a vote if the result asks for a victim", "text": "Spin the Chaos Wheel; tiers escalate as the run goes on." },
+    "chest":     { "name": "Chest",        "glyph": "📦", "letter": "C", "resolves": true,  "acts": "Mover", "text": "Spin the Loot Wheel for an item (rarity by region), Gold or an egg." },
+    "event":     { "name": "Event",        "glyph": "🃏", "letter": "F", "resolves": true,  "acts": "Mover", "text": "Spin the Fate Wheel." },
+    "bossgate":  { "name": "Boss Gate",    "glyph": "🚪", "letter": "K", "resolves": true,  "acts": "Mover; allies on the tile for raids", "text": "Fight the region boss if level or key allows, else bounce back three tiles." },
+    "portal":    { "name": "Portal",       "glyph": "🌑", "letter": "O", "resolves": true,  "acts": "Mover", "text": "Pick a destination region and step through." },
+    "bounty":    { "name": "Bounty Board", "glyph": "📜", "letter": "%", "resolves": true,  "acts": "Mover", "text": "Place or claim a bounty; take a public quest." },
+    "start":     { "name": "The Sign",     "glyph": "🪧", "letter": "S", "resolves": false, "acts": "Nobody", "text": "Where the run begins, under the one sign still lit. A safe tile." },
+    "throne":    { "name": "The Throne",   "glyph": "👑", "letter": "T", "resolves": true,  "acts": "Mover", "text": "The Dealer's chair. Sit on it once the Dealer is dead and the run is won." },
+    "plain":     { "name": "Open Ground",  "glyph": "·",  "letter": ".", "resolves": false, "acts": "Nobody", "text": "Nothing here but the rain. A place to stand." },
+    "courier":   { "name": "Courier Post", "glyph": "🐦", "letter": "P", "resolves": true,  "acts": "Mover", "text": "The crow's roost. Letters in transit pass through here; whoever stands on it reads them first." },
+    "blocker":   { "name": "Dungheap",     "glyph": "💩", "letter": "#", "resolves": false, "acts": "Nobody", "text": "A destructible heap that blocks the hex and drops Gold when broken." },
+    "water":     { "name": "Black Water",  "glyph": "〰", "letter": "~", "resolves": false, "void": true, "acts": "Nobody", "text": "Drowned ground. Impassable." },
+    "chasm":     { "name": "Chasm",        "glyph": "▽",  "letter": "v", "resolves": false, "void": true, "acts": "Nobody", "text": "A drop into smoke and cloud. Impassable." },
+    "wall":      { "name": "Wall",         "glyph": "▮",  "letter": "|", "resolves": false, "void": true, "acts": "Nobody", "text": "Shuttered fronts and gallows trunks. Impassable." }
+  },
+  "guaranteedPerRegion": ["inn", "shop", "graveyard", "bloodbank", "chaos", "bossgate", "portal"],
+  "safeTiles": ["inn", "start", "graveyard"]
+}
