@@ -1,0 +1,55 @@
+{
+  "_about": "The six classes (SPEC.md › Classes). Numbers that a GM tunes live in balance.json under `classes`; this file holds the structure: ids, names, class stat, crest mark, starting weapon, passive/active/upgrade descriptions and the effect keys the code switches on.",
+  "classes": [
+    { "id": "whale", "name": "Whale", "playsLike": "All-in gambler", "stat": "nerve", "mark": "split coin", "startWeapon": "wheelofruin",
+      "passive": { "text": "Weapon stakes cost 25% less; hits deal 15% more", "effects": ["weaponStakeDiscount", "damageBonus"] },
+      "active": { "id": "doubledown", "name": "Double Down", "text": "The next hit deals double damage, win or lose the stake", "cooldownKey": "whaleCooldown" },
+      "upgrades": [
+        { "level": 5,  "id": "critplus",   "text": "Crit multiplier +0.5" },
+        { "level": 10, "id": "healdouble", "text": "Double Down also doubles a spell's healing" },
+        { "level": 15, "id": "overstake",  "text": "Can use an item whose stake exceeds Health, dropping to 1" },
+        { "level": 20, "id": "fastcd",     "text": "Double Down cooldown 3" } ] },
+    { "id": "pitboss", "name": "Pit Boss", "playsLike": "The house; outlasts everyone", "stat": "grit", "mark": "ledger", "startWeapon": "ward",
+      "passive": { "text": "Healing items restore 50% more; Blood Pacts cost 15%; takes 10% less from monsters", "effects": ["healBonus", "pactDiscount", "monsterGuard"] },
+      "active": { "id": "houserules", "name": "House Rules", "text": "Cancel the next Chaos effect, or turn the next roll against you into a push", "cooldownKey": "pitBossCooldown" },
+      "upgrades": [
+        { "level": 5,  "id": "inntwice",     "text": "Inn heals twice per visit" },
+        { "level": 10, "id": "shopdiscount", "text": "Shop prices 25% off" },
+        { "level": 15, "id": "nocollector",  "text": "The Collector never visits" },
+        { "level": 20, "id": "voidwin",      "text": "House Rules can void an enemy win once per fight" } ] },
+    { "id": "cutpurse", "name": "Cutpurse", "playsLike": "Thief and spy", "stat": "luck", "mark": "fox mask", "startWeapon": "shellgame",
+      "passive": { "text": "Fork and Nudge cost half; reads every letter that crosses their tile; one free Smoke Bomb per run", "effects": ["cheapConsumables", "readsLetters", "freeSmokeBomb"] },
+      "active": { "id": "sleight", "name": "Sleight", "text": "Swap tiles with any player, or steal the item in a random grid cell of a player in reach", "cooldownKey": "cutpurseCooldown" },
+      "upgrades": [
+        { "level": 5,  "id": "forge",      "text": "Forge replies to intercepted letters" },
+        { "level": 10, "id": "chosencell", "text": "Steal a chosen cell" },
+        { "level": 15, "id": "hidden",     "text": "Hidden on the TV map for 2 turns after a Smoke Bomb" },
+        { "level": 20, "id": "fastcd",     "text": "Sleight cooldown 3" } ] },
+    { "id": "enforcer", "name": "Enforcer", "playsLike": "PvP duelist", "stat": "grit", "mark": "cracked knuckle", "startWeapon": "loadeddice",
+      "passive": { "text": "+25% damage against players; death penalty one turn shorter; cannot be swapped", "effects": ["pvpBonus", "shortPenalty", "noSwap"] },
+      "active": { "id": "callout", "name": "Call Out", "text": "Force a fight with any player within 3 tiles; they cannot Smoke Bomb out", "cooldownKey": "enforcerCooldown" },
+      "upgrades": [
+        { "level": 5,  "id": "firsthit",  "text": "First hit of a fight +25%" },
+        { "level": 10, "id": "killheal",  "text": "A player kill heals 20" },
+        { "level": 15, "id": "longarm",   "text": "Long Arm built in" },
+        { "level": 20, "id": "regioncall","text": "Call Out reaches the whole region" } ] },
+    { "id": "beastmaster", "name": "Beastmaster", "playsLike": "Trainer; pets carry the fight", "stat": "luck", "mark": "leash", "startWeapon": "mend",
+      "passive": { "text": "Pets earn Power 2x; extra egg at run start; first pet faint per run is undone", "effects": ["petPowerDouble", "extraEgg", "firstFaintUndone"] },
+      "active": { "id": "rally", "name": "Rally", "text": "Heal the active pet to full mid-fight", "cooldownKey": "beastmasterCooldown" },
+      "upgrades": [
+        { "level": 5,  "id": "carry7",    "text": "Carry 7 pets" },
+        { "level": 10, "id": "petattack", "text": "Pet attacks +15%" },
+        { "level": 15, "id": "twopets",   "text": "Two pets fight before you do" },
+        { "level": 20, "id": "revive",    "text": "Rally revives a fainted pet" } ] },
+    { "id": "croupier", "name": "Croupier", "playsLike": "Odds-maker; spells and rerolls", "stat": "nerve", "mark": "dealer's visor", "startWeapon": "twinfang",
+      "passive": { "text": "Spells stake 50% less; one free Reroll per fight", "effects": ["spellStakeDiscount", "freeReroll"] },
+      "active": { "id": "rigthedeck", "name": "Rig the Deck", "text": "Pick the result of the next binary outcome (any 50/50, over/under, red/black) for anyone in the fight", "cooldownKey": "croupierCooldown" },
+      "upgrades": [
+        { "level": 5,  "id": "cardsplus",   "text": "Cards family +15%" },
+        { "level": 10, "id": "twospells",   "text": "Two spells per turn" },
+        { "level": 15, "id": "rerollfoe",   "text": "Reroll works on an opponent's roll" },
+        { "level": 20, "id": "rigwheel",    "text": "Rig the Deck works on a wheel" } ] }
+  ],
+  "starterKit": ["coinblade", "loadeddice", "mend"],
+  "statNames": { "luck": "Luck", "nerve": "Nerve", "greed": "Greed", "grit": "Grit" }
+}
