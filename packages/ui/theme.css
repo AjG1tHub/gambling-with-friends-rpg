@@ -1,0 +1,52 @@
+/* Grimdark casino. The House is a dead god and every casino is its church: black velvet, oxblood, tarnished
+   gold, bone white, candle amber, one sickly neon per region. Tokens are shared by the TV, phone, GM and Lab. */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap');
+
+:root {
+  --velvet: #0d0a0b; --velvet-2: #16110f; --velvet-3: #1c1614; --panel: #1a1412; --panel-2: #231b18; --line: #3a3230; --line-2: #4a3f36;
+  --oxblood: #5a1218; --oxblood-2: #7a1a22; --blood: #c0262e;
+  --gold: #c9a45c; --gold-2: #e0c07a; --gold-dim: #8a7a62; --brass: #6a5a3a;
+  --bone: #e9e1cf; --bone-2: #c9bfae; --bone-dim: #9a917f; --amber: #f0b66a; --ember: #ff7a2a;
+  --neon-strip: #d13c9f; --neon-docks: #6fd36a; --neon-blackwood: #8f6cff; --neon-caldera: #ff7a2a; --neon-citadel: #ffd86b;
+  --ok: #6fb36a; --warn: #e0a14a; --bad: #c0262e; --info: #9aa7b0;
+  --ink: var(--bone); --muted: var(--bone-2); --faint: var(--gold-dim);
+  --font-display: Cinzel, 'Times New Roman', serif; --font-body: 'IM Fell English', Georgia, serif; --font-mono: ui-monospace, Menlo, Consolas, monospace;
+  --tap: 60px; --radius: 6px; --shadow: 0 10px 30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.03);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--velvet); color: var(--ink); font: 17px/1.35 var(--font-body); -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; background: radial-gradient(1200px 700px at 50% -10%, #2a1a1c 0%, var(--velvet) 60%); }
+h1, h2, h3, h4, .display { font-family: var(--font-display); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin: 0; }
+h1 { font-size: 1.5rem; } h2 { font-size: 1.05rem; } h3 { font-size: .85rem; color: var(--gold-dim); }
+p { margin: .3em 0; } small, .muted { color: var(--muted); } .faint { color: var(--faint); } .ital { font-style: italic; }
+a { color: var(--gold-2); }
+button, .btn { font: inherit; font-family: var(--font-display); letter-spacing: .12em; text-transform: uppercase; font-size: .82rem; color: var(--bone); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 0 16px; min-height: var(--tap); min-width: var(--tap); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform .06s, border-color .12s, background .12s; }
+button:active, .btn:active { transform: translateY(1px) scale(.99); }
+button:disabled { opacity: .4; cursor: default; }
+button.primary { border-color: var(--gold); color: var(--gold-2); background: linear-gradient(180deg, #2b2218, #1d1712); box-shadow: inset 0 0 0 1px rgba(201,164,92,.15); }
+button.danger { border-color: var(--blood); color: #f2b3b3; background: linear-gradient(180deg, #3a1216, #230c0e); }
+button.ghost { background: transparent; border-color: var(--line); color: var(--muted); }
+button.big { min-height: 72px; font-size: 1rem; width: 100%; }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--velvet-3); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 12px 14px; min-height: var(--tap); width: 100%; }
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+input.code { font-family: var(--font-display); font-size: 2rem; letter-spacing: .5em; text-align: center; text-transform: uppercase; }
+.panel { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line-2); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+.panel.gold { border-color: var(--gold-dim); } .panel.blood { border-color: var(--oxblood-2); }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; } .col { display: flex; flex-direction: column; gap: 10px; } .grow { flex: 1 1 auto; } .between { justify-content: space-between; } .center { text-align: center; }
+.stack > * + * { margin-top: 12px; }
+.pill { display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-2); font-size: .8rem; color: var(--muted); }
+.pill.ok { border-color: var(--ok); color: var(--ok); } .pill.bad { border-color: var(--bad); color: #f2b3b3; } .pill.gold { border-color: var(--gold); color: var(--gold-2); }
+.tag { font-family: var(--font-display); font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold-dim); }
+.hr { height: 1px; background: linear-gradient(90deg, transparent, var(--line-2), transparent); margin: 12px 0; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 90px; background: var(--panel-2); border: 1px solid var(--gold-dim); padding: 12px 18px; border-radius: var(--radius); box-shadow: var(--shadow); z-index: 50; max-width: 90vw; animation: toastin .25s ease-out; }
+.toast.bad { border-color: var(--blood); }
+@keyframes toastin { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.banner { position: fixed; top: 0; left: 0; right: 0; padding: 8px 14px; background: var(--oxblood); color: var(--bone); text-align: center; font-family: var(--font-display); letter-spacing: .14em; font-size: .8rem; z-index: 60; }
+.banner.ok { background: #1f3a22; }
+.lantern { display: inline-block; width: 14px; height: 18px; border-radius: 40% 40% 50% 50%; background: var(--amber); box-shadow: 0 0 10px var(--amber); vertical-align: middle; }
+.lantern.mid { background: #d88a3a; box-shadow: 0 0 6px #d88a3a; opacity: .85; } .lantern.low { background: #7a3a1a; box-shadow: none; opacity: .7; transform: scaleY(.6); } .lantern.dead { background: #333; box-shadow: none; opacity: .5; }
+.log { font-size: .9rem; color: var(--muted); } .log .turn { color: var(--gold-2); } .log .error { color: #f2b3b3; } .log .gm { color: var(--info); } .log .end, .log .start { color: var(--gold); }
+.kbd { font-family: var(--font-mono); background: var(--velvet-3); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; font-size: .85em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

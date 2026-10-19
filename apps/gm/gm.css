@@ -1,0 +1,22 @@
+/* GM console: dense, two columns, works on a tablet. */
+body.gm { font-size: 15px; }
+.boot { display: grid; place-items: center; min-height: 100vh; text-align: center; padding: 24px; gap: 10px; }
+.gm-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.gm-nav { border-right: 1px solid var(--line); background: var(--velvet-2); padding: 16px 10px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.gm-nav h1 { font-size: .95rem; padding: 0 8px 10px; } .gm-nav .code { font-family: var(--font-display); letter-spacing: .3em; color: var(--gold-2); font-size: 1.3rem; padding: 0 8px 8px; }
+.gm-nav button { justify-content: flex-start; min-height: 44px; border-color: transparent; background: transparent; font-size: .75rem; }
+.gm-nav button.on { border-color: var(--gold-dim); background: var(--panel-2); color: var(--gold-2); }
+.gm-main { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; max-width: 1400px; }
+.gm-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.gm-bar button { min-height: 44px; font-size: .72rem; }
+table.gm { width: 100%; border-collapse: collapse; font-size: .92rem; }
+table.gm th { text-align: left; font-family: var(--font-display); font-size: .68rem; letter-spacing: .14em; color: var(--gold-dim); padding: 6px 8px; border-bottom: 1px solid var(--line-2); }
+table.gm td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.gm td button { min-height: 36px; min-width: 36px; padding: 0 10px; font-size: .66rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 4px; } .field label { font-family: var(--font-display); font-size: .66rem; letter-spacing: .14em; color: var(--gold-dim); }
+.field input, .field select { min-height: 44px; padding: 8px 10px; }
+.log-box { max-height: 40vh; overflow-y: auto; font-size: .88rem; }
+.err-box { border: 1px solid var(--blood); background: #230c0e; padding: 8px 12px; border-radius: var(--radius); color: #f2b3b3; font-size: .88rem; }
+.mono { font-family: var(--font-mono); font-size: .8rem; }
+textarea.json { min-height: 240px; font-family: var(--font-mono); font-size: .78rem; }

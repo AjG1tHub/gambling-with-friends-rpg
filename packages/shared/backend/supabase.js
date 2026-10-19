@@ -41,6 +41,15 @@ export function createSupabaseBackend({ url, key, client = null } = {}) {
       return () => { sb.removeChannel(ch); };
     },
     async saveSnapshot(roomId, seq, state) { must(await sb.rpc('save_snapshot', { p_room_id: roomId, p_seq: seq, p_state: state })); },
+    // Presence through a Realtime presence channel keyed by player id; onSync gets { playerId: lastSeenTs }.
+    presence(roomId, meta, onSync) {
+      const key = meta.playerId || meta.role || identity.deviceId;
+      const ch = sb.channel(`presence:${roomId}`, { config: { presence: { key } } });
+      const sync = () => { const st = ch.presenceState(); const m = {}; for (const [k, arr] of Object.entries(st)) m[k] = Math.max(...arr.map(a => Number(a.at) || 0)); onSync(m); };
+      ch.on('presence', { event: 'sync' }, sync).subscribe(async (status) => { if (status === 'SUBSCRIBED') await ch.track({ ...meta, at: Date.now() }); });
+      const timer = setInterval(() => { ch.track({ ...meta, at: Date.now() }).catch(() => {}); }, 10000);
+      return () => { clearInterval(timer); sb.removeChannel(ch); };
+    },
     roster: {
       async forDevice(deviceId) { const data = must(await sb.from('roster_owners').select('*').contains('device_ids', [deviceId]).limit(1)); return rowToOwner(data[0]); },
       async create(deviceId, displayName = '') {
@@ -66,7 +75,7 @@ export function createSupabaseBackend({ url, key, client = null } = {}) {
       async save(p) { must(await sb.from('challenge_presets').upsert({ id: p.id, name: p.name, entries: p.entries, updated_at: new Date().toISOString() })); return p; },
     },
     metaLedger: {
-      async add(rows) { if (rows.length) must(await sb.from('meta_ledger').insert(rows.map(r => ({ room_id: r.roomId || null, season_id: r.seasonId || null, player_name: r.playerName, owner_id: r.ownerId || null, buy_in: r.buyIn ?? null, mode: r.mode || null, placing: r.placing ?? null, character_name: r.characterName || null, vaulted: r.vaulted || null, notes: r.notes || null })))); },
+      async add(rows) { if (rows.length) must(await sb.from('meta_ledger').insert(rows.map(r => ({ room_id: r.roomId || null, season_id: r.seasonId || null, player_name: r.playerName, owner_id: r.ownerId || null, buy_in: r.buyIn ?? null, mode: r.mode || null, place: r.placing ?? null, character_name: r.characterName || null, vaulted: r.vaulted || null, notes: r.notes || null })))); },
       async list() { return must(await sb.from('meta_ledger').select('*').order('created_at', { ascending: false }).limit(1000)); },
     },
     seasons: {

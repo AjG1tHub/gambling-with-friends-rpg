@@ -74,6 +74,16 @@ export function createLocalBackend({ namespace = 'default', store = null, latenc
     presets: { async list() { return read('presets', []); }, async save(p) { const all = read('presets', []).filter(x => x.id !== p.id); all.push(p); write('presets', all); return p; } },
     metaLedger: { async add(rows) { const all = read('meta', []); all.push(...rows.map(r => ({ id: shortId('m'), createdAt: Date.now(), ...r }))); write('meta', all); return all; }, async list() { return read('meta', []); } },
     seasons: { async current() { let s = read('season', null); if (!s) { s = { id: 1, name: 'Season 1', nights: 0, startedAt: Date.now() }; write('season', s); } return s; }, async save(s) { write('season', s); return s; } },
+    // Presence: ping every few seconds over the bus; onSync gets { playerId: lastSeenTs } for the room.
+    presence(roomId, meta, onSync) {
+      const key = `presence:${roomId}`;
+      const readMap = () => read(key, {});
+      const ping = () => { const m = readMap(); m[meta.playerId || meta.role] = Date.now(); write(key, m); channel?.postMessage({ sender: tabId, roomId, presence: m }); onSync(m); };
+      const onMsg = (ev) => { if (ev.data?.roomId === roomId && ev.data.presence) onSync(ev.data.presence); };
+      channel?.addEventListener('message', onMsg);
+      ping(); const timer = setInterval(ping, 5000); if (typeof timer.unref === 'function') timer.unref();
+      return () => { clearInterval(timer); channel?.removeEventListener('message', onMsg); };
+    },
     // Test helper: wipe everything in this namespace.
     close() { channel?.close?.(); listeners.clear(); },
     _reset() { const keys = []; for (let i = 0; i < st.length; i++) { const k = st.key(i); if (k && k.startsWith(ns)) keys.push(k); } keys.forEach(k => st.removeItem(k)); write('identity', identity); },

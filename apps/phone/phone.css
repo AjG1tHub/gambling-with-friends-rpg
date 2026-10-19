@@ -1,0 +1,28 @@
+/* The controller: portrait, dark, 60 px targets, one thumb. */
+body.phone { font-size: 17px; overscroll-behavior: none; }
+.boot { display: grid; place-items: center; min-height: 100vh; text-align: center; padding: 24px; gap: 10px; }
+.shell { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; min-height: 100dvh; }
+.top { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; background: var(--velvet-2); position: sticky; top: 0; z-index: 5; }
+.top .who { flex: 1; min-width: 0; } .top .who .name { font-family: var(--font-display); letter-spacing: .08em; color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top .clock { font-family: var(--font-display); font-size: 1.4rem; color: var(--amber); }
+.top .turn-tag { font-family: var(--font-display); font-size: .7rem; letter-spacing: .2em; color: var(--gold); }
+.screen { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.tabs { display: grid; grid-template-columns: repeat(6, 1fr); border-top: 1px solid var(--line); background: var(--velvet-2); padding-bottom: env(safe-area-inset-bottom); position: sticky; bottom: 0; z-index: 5; }
+.tabs button { border: 0; border-radius: 0; background: transparent; min-height: 58px; font-size: .62rem; letter-spacing: .14em; color: var(--bone-dim); padding: 0 2px; flex-direction: column; gap: 2px; position: relative; }
+.tabs button.on { color: var(--gold-2); } .tabs button.on::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: 6px; height: 2px; background: var(--gold); }
+.tabs button .dot { position: absolute; top: 8px; right: 18%; width: 8px; height: 8px; border-radius: 50%; background: var(--blood); }
+.hero { text-align: center; padding: 20px 0; }
+.hero .crest { font-size: 3.4rem; line-height: 1; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.list .item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); min-height: var(--tap); }
+.list .item.off { opacity: .5; }
+.prompt { border: 1px solid var(--gold-dim); border-radius: var(--radius); padding: 14px; background: linear-gradient(180deg, #2a1f18, var(--panel)); }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.big-number { font-family: var(--font-display); font-size: 3rem; color: var(--gold-2); text-align: center; line-height: 1; }
+.rosette { position: relative; width: 300px; height: 300px; margin: 8px auto; }
+.rosette .hexbtn { position: absolute; width: 92px; height: 92px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--panel-2); border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .62rem; letter-spacing: .12em; color: var(--bone-2); }
+.rosette .hexbtn b { font-family: var(--font-display); font-size: 1.4rem; color: var(--bone); letter-spacing: 0; }
+.rosette .hexbtn.void { background: #0a0808; color: #3a3230; } .rosette .hexbtn.hot { background: var(--oxblood); color: var(--bone); }
+.rosette .hub { position: absolute; left: 104px; top: 104px; width: 92px; height: 92px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--velvet-3); border: 0; color: var(--gold); font-size: .62rem; letter-spacing: .16em; }
+.inline-code { font-family: var(--font-display); letter-spacing: .3em; color: var(--gold-2); }
+.claim { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: .35em; color: var(--gold-2); text-align: center; padding: 12px; border: 1px dashed var(--gold-dim); border-radius: var(--radius); }

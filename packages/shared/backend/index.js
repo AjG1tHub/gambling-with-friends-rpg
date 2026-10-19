@@ -21,11 +21,26 @@
 // }
 export { createLocalBackend } from './local.js';
 export { createSupabaseBackend } from './supabase.js';
+export { createWsBackend } from './ws.js';
 
+//   ws.js         tools/dev-server.mjs over one WebSocket: browser tests (one context per phone) and LAN nights
+// Selection: `?backend=local|ws|supabase` on the URL wins; else Supabase when VITE_SUPABASE_URL/KEY exist; else local.
+// A `?ws=ws://host:port` parameter names the dev server. The choice is remembered in sessionStorage so reloads keep it.
 export function createBackend(opts = {}) {
-  const url = opts.url ?? (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_URL : undefined);
-  const key = opts.key ?? (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_KEY : undefined);
-  const wantLocal = opts.kind === 'local' || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('backend') === 'local');
-  if (!wantLocal && url && key && opts.kind !== 'local') return import('./supabase.js').then(m => m.createSupabaseBackend({ url, key, ...opts }));
+  const env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+  const url = opts.url ?? env.VITE_SUPABASE_URL;
+  const key = opts.key ?? env.VITE_SUPABASE_KEY;
+  let kind = opts.kind, wsUrl = opts.wsUrl;
+  if (typeof location !== 'undefined') {
+    const q = new URLSearchParams(location.search);
+    try {
+      if (q.get('backend')) sessionStorage.setItem('gwfrpg:backend', q.get('backend'));
+      if (q.get('ws')) sessionStorage.setItem('gwfrpg:ws', q.get('ws'));
+      kind = kind || q.get('backend') || sessionStorage.getItem('gwfrpg:backend') || undefined;
+      wsUrl = wsUrl || q.get('ws') || sessionStorage.getItem('gwfrpg:ws') || undefined;
+    } catch { kind = kind || q.get('backend') || undefined; wsUrl = wsUrl || q.get('ws') || undefined; }
+  }
+  if (kind === 'ws' && wsUrl) return import('./ws.js').then(m => m.createWsBackend({ url: wsUrl }));
+  if (kind !== 'local' && url && key) return import('./supabase.js').then(m => m.createSupabaseBackend({ url, key, ...opts }));
   return import('./local.js').then(m => m.createLocalBackend(opts));
 }

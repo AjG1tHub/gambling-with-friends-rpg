@@ -1,0 +1,27 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency: { group: deploy, cancel-in-progress: true }
+jobs:
+  deploy:
+    name: Build and deploy to Netlify (gwf-rpg)
+    runs-on: ubuntu-latest
+    env:
+      # The publishable key is safe in a browser; RLS governs access. See supabase/migrations/0001_init.sql.
+      VITE_SUPABASE_URL: https://zzibezkvciucynangcyk.supabase.co
+      VITE_SUPABASE_KEY: sb_publishable_jRUVajtxqxP95dBImvM-wg_2RHjRX9U
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run build
+      - run: node tools/build-classic.mjs
+      - name: Deploy
+        run: npx --yes netlify-cli@17 deploy --prod --dir=dist --site="$NETLIFY_SITE_ID" --auth="$NETLIFY_AUTH_TOKEN" --message="${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

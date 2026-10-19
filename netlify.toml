@@ -1,4 +1,5 @@
 [build]
+  # Deploys come from GitHub Actions (.github/workflows/deploy.yml); this command is for a manual Netlify build.
   command = "npm ci && npm run build && node tools/build-classic.mjs"
   publish = "dist"
 

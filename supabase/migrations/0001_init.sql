@@ -99,7 +99,7 @@ create table if not exists meta_ledger (
   owner_id uuid,
   buy_in text,
   mode text,
-  placing int,
+  place int,
   character_name text,
   vaulted jsonb,
   notes text,
