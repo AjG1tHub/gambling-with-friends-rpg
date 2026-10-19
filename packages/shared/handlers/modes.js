@@ -165,6 +165,7 @@ runHooks.turnStart.push((state, ctx, pid) => {
 runHooks.roundEnd.push((state, ctx) => { if (state.mode === 'royale' && state.map && (state.round - 1) % ctx.B('royale').shrinkEveryRounds === 0) shrink(state, ctx); });
 damageHooks.outgoing.push((state, ctx, info) => {
   if (info.cancel || !['character', 'pet'].includes(info.targetKind)) return;
+  if (info.kind === 'spell') return;   // heals and shields on an ally are never friendly fire
   const a = info.attackerId ? (state.players[info.attackerId] ? info.attackerId : playerOfCharacter(state, info.attackerId)?.id) : null;
   const t = info.targetId ? (state.players[info.targetId] ? info.targetId : playerOfCharacter(state, info.targetId)?.id) : (info.targetCharId ? playerOfCharacter(state, info.targetCharId)?.id : null);
   if (!a || !t || a === t) return;

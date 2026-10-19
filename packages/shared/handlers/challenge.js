@@ -156,8 +156,7 @@ export function releaseSeat(state, ctx, pid) {
   state.owedTurns.sort((a, b) => a.at - b.at);
   runMods(heldHooks.onRelease, state, ctx, { playerId: pid, challengeId: h.challengeId, missedTurn: !!h.missedTurn, missed: (h.misses || []).length });
 }
-// Mirrors run.js finishTurn for the turn a challenge interrupts (the attack was the turn). Kept in step with it;
-// if run.js exports finishTurn later, use that instead.
+// The turn a challenge interrupts ends through run.js's finishTurn (the attack was the turn), then the table resumes.
 function finishInterruptedTurn(state, ctx, pid) {
   finishTurn(state, ctx, pid, 'challenge');
   resumeTable(state, ctx);
