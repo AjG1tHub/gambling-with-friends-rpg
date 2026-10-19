@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GWF — GM Quickstart</title>
+  <style>
+    :root { --ink: #16181d; --paper: #f6f2e9; --card: #fffdf8; --line: #ddd5c4; --red: #a51d24; --muted: #5d6068; --pill: #efe8d8; }
+    @media (prefers-color-scheme: dark) { :root { --ink: #ece8df; --paper: #14151a; --card: #1c1e25; --line: #33363f; --red: #ff7b7f; --muted: #a2a6b0; --pill: #2a2d36; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--paper); }
+    main { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+    h1 { font-family: Georgia, serif; font-size: clamp(26px, 5vw, 38px); margin: 10px 0 4px; text-wrap: balance; }
+    .lede { color: var(--muted); margin: 0 0 14px; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .tools a, .tools button { font: inherit; font-size: 14px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); text-decoration: none; cursor: pointer; }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+    h2 { font-family: Georgia, serif; font-size: 21px; margin: 0 0 8px; color: var(--red); }
+    ol, ul { margin: 8px 0; padding-left: 22px; } li { margin: 4px 0; }
+    kbd { font: 600 13px ui-monospace, Consolas, monospace; padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--pill); white-space: nowrap; }
+    table { width: 100%; border-collapse: collapse; font-size: 14.5px; display: block; overflow-x: auto; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .muted { color: var(--muted); }
+    @media print { body { background: #fff; color: #000; } .tools { display: none; } section { break-inside: avoid-page; border: none; padding: 0 0 8px; } table { display: table; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🎛️ GM quickstart</h1>
+  <p class="lede">Everything you need to run a night of Gambling With Friends. Ten minutes to read; keep the hotkey card next to the keyboard.</p>
+  <div class="tools"><a href="./">← GM monitor</a><a href="../lab/">🧪 Game lab</a><a href="hotkeys.html">⌨ Hotkey card</a><a href="../rules/">📖 Player rules</a><button onclick="window.print()">🖨 Print</button></div>
+
+  <section><h2>1 · Before people arrive</h2>
+    <ol>
+      <li>On the computer that drives the TV, open the <b>GM monitor</b> (<code>/gm</code>) on your own screen and press <b>Open Player View ↗</b>. Drag that window to the TV and make it full screen (<kbd>F11</kbd>).</li>
+      <li><b>Both windows must be in the same browser on the same computer</b> — the shared screen follows the GM window directly. A phone or a second laptop will not see the game.</li>
+      <li>Click once anywhere on the player view so the browser allows sound, then press <b>♪ test</b> in the GM bar.</li>
+      <li>Look at the chip next to ⚙ Settings: ✅ means the config is fine, ⚠️ / ⛔ means click it and read what it says.</li>
+      <li>Add players (name, optional photo). Tick <b>save</b> and they are one click to seat next time — with their pets.</li>
+      <li>Press <b>Start Session</b>.</li>
+    </ol>
+  </section>
+
+  <section><h2>2 · Running a turn</h2>
+    <p>The highlighted button is always the next step. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> presses it for you, so a whole turn is usually four presses:</p>
+    <ol>
+      <li><b>Begin Turn</b> — loans and the Collector tick, the turn clock starts.</li>
+      <li><b>Spin Method</b> — the wheel decides how they move.</li>
+      <li><b>Move</b> — the player calls directions; you press the arrow keys. (Some methods need no steps, or ask you to pick a player or a tile.)</li>
+      <li><b>Resolve Tile</b> — a minigame, a wheel, the shop or jail opens. Finish it.</li>
+      <li><b>End Turn</b>.</li>
+    </ol>
+    <p class="muted">If two players end on the same tile the game offers a Battle. If someone is in jail, their turn opens the Jail panel instead.</p>
+  </section>
+
+  <section><h2>3 · Minigames</h2>
+    <ul>
+      <li>Set the bet first (quick-bet buttons or type it). Players may bet other currencies — they are valued in Gold.</li>
+      <li>Follow the buttons in the game panel. Anything that plays out on the TV (cards, the Plinko ball, reels, the rocket) must finish before <b>Settle</b> lights up.</li>
+      <li><b>Settle</b> is the only moment money moves. Until then you can still cancel the game.</li>
+      <li>Power-ups: <b>Nudge</b>, <b>Reroll</b> and <b>Fork</b> appear as extra buttons on chance games when the player holds one.</li>
+      <li><b>Live Odds</b> (right column) changes any game's numbers for tonight only.</li>
+      <li>There are 36 games. To learn or test them without a session running, open the <a href="../lab/">🧪 Game lab</a>: every game on one menu, a practice bankroll, nothing saved to the real table.</li>
+    </ul>
+  </section>
+
+  <section><h2>4 · When something goes wrong</h2>
+    <table><tbody>
+      <tr><td><b>I clicked the wrong thing</b></td><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>⌫</kbd> or <b>↩ Undo</b>. One press = one click, up to 30 back. Balances, positions, wheels and pets all rewind together.</td></tr>
+      <tr><td><b>Someone's Gold is wrong</b></td><td>GM Tools → pick the player, currency and amount → <b>Apply</b>. It is written to the ledger as a GM adjustment.</td></tr>
+      <tr><td><b>A player has to leave / arrives late</b></td><td>GM Tools → <b>🔀 Turn order / sit out / clock</b>: sit a player out, bring them back, or change the order.</td></tr>
+      <tr><td><b>The TV froze or shows an old board</b></td><td>Refresh the player view. It redraws from the saved game; nothing is lost.</td></tr>
+      <tr><td><b>I closed the GM window / the browser crashed</b></td><td>Open <code>/gm</code> again — the session is saved after every click.</td></tr>
+      <tr><td><b>A red banner appeared at the bottom</b></td><td>Read it. It offers Undo, Restore points and “Save session file”. Try the action once more; if it repeats, step back.</td></tr>
+      <tr><td><b>The whole table is wrong</b></td><td>⚙ Settings → <b>🛟 Restore points</b>. One is taken every round and every 5 minutes. Restoring can itself be undone.</td></tr>
+      <tr><td><b>We need to move to another computer</b></td><td>⚙ Settings → <b>Save session to a file</b>, then <b>Load session file</b> on the other machine. History and saved players move from 🏆 History → export.</td></tr>
+      <tr><td><b>No sound</b></td><td>Click once inside the player view (browsers block sound until then). Check 🔊 is ticked in the GM bar.</td></tr>
+    </tbody></table>
+  </section>
+
+  <section><h2>5 · The extras, in one line each</h2>
+    <ul>
+      <li><b>🤝 Stakes</b> — log a real-life side bet; it stays on the TV until you settle it. No Gold moves.</li>
+      <li><b>🦈 Loan Shark</b> (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>L</kbd>) — lend, repay, see who is overdue.</li>
+      <li><b>💸 Buy-in</b> (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>U</kbd>) — spins the Buy-in wheel and carries out the result.</li>
+      <li><b>🔨 Auction</b> — put a player's currencies up for bids; call “going once / twice / sold”.</li>
+      <li><b>🐾 Pets</b> (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Y</kbd>) — hatch, train, heal, equip. <b>Pet battle</b> (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>) — boss fights, player vs player, raids.</li>
+      <li><b>Chaos</b> (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>–<kbd>5</kbd>) — shuffle the board, loudly. Add <kbd>Shift</kbd> to do it silently. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd> takes the last shuffle back.</li>
+      <li><b>📒 Ledger</b> — every event tonight, filterable, with a CSV download.</li>
+      <li><b>⏱ Turn timer</b> — optional shot clock on the TV (same panel as the turn order). It only nags; it never ends a turn by itself.</li>
+    </ul>
+  </section>
+
+  <section><h2>6 · Ending the night</h2>
+    <ol>
+      <li>Press <b>End Session</b>. The TV shows the recap: standings, awards, a Gold chart and the all-time table.</li>
+      <li>The result is added to the 🏆 Hall of Fame and saved players keep their pets and Power.</li>
+      <li>For next time: ⚙ Settings → <b>Wipe session</b> clears the table (history and saved players stay).</li>
+    </ol>
+  </section>
+
+  <section><h2>7 · Changing the rules</h2>
+    <p>Every number — odds, wheel slices, prices, pet stats — lives in the Google Sheet “GWF Config”. Edit the Sheet, then press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd> in the GM window. The config chip tells you straight away if something was mistyped, and the <a href="../rules/">player rules page</a> updates itself.</p>
+    <p class="muted">Without a Sheet connected the game uses its built-in rules.</p>
+  </section>
+</main>
+</body>
+</html>

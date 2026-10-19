@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="noir">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GWF — Game Lab</title>
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../css/app.css">
+  <link rel="stylesheet" href="lab.css">
+</head>
+<body class="lab">
+  <header class="lab-top">
+    <div class="lab-title">🧪 Game Lab <span class="subtle">every minigame, nothing else — a sandbox that never touches a real session</span></div>
+    <div class="row">
+      <span id="labProgress" class="lab-progress"></span>
+      <label class="sound-ctl">Bet <select id="labBet"><option>100</option><option>250</option><option>500</option><option>1000</option></select></label>
+      <label class="sound-ctl" title="Settle by itself as soon as the result has finished playing out"><input type="checkbox" id="labAuto" checked> auto-settle</label>
+      <label class="sound-ctl" title="Give the tester a Nudge, a Reroll and a Fork every round (chance games only)"><input type="checkbox" id="labMods"> power-ups</label>
+      <select id="labTheme" title="Theme"></select>
+      <button id="labCopy" title="Copy your ticks and notes so you can paste them to Claude">📋 Copy report</button>
+      <button id="labReset" title="Clear every tick and note">Reset</button>
+      <a class="btn-like" href="../gm/">← GM monitor</a>
+    </div>
+  </header>
+  <div class="lab-grid">
+    <nav class="lab-list" id="labList" aria-label="Games"></nav>
+    <main class="lab-main">
+      <div class="lab-head"><h1 id="labName">Pick a game</h1><div class="row"><button id="labPrev" title="Previous game (P)">← Prev</button><button id="labNext" title="Next game (N)">Next →</button></div></div>
+      <div class="lab-stage"><div class="game-stage" id="gameStage"></div><div class="wheel-overlay" id="wheelOverlay"></div><div class="lab-empty" id="labEmpty">Choose a game on the left, or press <b>N</b>.</div></div>
+      <div class="panel lab-controls">
+        <div id="gamePanel"><div id="gameControls"></div></div>
+        <div id="labResult" class="lab-result"></div>
+        <div class="row lab-after"><button class="primary" id="labAgain" title="Play this game again (A)">▶ Play again</button><button id="labCancel">Cancel round</button>
+          <span class="lab-bank">Tester: <b id="labGold"></b> Gold</span></div>
+        <div id="labMsgs" class="log"></div>
+      </div>
+    </main>
+    <aside class="lab-side">
+      <div class="panel"><h3>Did it work?</h3>
+        <div class="row"><button id="labOk" title="Mark as working (1)">✅ Works</button><button id="labBad" title="Mark as a problem (2)">⚠️ Problem</button><button id="labClear">Clear</button></div>
+        <textarea id="labNote" rows="4" placeholder="Notes for this game — what felt off, what to change…"></textarea>
+        <div class="subtle" id="labStats"></div></div>
+      <div class="panel"><h3>How it plays</h3><div id="labHow" class="lab-how"></div></div>
+      <div class="panel"><h3>Payout</h3><div id="labPay" class="lab-how"></div></div>
+      <div class="panel"><h3>Keys</h3><div class="lab-how"><b>N</b> next · <b>P</b> previous · <b>A</b> play again · <b>S</b> settle · <b>1</b> works · <b>2</b> problem</div></div>
+    </aside>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="../js/lab.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "gambling-with-friends-rpg",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Gambling With Friends: RPG Edition — a grimdark-casino roguelite party game. One PC drives the TV, every player plays from their phone.",
+  "scripts": {
+    "dev": "vite",
+    "build": "node tools/build-manifest.mjs && node tools/build-balance-doc.mjs && node tools/build-rulebook.mjs && vite build",
+    "preview": "vite preview",
+    "gen": "node tools/placeholders.mjs && node tools/build-manifest.mjs && node tools/build-balance-doc.mjs && node tools/build-rulebook.mjs",
+    "test": "node --test test/unit/*.test.mjs",
+    "test:unit": "node --test test/unit/*.test.mjs",
+    "test:browser": "node test/browser/run.mjs",
+    "test:bots": "node tools/bots.mjs --suite",
+    "payout": "node tools/payout-report.mjs",
+    "bots": "node tools/bots.mjs",
+    "dev-server": "node tools/dev-server.mjs",
+    "legacy:test": "cd legacy && node --test test/unit/*.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5",
+    "ws": "^8.18.0",
+    "playwright": "^1.52.0"
+  },
+  "engines": { "node": ">=20" }
+}

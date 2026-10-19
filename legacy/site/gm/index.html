@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="noir">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GWF — GM Monitor</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎛️</text></svg>">
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="gm-body">
+  <div class="row" style="justify-content:space-between">
+    <h1 style="font-size:20px">🎛️ GM Monitor</h1>
+    <div class="row">
+      <span class="subtle" id="cfgSource">config: defaults</span>
+      <select id="themeSel"></select>
+      <label class="sound-ctl" title="Sound plays on the player view (click once in that window to enable it)"><input type="checkbox" id="soundOn" checked> 🔊</label>
+      <input type="range" id="soundVol" min="0" max="1" step="0.05" value="0.6" style="width:80px" title="Volume">
+      <button id="btnSoundTest" title="Play a test fanfare on the player view">♪ test</button>
+      <label class="sound-ctl" title="Text size on the shared screen">🔎 <select id="textScaleSel"><option value="0.85">Small</option><option value="1" selected>Normal</option><option value="1.2">Large</option><option value="1.4">X-Large</option></select></label>
+      <label class="sound-ctl" title="High-contrast shared screen (bright text, bold borders)"><input type="checkbox" id="contrastOn"> ◐</label>
+      <button id="btnUndo" title="Undo the last GM click (Ctrl+Alt+Backspace)" disabled>↩ Undo</button>
+      <button id="btnHistory" title="All-time results across sessions">🏆 History</button>
+      <button id="btnHotkeys" title="Hotkey list (Ctrl+Alt+H)">⌨ Hotkeys</button>
+      <a class="btn-like" href="../lab/" target="_blank" title="Every minigame on one menu, in a sandbox — for testing">🧪 Game lab</a>
+      <a class="btn-like" href="guide.html" target="_blank" title="How to run a night">❔ Guide</a>
+      <a class="btn-like" href="../rules/" target="_blank" title="Player-facing rules (built from the live config)">📖 Rules</a>
+      <button id="btnOpenPlayerView">Open Player View ↗</button>
+      <button id="btnSettings">⚙ Settings</button>
+      <button id="cfgHealth" class="cfg-chip ok" title="Config check">✅</button>
+    </div>
+  </div>
+
+  <div class="gm-cols">
+    <!-- COLUMN 1: Turn flow -->
+    <div class="gm-col">
+      <div class="panel" id="setupPanel">
+        <h3>Session Setup</h3>
+        <div class="row">
+          <input id="npName" placeholder="Player name" style="width:130px">
+          <input id="npIconFile" type="file" accept="image/*" title="Player icon (optional)" style="flex:1">
+          <label class="sound-ctl" title="Remember this player (name + icon) for next time"><input type="checkbox" id="npSave" checked> save</label>
+          <button id="btnAddPlayer" class="primary">Add</button>
+        </div>
+        <div class="row"><span class="subtle">Roster:</span><span class="pill-row" id="rosterChips"></span><button id="btnRoster" style="font-size:11px;padding:3px 8px">👥 manage</button></div>
+        <div id="setupPlayers" class="pill-row" style="margin-bottom:8px"></div>
+        <div class="row">
+          <button id="btnStart" class="primary">▶ Start Session</button>
+          <button id="btnReset" class="danger">Reset Everything</button>
+        </div>
+      </div>
+
+      <div class="panel" id="turnPanel" style="display:none">
+        <h3>Turn</h3>
+        <div class="big-turn" id="turnWho"></div>
+        <div id="turnMsgs"></div>
+        <div class="row" id="turnActions"></div>
+        <div class="big-turn" id="moveStatus" style="text-align:center;margin:6px 0"></div>
+        <div class="dirpad" id="dirpad" style="display:none">
+          <span class="blank"></span><button data-dir="N">↑</button><span class="blank"></span>
+          <button data-dir="W">←</button><span class="blank" id="stepsLeft" style="visibility:visible;display:flex;align-items:center;justify-content:center;font-weight:800"></span><button data-dir="E">→</button>
+          <span class="blank"></span><button data-dir="S">↓</button><span class="blank"></span>
+        </div>
+        <div class="row" id="moveExtra" style="justify-content:center"></div>
+        <div class="row" id="forceRow" style="display:none">
+          <span class="subtle">Force method (testing / GM fiat):</span>
+          <select id="forceMethodSel"></select>
+          <button id="btnForceMethod">⚙️ Force</button>
+        </div>
+      </div>
+
+      <div class="panel" id="gamePanel" style="display:none">
+        <h3>🎰 Minigame — <select id="gamePlayerSel" style="font-size:13px"></select><span id="gamePlayerName" style="display:none"></span></h3>
+        <div id="wagerBlock">
+          <div class="row"><label>Game</label><select id="gameSel"></select><span id="gameSelName" class="subtle"></span></div>
+          <div id="wagerLines"></div>
+          <div class="row">
+            <button id="btnAddWager">+ wager line</button>
+            <span class="subtle">quick-bet:</span>
+            <span class="pill-row" id="quickBets"></span>
+          </div>
+          <div class="row"><button class="primary" id="btnGameStart">▶ Lock bets & start</button></div>
+        </div>
+        <div id="gameControls"></div>
+        <div class="row" style="margin-top:6px"><button id="btnGameCancel" class="subtle" style="font-size:11px">✕ abort game (no money moves)</button></div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: Wheels + PvP -->
+    <div class="gm-col">
+      <div class="panel">
+        <h3>Wheels (GM discretion, any time)</h3>
+        <div class="pill-row">
+          <button id="btnGood">😇 GOOD</button>
+          <button id="btnBad">😈 BAD</button>
+          <button id="btnVoid">🌀 VOID</button>
+          <button id="btnJailWheel">🔒 JAIL</button>
+          <button id="btnBattle">⚔️ BATTLE</button>
+          <button id="btnBuyIn">💸 BUY-IN</button>
+          <button id="btnShop">🛒 SHOP <span class="kbd">^⌥E</span></button>
+          <button id="btnJailPanel">🔐 Jail Panel <span class="kbd">^⌥J</span></button>
+          <button id="btnAuction">🔨 Auction</button>
+          <button id="btnLoans">🦈 Loans</button>
+          <button id="btnPets">🐾 Pets</button>
+          <button id="btnPetBattle">⚔️🐾 Pet battle</button>
+          <button id="btnGameAny" class="primary">🎮 GAME (any player, any time)</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <span class="subtle">Force outcome:</span>
+          <select id="foWheel"></select>
+          <select id="foOutcome" style="max-width:190px"></select>
+          <span class="subtle">on</span>
+          <select id="foPlayer"></select>
+          <button id="btnForceOutcome">⚙️ Apply</button>
+        </div>
+        <div id="wheelMsgs" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>GM Tools</h3>
+        <div class="row">
+          <select id="toolPlayer"></select>
+          <select id="toolCurrency"></select>
+          <input id="toolAmount" type="number" placeholder="±amount" style="width:100px">
+          <button id="btnAdjust">Apply</button>
+        </div>
+        <div class="pill-row">
+          <button id="btnMoveTo">📍 Move player to tile…</button>
+          <button id="btnJailSend">Send to Jail</button>
+          <button id="btnJailFree">Release</button>
+          <button id="btnSkipTurnTool">Skip their turn</button>
+          <button id="btnTurnTools">🔀 Turn order / sit out / clock</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <span class="subtle">Transfer:</span>
+          <select id="trFrom"></select>
+          <span>→</span>
+          <select id="trTo"></select>
+          <input id="trAmount" type="number" placeholder="amount" style="width:90px" min="1">
+          <select id="trCurrency"></select>
+          <button id="btnTransfer">💸 Transfer</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <span class="subtle">Force swap:</span>
+          <select id="fsA"></select>
+          <span>⇄</span>
+          <select id="fsB"></select>
+          <button id="btnForceSwap">Swap</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <input id="mpName" placeholder="New player name" style="width:130px">
+          <input id="mpIconFile" type="file" accept="image/*" title="Player icon (optional)" style="flex:1">
+          <button id="btnAddMid">＋ Add mid-session</button>
+          <button class="danger" id="btnEndSession">🏁 End Session</button>
+        </div>
+        <div class="row"><span class="subtle">Seat from roster:</span><span class="pill-row" id="rosterChipsMid"></span></div>
+        <div class="row" style="margin-top:8px">
+          <input id="bannerText" placeholder="Banner text on player view" style="flex:1">
+          <button id="btnBanner">Set</button>
+        </div>
+        <div class="row">
+          <input id="stakeText" placeholder="IRL stake (record-only): what's on the line" style="flex:1">
+          <select id="stakeA"></select><select id="stakeB"></select>
+          <button id="btnStake">Log</button>
+        </div>
+        <div id="stakeList" class="stake-list"></div>
+      </div>
+
+      <div class="panel">
+        <h3>☠️ Chaos <span class="subtle" style="text-transform:none;letter-spacing:0">^⌥1–5 loud · +Shift silent · ^⌥Z undo</span></h3>
+        <div class="pill-row">
+          <button id="chaos1">T1 Reshuffle</button><button id="chaos2">T2 Repaint</button><button id="chaos3">T3 Upheaval</button>
+          <button id="chaos4" class="danger">T4 Scatter</button><button id="chaos5" class="danger">T5 Apocalypse</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <select id="chaosTierSel"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+          <button id="chaosSilent">🤫 Silent shuffle</button>
+          <button id="chaosUndo">↩️ Undo last</button>
+          <button id="btnRetcon">🩹 Retcon tile</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>🎯 Live Odds <button id="btnOddsReset" style="float:right;font-size:11px;padding:3px 8px">reset to config</button></h3>
+        <div id="oddsBody"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Ledger <button id="btnLedger" style="float:right;font-size:11px;padding:3px 8px">📜 open · filter · CSV</button></h3>
+        <div class="log" id="gmLog"></div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3: Board + leaderboard -->
+    <div class="gm-col">
+      <div class="panel" style="flex-shrink:0">
+        <h3>Board <span class="subtle" id="pickHint"></span></h3>
+        <div class="board" id="gmBoard" style="min-height:460px"></div>
+      </div>
+      <div class="panel">
+        <h3>Leaderboard</h3>
+        <div id="gmLeaderboard"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-back" id="modalBack">
+  <div class="modal" id="modalBody"></div>
+</div>
+<div class="wheel-overlay" id="wheelOverlay"></div>
+<script type="module" src="../js/gm.js"></script>
+</body>
+</html>

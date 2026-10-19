@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GWF — GM Hotkey Card</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #16181d; background: #f3efe6; padding: 24px; }
+    .card { max-width: 8in; margin: 0 auto; background: #fff; border: 2px solid #16181d; border-radius: 14px; padding: 22px 26px; }
+    header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px solid #b3232a; padding-bottom: 8px; margin-bottom: 12px; }
+    h1 { font-family: Georgia, serif; font-size: 24px; letter-spacing: .04em; }
+    header span { font-size: 12px; color: #555; }
+    .cols { columns: 2; column-gap: 26px; }
+    .hk-group { break-inside: avoid; margin-bottom: 14px; }
+    h2 { font-family: Georgia, serif; font-size: 13px; text-transform: uppercase; letter-spacing: .14em; color: #b3232a; margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    td { padding: 4px 0; border-bottom: 1px solid #e3ddd0; vertical-align: top; }
+    .hk-combo { white-space: nowrap; font-weight: 700; padding-right: 12px; width: 1%; font-family: ui-monospace, Consolas, monospace; }
+    footer { margin-top: 10px; font-size: 11px; color: #555; }
+    .tools { max-width: 8in; margin: 0 auto 14px; display: flex; gap: 8px; align-items: center; font-size: 13px; }
+    .tools button { padding: 8px 14px; border-radius: 8px; border: 1px solid #16181d; background: #16181d; color: #fff; font-size: 13px; cursor: pointer; }
+    .tools button.alt { background: #fff; color: #16181d; }
+    @media print { body { background: #fff; padding: 0; } .tools { display: none; } .card { border-width: 1px; max-width: none; } @page { margin: 0.5in; } }
+  </style>
+</head>
+<body>
+  <div class="tools">
+    <button id="btnPrint">🖨 Print this card</button>
+    <button class="alt" id="btnOS"></button>
+    <span>Keep it next to the GM keyboard.</span>
+  </div>
+  <div class="card">
+    <header><h1>🎛️ Gambling With Friends — GM Hotkeys</h1><span id="osLabel"></span></header>
+    <div class="cols" id="card"></div>
+    <footer>Arrow keys and Esc work on their own; everything else needs the modifier keys so a stray keypress never moves money. Arrows are ignored while you are typing in a field.</footer>
+  </div>
+  <script type="module">
+    import { cardHtml, isMac } from '../js/hotkeys.js';
+    const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    let mac = new URLSearchParams(location.search).has('mac') || isMac();
+    const draw = () => {
+      document.getElementById('card').innerHTML = cardHtml(mac, esc);
+      document.getElementById('osLabel').textContent = mac ? 'Mac keys' : 'Windows keys';
+      document.getElementById('btnOS').textContent = mac ? 'Show Windows keys' : 'Show Mac keys';
+    };
+    document.getElementById('btnOS').onclick = () => { mac = !mac; draw(); };
+    document.getElementById('btnPrint').onclick = () => window.print();
+    draw();
+  </script>
+</body>
+</html>

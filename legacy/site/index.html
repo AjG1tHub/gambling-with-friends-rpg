@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="noir">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gambling With Friends</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="player">
+  <div class="layout">
+    <div class="main">
+      <div class="banner" id="banner">GAMBLING WITH FRIENDS</div>
+      <div class="turn-timer" id="turnTimer" style="display:none"><div class="turn-timer-fill" id="turnTimerFill"></div><span id="turnTimerText"></span></div>
+      <div class="board-wrap">
+        <div class="board" id="board"></div>
+        <div class="game-stage" id="gameStage"></div>
+        <div class="recap-wrap" id="recap" style="display:none"></div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="panel">
+        <h3>Leaderboard — everything, always</h3>
+        <div id="leaderboard"></div>
+      </div>
+      <div class="panel" id="stakesPanel" style="display:none">
+        <h3>IRL Stakes — real life, settle up after</h3>
+        <div id="stakesList"></div>
+      </div>
+      <div class="panel">
+        <h3>Recent</h3>
+        <div class="log" id="log"></div>
+      </div>
+      <a class="rules-link" href="rules/" target="_blank" title="How to play">📖 How to play</a>
+    </div>
+  </div>
+  <div class="wheel-overlay" id="wheelOverlay"></div>
+  <div class="sound-chip" id="soundChip" style="display:none"></div>
+  <script type="module" src="js/view.js"></script>
+</body>
+</html>

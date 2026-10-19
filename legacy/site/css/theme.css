@@ -1,0 +1,59 @@
+/* Gambling With Friends — theme tokens (Phase 0). Hot-swap via [data-theme]. */
+:root, [data-theme="noir"] {
+  --bg: #12100e;
+  --bg-panel: #1d1a17;
+  --bg-raised: #282420;
+  --ink: #f2e9dc;
+  --ink-dim: #9c9184;
+  --accent: #d4a017;      /* gold */
+  --accent-2: #b3232a;    /* casino red */
+  --good: #3f9d5c;
+  --bad: #c0392b;
+  --jail: #5c6bc0;
+  --shop: #c78e2d;
+  --start: #6d6a66;
+  --game: #2f2b27;
+  --tile-red: #c0392b; --tile-blue: #2f6db3; --tile-green: #3f9d5c;
+  --tile-yellow: #d4ac0d; --tile-purple: #8e44ad; --tile-black: #000000;
+  --border: #3a352f;
+  /* text-safe versions of the status colours (≥ 4.5:1 on every panel of this theme) */
+  --good-ink: #6fcf8a; --bad-ink: #ff7a6b; --power-ink: #ffd84d; --warn-ink: #ff9f6b;
+  --font: "Georgia", "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, sans-serif;
+}
+[data-theme="vapor"] {
+  --bg: #0d0221; --bg-panel: #1a0b3b; --bg-raised: #261352;
+  --ink: #f8f0ff; --ink-dim: #9d8fc7;
+  --accent: #ff2ec4; --accent-2: #00f0ff;
+  --good: #00e08a; --bad: #ff3860; --jail: #7a5cff; --shop: #ffb800;
+  --start: #4d3f7a; --game: #221046;
+  --tile-red: #ff3860; --tile-blue: #00c3ff; --tile-green: #00e08a;
+  --tile-yellow: #ffe14d; --tile-purple: #b26bff; --tile-black: #05010d;
+  --border: #3b2470;
+  --good-ink: #00e08a; --bad-ink: #ff6b88; --power-ink: #ffe14d; --warn-ink: #ffb37a;
+  --font: "Courier New", monospace; --font-ui: "Courier New", monospace;
+}
+[data-theme="felt"] {
+  --bg: #0b3d20; --bg-panel: #0e4a27; --bg-raised: #12592f;
+  --ink: #f5f1e6; --ink-dim: #a8bfa6;
+  --accent: #e9c46a; --accent-2: #e76f51;
+  --good: #7ddb8a; --bad: #e05252; --jail: #6f8ab7; --shop: #e9c46a;
+  --start: #4a6b52; --game: #0d5230;
+  --tile-red: #d64545; --tile-blue: #4a7fb5; --tile-green: #58b368;
+  --tile-yellow: #e9c46a; --tile-purple: #9b6bb3; --tile-black: #08140c;
+  --border: #1c6b3d;
+  --good-ink: #9be8a6; --bad-ink: #ffb0a6; --power-ink: #ffe07a; --warn-ink: #ffc09a;
+  --font: Georgia, serif; --font-ui: system-ui, sans-serif;
+}
+[data-theme="riviera"] {
+  --bg: #fdf3e3; --bg-panel: #fbe8cd; --bg-raised: #ffffff;
+  --ink: #3a2c20; --ink-dim: #6a5a46;
+  --accent: #a84a12; --accent-2: #1f7f73;   /* darkened: accent is used for headings and button text on cream */
+  --good: #2a9d8f; --bad: #d3542f; --jail: #5c7fb8; --shop: #b67f14;
+  --start: #cbb89a; --game: #f6dcb5;
+  --tile-red: #d3542f; --tile-blue: #4a7fb5; --tile-green: #2a9d8f;
+  --tile-yellow: #d9a032; --tile-purple: #8f6aa5; --tile-black: #2b2b2b;
+  --border: #e5cfa8;
+  --good-ink: #17695f; --bad-ink: #a8321a; --power-ink: #8a5a00; --warn-ink: #9a4a12;
+  --font: Georgia, serif; --font-ui: system-ui, sans-serif;
+}

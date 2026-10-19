@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+test/shots/
+test/results/
+playwright-report/
+*.log
+.DS_Store
+.netlify/

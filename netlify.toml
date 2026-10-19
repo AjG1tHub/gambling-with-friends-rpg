@@ -1,0 +1,61 @@
+[build]
+  command = "npm ci && npm run build && node tools/build-classic.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Pretty paths → the built HTML files (Vite keeps the apps/ folder layout under dist/).
+[[redirects]]
+  from = "/"
+  to = "/tv/index.html"
+  status = 200
+[[redirects]]
+  from = "/tv"
+  to = "/tv/index.html"
+  status = 200
+[[redirects]]
+  from = "/phone"
+  to = "/phone/index.html"
+  status = 200
+[[redirects]]
+  from = "/phone/*"
+  to = "/phone/index.html"
+  status = 200
+[[redirects]]
+  from = "/gm"
+  to = "/gm/index.html"
+  status = 200
+[[redirects]]
+  from = "/gm/*"
+  to = "/gm/index.html"
+  status = 200
+[[redirects]]
+  from = "/lab"
+  to = "/lab/index.html"
+  status = 200
+[[redirects]]
+  from = "/lab/*"
+  to = "/lab/index.html"
+  status = 200
+# Classic mode: the previous one-computer build, untouched, served from legacy/site.
+[[redirects]]
+  from = "/classic"
+  to = "/classic/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=()"
+[[headers]]
+  for = "/sprites/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gambling With Friends — Rules</title>
+  <style>
+    :root { --ink: #16181d; --paper: #f6f2e9; --card: #fffdf8; --line: #ddd5c4; --red: #a51d24; --muted: #5d6068; --pill: #efe8d8; }
+    @media (prefers-color-scheme: dark) { :root { --ink: #ece8df; --paper: #14151a; --card: #1c1e25; --line: #33363f; --red: #ff7b7f; --muted: #a2a6b0; --pill: #2a2d36; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--paper); }
+    main { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+    header h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(26px, 5vw, 40px); margin: 10px 0 2px; letter-spacing: .02em; text-wrap: balance; }
+    header p { color: var(--muted); margin: 0 0 14px; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .tools a, .tools button { font: inherit; font-size: 14px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); text-decoration: none; cursor: pointer; }
+    .toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
+    .toc a { font-size: 14px; padding: 5px 10px; border-radius: 999px; background: var(--pill); color: var(--ink); text-decoration: none; }
+    .toc a:hover, .tools a:hover, .tools button:hover { outline: 2px solid var(--red); }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+    h2 { font-family: Georgia, serif; font-size: 22px; margin: 0 0 8px; color: var(--red); }
+    h3 { font-size: 16px; margin: 16px 0 6px; }
+    p, ol { margin: 8px 0; } ol { padding-left: 22px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 8px 0; display: block; overflow-x: auto; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); white-space: nowrap; }
+    .n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .pill { display: inline-block; padding: 2px 9px; margin: 2px 2px 2px 0; border-radius: 999px; background: var(--pill); font-size: 13.5px; }
+    .rt { font: 500 13px system-ui, sans-serif; color: var(--muted); margin-left: 6px; white-space: nowrap; }
+    .game + .game { border-top: 1px dashed var(--line); margin-top: 12px; padding-top: 4px; }
+    .muted { color: var(--muted); }
+    footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; }
+    @media print { body { background: #fff; color: #000; } .tools, .toc { display: none; } section { break-inside: avoid-page; border: none; padding: 0 0 8px; } table { display: table; } @page { margin: 0.6in; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>🎰 Gambling With Friends — the rules</h1>
+      <p id="src">Loading the house rules…</p>
+      <div class="tools"><a href="../">← Back to the board</a><button id="btnPrint">🖨 Print</button></div>
+    </header>
+    <div id="rules"></div>
+    <footer>No real money. The GM's word is final. Odds shown are the ones the game is using right now.</footer>
+  </main>
+  <script type="module">
+    import { loadConfig } from '../js/config.js';
+    import { rulesHtml } from '../js/rules.js';
+    document.getElementById('btnPrint').onclick = () => window.print();
+    const { config, source } = await loadConfig();
+    document.getElementById('rules').innerHTML = rulesHtml(config);
+    document.getElementById('src').textContent = source === 'sheets' ? 'Tonight\'s house rules, straight from the GM\'s settings.' : 'Standard house rules.';
+  </script>
+</body>
+</html>
