@@ -111,5 +111,11 @@ export async function seatBots(session, n, { prefix = 'bot' } = {}) {
     }
     if (!session.state.players[id]?.autopilot) await session.dispatch('GM_AUTOPILOT', { playerId: id, on: true }, 'gm');
   }
+  // Teams mode: split the bots into two teams unless the GM already set some.
+  if (session.state.mode === 'teams' && !Object.keys(session.state.gm?.teams || {}).length && ids.length >= 2) {
+    const teams = { t1: { name: 'The House', members: [] }, t2: { name: 'The Floor', members: [] } };
+    ids.forEach((id, i) => teams[i % 2 ? 't2' : 't1'].members.push(id));
+    await session.dispatch('GM_SET_TEAMS', { teams }, 'gm');
+  }
   return ids;
 }
