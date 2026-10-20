@@ -86,7 +86,8 @@ table.lab tr.qa-hit td.muted { color: var(--bone-2); }
 .qa-verdict button { min-height: 60px; font-size: .8rem; flex: 1 1 140px; }
 .qa-verdict button.ghost { flex: 0 1 120px; }
 .qa-note { margin-top: 10px; } .qa-note textarea { min-height: 80px; }
-.qa-summary td button.qa-cell { min-height: 40px; font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: .85rem; white-space: nowrap; }
+.qa-summary td button.qa-cell { min-height: 40px; padding: 4px 8px; font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: .85rem; white-space: normal; text-align: left; justify-content: flex-start; line-height: 1.25; }
+.qa-summary td:last-child { min-width: 140px; }
 .qa-summary td button.qa-cell.ok { border-color: var(--ok); } .qa-summary td button.qa-cell.bad { border-color: var(--blood); }
 .qa-report { max-height: 260px; overflow: auto; font-size: .78rem; margin-top: 10px; }
 body.lab-phone .qa-verdict button { min-height: var(--tap); flex: 1 1 40%; }
