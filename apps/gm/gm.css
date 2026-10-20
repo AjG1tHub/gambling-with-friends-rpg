@@ -32,3 +32,22 @@ textarea.json { min-height: 240px; font-family: var(--font-mono); font-size: .78
 #gmPhoneDock .tag { font-size: .64rem; }
 .gm-main label.row input[type=checkbox], .gm-main .row > input[type=checkbox] { width: 20px; height: 20px; min-height: 0; flex: 0 0 auto; }
 .gm-main .row > input:not([type=checkbox]), .gm-main .row > select { width: auto; flex: 1 1 160px; }
+
+/* Bugs & rewards panel (appended): the nav badge, the GM's own report line, the small reward wheels */
+.gm-nav button .dot { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--blood); color: var(--bone); font-size: .62rem; letter-spacing: 0; display: inline-flex; align-items: center; justify-content: center; }
+.gm-nav .gm-report { display: flex; flex-direction: column; gap: 6px; padding: 0 2px 6px; }
+.gm-nav .gm-report textarea { font-size: .88rem; padding: 8px 10px; min-height: 0; }
+.gm-nav .gm-report .row button { min-height: 36px; font-size: .66rem; flex: 1 1 auto; }
+.gm-nav .gm-report button.on { border-color: var(--gold-dim); }
+table.gm.bugs td.bug-text { font-family: var(--font-body); }
+.reward-row { padding: 8px 0; border-top: 1px solid var(--line); }
+.reward-row:first-of-type { border-top: 0; }
+.reward-spin { align-items: center; gap: 14px; margin-top: 6px; }
+.reward-spin .reward-wheel { width: 140px; flex: 0 0 auto; }
+.reward-spin .wheel { position: relative; width: 100%; aspect-ratio: 1; filter: drop-shadow(0 8px 16px rgba(0,0,0,.6)); }
+.reward-spin .wheel-rotor { width: 100%; height: 100%; will-change: transform; } .reward-spin .wheel-face { width: 100%; height: 100%; display: block; }
+.reward-spin .wheel-pointer { position: absolute; left: 50%; top: -3%; width: 0; height: 0; transform: translateX(-50%); border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 14px solid var(--bone); filter: drop-shadow(0 1px 1px #000); }
+.reward-spin .wheel.landed .wheel-pointer { border-top-color: var(--amber); }
+.reward-spin .reward-label { color: var(--amber); font-size: 1rem; min-height: 1.2em; opacity: 0; transition: opacity .3s; } .reward-spin .reward-text { opacity: 0; transition: opacity .3s .15s; }
+.reward-spin.landed .reward-label, .reward-spin.landed .reward-text { opacity: 1; }
+.reward-line { margin-top: 4px; }

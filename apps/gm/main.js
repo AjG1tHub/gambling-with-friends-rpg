@@ -14,9 +14,10 @@ import { panelMonsters } from './panels/monsters.js';
 import { panelProxy } from './panels/proxy.js';
 import { panelLedger } from './panels/ledger.js';
 import { panelExport } from './panels/export.js';
+import { panelBugs, openBugCount, gmReportLine } from './panels/bugs.js';
 
 const app = $('#app');
-const PANELS = [['table', 'Table', panelTable], ['run', 'Run', panelRun], ['config', 'Config', panelConfig], ['rig', 'Rig & Spotlight', panelRig], ['challenge', 'Challenge lists', panelChallenge], ['monsters', 'Monsters', panelMonsters], ['proxy', 'Proxy & Autopilot', panelProxy], ['ledger', 'Ledger & Recap', panelLedger], ['export', 'Export', panelExport]];
+const PANELS = [['table', 'Table', panelTable], ['run', 'Run', panelRun], ['config', 'Config', panelConfig], ['rig', 'Rig & Spotlight', panelRig], ['challenge', 'Challenge lists', panelChallenge], ['monsters', 'Monsters', panelMonsters], ['proxy', 'Proxy & Autopilot', panelProxy], ['ledger', 'Ledger & Recap', panelLedger], ['bugs', 'Bugs & rewards', panelBugs], ['export', 'Export', panelExport]];
 const ctx = { backend: null, session: null, panel: 'table', code: null, pinOk: false };
 const gm = (type, payload) => dispatchOrToast(ctx.session, type, payload, 'gm');
 
@@ -85,8 +86,8 @@ function pinGate(state, session) {
 function view(state, session) {
   if (!ctx.pinOk) return render(app, pinGate(state, session));
   const nav = h('nav', { class: 'gm-nav' }, h('h1', {}, 'GM console'), h('div', { class: 'code' }, state.code), h('div', { class: 'muted', style: { padding: '0 8px 10px' } }, `${state.mode} · tier ${state.tier} · ${state.size} · ${state.phase}${state.gm.paused ? ' · PAUSED' : ''}`),
-    PANELS.map(([id, label]) => h('button', { class: id === ctx.panel ? 'on' : '', onClick: () => { ctx.panel = id; view(session.state, session); } }, label)),
-    h('div', { class: 'grow' }), h('a', { href: '/', target: '_blank', class: 'btn ghost' }, 'Table screen ↗'), h('a', { href: '/lab/', target: '_blank', class: 'btn ghost' }, 'Game Lab ↗'));
+    PANELS.map(([id, label]) => { const open = id === 'bugs' ? openBugCount(state) : 0; return h('button', { class: id === ctx.panel ? 'on' : '', onClick: () => { ctx.panel = id; view(session.state, session); } }, label, open ? h('span', { class: 'dot', title: `${open} open report${open === 1 ? '' : 's'}` }, open) : null); }),
+    h('div', { class: 'grow' }), gmReportLine({ h, gm, rerender: () => view(session.state, session) }), h('a', { href: '/', target: '_blank', class: 'btn ghost' }, 'Table screen ↗'), h('a', { href: '/lab/', target: '_blank', class: 'btn ghost' }, 'Game Lab ↗'));
   const main = lenient(h('main', { class: 'gm-main' }));
   if (state.lastError && Date.now() - state.lastError.ts < 15000) main.append(h('div', { class: 'err-box' }, `${state.lastError.type} by ${state.lastError.actor}: ${state.lastError.message}`));
   render(app, h('div', { class: 'gm-shell' }, nav, main));

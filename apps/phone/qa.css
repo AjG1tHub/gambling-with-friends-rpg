@@ -1,0 +1,25 @@
+/* QA on the phone: the 🐞 button, the report sheet, the secret Bug Reward Wheel overlay (feedback.js). */
+.top .bug-btn { min-width: 40px; min-height: 40px; padding: 0; font-size: 1.15rem; border-radius: 50%; background: transparent; border-color: var(--line); flex: 0 0 auto; }
+.top .bug-btn.on { border-color: var(--gold); background: var(--panel-2); }
+
+.bug-sheet { position: fixed; inset: 0; z-index: 30; background: rgba(8, 5, 6, .72); display: flex; align-items: flex-end; justify-content: center; padding: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+.bug-sheet .bug-card { width: 100%; max-width: 420px; gap: 10px; }
+.bug-sheet .bug-where { font-size: .82rem; padding: 6px 10px; border: 1px dashed var(--line-2); border-radius: var(--radius); background: var(--velvet-3); }
+.bug-sheet textarea.bug-text { min-height: 110px; resize: vertical; }
+.bug-sheet .row button { min-height: 48px; }
+
+.qa-reward { position: fixed; inset: 0; z-index: 40; background: radial-gradient(700px 500px at 50% 30%, #2a1a1c 0%, rgba(13, 10, 11, .98) 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); text-align: center; overflow-y: auto; }
+.qa-reward .reward-note { font-family: var(--font-body); font-style: italic; font-size: 1.05rem; color: var(--bone); padding: 12px 16px; border: 1px solid var(--gold-dim); border-radius: var(--radius); background: linear-gradient(180deg, #2b2218, var(--panel)); box-shadow: var(--shadow); max-width: 360px; }
+.qa-reward .reward-wheel { width: min(78vw, 320px); }
+.qa-reward .wheel { position: relative; width: 100%; aspect-ratio: 1; filter: drop-shadow(0 16px 30px rgba(0, 0, 0, .7)); }
+.qa-reward .wheel-rotor { width: 100%; height: 100%; will-change: transform; }
+.qa-reward .wheel .wheel-face { width: 100%; height: 100%; display: block; margin: 0; border: 0; border-radius: 0; background: transparent; }
+.qa-reward .wheel-pointer { position: absolute; left: 50%; top: -2%; width: 0; height: 0; transform: translateX(-50%); border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 26px solid var(--bone); filter: drop-shadow(0 2px 2px #000); }
+.qa-reward .wheel.landed .wheel-pointer { border-top-color: var(--amber); }
+.qa-reward .reward-result { min-height: 3.2em; display: flex; flex-direction: column; gap: 4px; }
+.qa-reward .reward-label { font-size: 1.3rem; color: var(--amber); letter-spacing: .18em; opacity: 0; transition: opacity .4s ease-out; }
+.qa-reward .reward-text { color: var(--bone-2); max-width: 340px; opacity: 0; transition: opacity .4s ease-out .2s; }
+.qa-reward.landed .reward-label, .qa-reward.landed .reward-text { opacity: 1; }
+.qa-reward.landed .reward-label { animation: landed .5s ease-out; }
+.qa-reward .reward-ok { max-width: 320px; }
+@keyframes landed { from { transform: scale(.9); } to { transform: scale(1); } }

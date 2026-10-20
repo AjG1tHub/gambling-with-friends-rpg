@@ -57,6 +57,42 @@ table.lab td button { min-height: 34px; min-width: 34px; padding: 0 10px; font-s
 @media (max-width: 1150px) { .lab-grid { grid-template-columns: 220px minmax(0, 1fr); } .lab-side { grid-column: 1 / -1; position: static; flex-direction: row; flex-wrap: wrap; } .lab-side .panel { flex: 1 1 280px; } }
 @media (max-width: 760px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } .lab-nav { position: static; max-height: 240px; } }
 
+/* QA run: one spin at a time, the calculation under the face, two big verdict buttons. */
+.qa-body { gap: 12px; }
+.qa-title { font-size: 1.1rem; }
+.qa-progress { font-size: .9rem; }
+.qa-face { margin: 6px auto; max-width: 100%; }
+.qa-face .gwf-wheel { max-width: 100%; }
+.qa-landed { font-family: var(--font-display); letter-spacing: .08em; text-align: center; min-height: 1.4em; }
+.qa-landed.on { color: var(--gold-2); }
+.qa-calc h4 { font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gold-dim); margin: 14px 0 6px; }
+.qa-calc h4:first-of-type { margin-top: 6px; }
+.qa-table { overflow-x: auto; max-width: 100%; }
+.qa-table h4 { margin-top: 8px; }
+table.lab tr.qa-hit td { background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--gold-2); font-weight: 700; }
+table.lab tr.qa-hit td.muted { color: var(--bone-2); }
+.qa-rule p { margin: 4px 0; }
+.qa-result b { color: var(--gold-2); }
+.qa-keys { margin: 6px 0 0 18px; padding: 0; color: var(--bone-2); }
+.qa-diff { display: grid; gap: 2px; font-size: .9rem; }
+.qa-row { display: grid; grid-template-columns: minmax(110px, 36%) 1fr; gap: 8px; padding: 3px 6px; border-radius: 4px; color: var(--bone-dim); }
+.qa-row .k { color: var(--bone-dim); } .qa-row .v { min-width: 0; overflow-wrap: anywhere; }
+.qa-row.changed { background: color-mix(in srgb, var(--gold) 9%, transparent); color: var(--bone); }
+.qa-row.changed .k { color: var(--gold-2); } .qa-row.changed s { color: var(--bone-dim); } .qa-row.changed b { color: #9fd49a; }
+.qa-checks { margin: 0 0 0 18px; padding: 0; font-size: .9rem; }
+.qa-checks li.ok { color: #9fd49a; } .qa-checks li.bad { color: #f2b3b3; }
+.qa-log { max-height: 140px; }
+.qa-verdict { gap: 10px; }
+.qa-verdict button { min-height: 60px; font-size: .8rem; flex: 1 1 140px; }
+.qa-verdict button.ghost { flex: 0 1 120px; }
+.qa-note { margin-top: 10px; } .qa-note textarea { min-height: 80px; }
+.qa-summary td button.qa-cell { min-height: 40px; font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: .85rem; white-space: nowrap; }
+.qa-summary td button.qa-cell.ok { border-color: var(--ok); } .qa-summary td button.qa-cell.bad { border-color: var(--blood); }
+.qa-report { max-height: 260px; overflow: auto; font-size: .78rem; margin-top: 10px; }
+body.lab-phone .qa-verdict button { min-height: var(--tap); flex: 1 1 40%; }
+body.lab-phone .qa-row { grid-template-columns: minmax(90px, 34%) 1fr; }
+body.lab-phone .qa-calc h4 { font-size: .6rem; }
+
 /* Phone mode: one column, the phone's shell, 60 px targets. */
 body.lab-phone { font-size: 17px; }
 body.lab-phone .lab-shell { grid-template-rows: auto 1fr auto; min-height: 100dvh; overflow-x: hidden; }

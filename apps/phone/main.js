@@ -14,6 +14,7 @@ import { tabSelf } from './screens/self.js';
 import { tabPets } from './screens/pets.js';
 import { tabMap } from './screens/map.js';
 import { tabLetters } from './screens/letters.js';
+import { bugButton, bugSheet, rewardOverlay } from './feedback.js';
 
 const app = $('#app');
 const TABS = [['play', 'Play', tabPlay], ['cage', 'Cage', tabCage], ['self', 'Self', tabSelf], ['pets', 'Pets', tabPets], ['map', 'Map', tabMap], ['letters', 'Letters', tabLetters]];
@@ -87,15 +88,19 @@ function view(state, session) {
   if (myTurn && ctx.lastTurnPid !== pid) buzz([80, 40, 80]);
   ctx.lastTurnPid = pid;
   const clock = h('div', { class: 'clock', id: 'phClock' }, state.phase === 'playing' ? fmtTime(remainingMs(state, pid, Date.now())) : '');
-  const top = h('header', { class: 'top' },
-    h('div', { class: 'who' }, h('div', { class: 'turn-tag' }, state.phase !== 'playing' ? state.phase.toUpperCase() : myTurn ? 'YOUR TURN' : `${state.players[pid]?.name || '—'} TO MOVE`), h('div', { class: 'name' }, c?.name || me.name, c ? h('span', { class: 'ital muted' }, ` ${c.classId}${c.region ? ` · ${c.region}` : ''}`) : null)),
-    clock, c ? h('span', { class: `lantern ${tell(c)}`, title: 'your lantern' }) : null);
-  const screen = lenient(h('main', { class: 'screen', id: 'phScreen' }));
-  const tabs = h('nav', { class: 'tabs' }, TABS.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
-  render(app, h('div', { class: 'shell', style: ctx.proxyFor ? { gridTemplateRows: 'auto auto 1fr auto' } : null }, ctx.proxyFor ? h('div', { class: 'banner', style: { position: 'static' } }, `GM acting for ${me.name}`) : null, top, screen, tabs));
-  const tab = TABS.find(t => t[0] === ctx.tab) || TABS[0];
   // In proxy mode every event goes out as the GM with payload.playerId (handlers accept playerId for the GM).
   const dispatch = ctx.proxyFor ? (type, payload) => dispatchOrToast(session, type, { ...(payload || {}), playerId: ctx.me }, 'gm') : (type, payload) => dispatchOrToast(session, type, payload, ctx.me);
+  const rerender = () => view(session.state, session);
+  const top = h('header', { class: 'top' },
+    h('div', { class: 'who' }, h('div', { class: 'turn-tag' }, state.phase !== 'playing' ? state.phase.toUpperCase() : myTurn ? 'YOUR TURN' : `${state.players[pid]?.name || '—'} TO MOVE`), h('div', { class: 'name' }, c?.name || me.name, c ? h('span', { class: 'ital muted' }, ` ${c.classId || 'no class yet'}${c.region ? ` · ${c.region}` : ''}`) : null)),
+    clock, c ? h('span', { class: `lantern ${tell(c)}`, title: 'your lantern' }) : null, bugButton({ rerender }));
+  const screen = lenient(h('main', { class: 'screen', id: 'phScreen' }));
+  const tabs = h('nav', { class: 'tabs' }, TABS.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
+  // QA: the bug-report sheet and the secret reward overlay sit above the tabs (feedback.js).
+  let qa = [];
+  try { qa = [bugSheet({ state, ctx, me, myTurn, dispatch, rerender }), rewardOverlay({ state, ctx, me, dispatch })]; } catch (e) { console.error('qa', e); }
+  render(app, h('div', { class: 'shell', style: ctx.proxyFor ? { gridTemplateRows: 'auto auto 1fr auto' } : null }, ctx.proxyFor ? h('div', { class: 'banner', style: { position: 'static' } }, `GM acting for ${me.name}`) : null, top, screen, tabs), qa);
+  const tab = TABS.find(t => t[0] === ctx.tab) || TABS[0];
   try { tab[2]({ state, session, me, c, myTurn, ctx, h, dispatch, screen }); } catch (e) { console.error(e); screen.append(h('p', { class: 'log error' }, e.message)); }
   stopTicker?.(); stopTicker = ticker((now) => { if (state.phase === 'playing') clock.textContent = fmtTime(remainingMs(session.state, currentPlayerId(session.state), now)); });
   // GM whispers / broadcasts

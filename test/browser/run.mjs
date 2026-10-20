@@ -8,6 +8,8 @@
 //   5. a letter by crow, delivered two of the recipient's turns later
 //   6. a death by the hand of the house, the Graveyard, the skipped turn
 //   7. the GM ends the run: the TV recap, the phone recap, one item into the vault
+//   8. a bug report from the 🐞 sheet, the GM's secret Bug Reward Wheel on that phone only (test/browser/qa.mjs
+//      covers the rest of the Bugs & rewards panel)
 // Every step asserts and screenshots into test/shots/gate-NN-*.png; a failure screenshots every page as fail-*.png.
 // Exits non-zero on any failure. `npm run test:browser`.
 import { chromium } from 'playwright';
@@ -457,6 +459,37 @@ try {
     ok(/pick items to vault/i.test(await vault.locator('button.primary.big').innerText()), 'the vault picker reset after banking');
     ok(st2.phase === 'ended', 'state.phase === ended');
     await shot(ph, '72-vault');
+  });
+
+  // ════════════════════════════════════════ 8. a bug report and the secret reward ══════════════════
+  await step('8. a bug report from a phone, the GM rewards it in secret', async () => {
+    const t0 = Date.now();
+    const ph = phones[0], other = phones[1], pid = seat[0];
+    const MESSAGE = 'You get a secret reward for helping squash a bug. Don’t tell anyone 🤫';
+    await clickWhen(ph, '.top .bug-btn', `${nameOfSeat[pid]} taps 🐞`);
+    await ph.fill('.bug-sheet textarea.bug-text', 'The recap card cut off my name');
+    await clickWhen(ph, '.bug-sheet button.bug-send', 'Send');
+    await waitFor(ph, () => (window.__gwf.session.state.bugReports || []).length === 1, 'BUG_REPORT is in state.bugReports');
+    const b = (await stateOf(tv)).bugReports[0];
+    ok(b.playerId === pid && b.screen === 'Play' && b.status === 'open' && b.context?.phase === 'ended', `report by ${b.name} on ${b.screen} (${b.context.phase})`);
+    await clickWhen(gm, '.gm-nav button:has-text("Bugs & rewards")', 'the GM opens Bugs & rewards');
+    await clickWhen(gm, 'table.gm.bugs tr[data-bug] button:has-text("Reward")', 'Reward 🎡');
+    await waitFor(gm, (id) => !!window.__gwf.session.state.secretSpins?.[id], 'GM_BUG_REWARD spun in secret', pid);
+    const st = await stateOf(tv), r = st.secretSpins[pid];
+    ok(r.message === MESSAGE && !st.log.some(l => l.text.includes(r.label)) && (!st.lastSpin || st.lastSpin.wheel !== 'bugreward'), `the spin (${r.label}) made no log line and no lastSpin`);
+    await ph.locator('.qa-reward').waitFor();
+    ok((await ph.locator('.qa-reward .reward-note').innerText()).trim() === MESSAGE, 'the phone shows the exact message');
+    await shot(ph, '80-secret-wheel');
+    await ph.locator('.qa-reward.landed').waitFor({ timeout: 8000 });
+    ok((await ph.locator('.qa-reward .reward-label').evaluate(e => e.textContent)).trim() === r.label, `the wheel lands on "${r.label}"`);
+    ok((await other.locator('.qa-reward').count()) === 0, `${nameOfSeat[seat[1]]}'s phone shows nothing`);
+    const tvText = await tv.evaluate(() => document.body.innerText);
+    ok(!tvText.includes(r.label) && !tvText.includes('secret reward') && (await tv.locator('.wheel, .wheel-overlay, .qa-reward').count()) === 0, 'the TV shows no wheel, label or message');
+    await gm.locator('.reward-spin.landed').first().waitFor({ timeout: 8000 });
+    await clickWhen(ph, '.qa-reward button.reward-ok', 'Got it 🤐');
+    await waitFor(ph, (id) => window.__gwf.session.state.secretSpins[id].seen === true, 'BUG_REWARD_SEEN', pid);
+    await shot(gm, '81-gm-bugs');
+    console.log(`  · step 8 took ${Math.round((Date.now() - t0) / 1000)}s`);
   });
   console.log(`\nBROWSER GATE PASSED in ${Math.round((Date.now() - T0) / 1000)}s`);
 } catch (e) {
