@@ -148,7 +148,7 @@ try {
     while (Date.now() - t0 < timeoutMs) {
       const v = last = await turnView(ph);
       if (v.phase !== 'playing') return v;
-      if (v.hatching) { await clickWhen(ph, '.pet-wheel', 'keeps a pet from the Triple Pet Wheel'); await sleep(250); continue; }
+      if (v.hatching) { await clickWhen(ph, '.pet-wheel', `${label}: keeps a pet from the Triple Pet Wheel`); await sleep(250); continue; }
       if (v.challenge) return v;
       if (v.mover !== v.me) return v;
       if (v.prompt && v.prompt.mine) { await answerPrompt(ph, v.prompt); await sleep(300); continue; }
@@ -170,7 +170,8 @@ try {
         await ph.locator('.rosette').first().waitFor({ timeout: 8000 });
         const steps = ph.locator(avoidMonsters ? '.rosette .hexbtn.ok:not(.hot)' : '.rosette .hexbtn.ok');
         const hub = ph.locator('.rosette .hub:not([disabled])');
-        if (v.session.movesLeft > 0 && await steps.count()) await steps.first().click();
+        const n = await steps.count();
+        if (v.session.movesLeft > 0 && n) await steps.nth((v.turnIdx + v.session.stepsTaken) % n).click();   // vary the direction turn by turn
         else if (await hub.count()) await hub.first().click();
         else if (await ph.locator('.rosette .hexbtn.ok').count()) await ph.locator('.rosette .hexbtn.ok').first().click();
         else await sleep(300);
@@ -186,7 +187,9 @@ try {
   async function nextTurn(label = 'turn') {
     const before = await compact(tv);
     if (!before.mover) { await waitFor(tv, () => !!window.__gwf.session.state.moverId, `${label}: table resumes`); return nextTurn(label); }
-    await playTurn(phoneOf(before.mover), { label });
+    const ph = phoneOf(before.mover);
+    await waitFor(ph, (pid) => window.__gwf.session.state.moverId === pid, '', before.mover, 5000).catch(() => {});   // the phone's socket may trail the TV's by a moment
+    await playTurn(ph, { label });
     await waitFor(tv, (n) => window.__gwf.session.state.turnIdx > n || window.__gwf.session.state.phase !== 'playing', `${label}: turn ${before.turnIdx + 1} → ${before.turnIdx + 2}`, before.turnIdx, 20000);
     return compact(tv);
   }
@@ -264,6 +267,7 @@ try {
       const cur = await compact(tv);
       if (cur.phase !== 'playing') break;
       const ph = phoneOf(cur.mover);
+      await waitFor(ph, (pid) => window.__gwf.session.state.moverId === pid, '', cur.mover, 5000).catch(() => {});
       if (t < 2) { // the first turns open on the Triple Pet Wheel (the run-start egg); keep one, then the move screen
         for (let k = 0; k < 3 && (await turnView(ph)).hatching; k++) { await clickWhen(ph, '.pet-wheel', `${nameOfSeat[cur.mover]} keeps a pet from the Triple Pet Wheel`); await sleep(300); }
         if (t === 0) { await ph.locator('.prompt button.primary.big').first().waitFor(); await shot(ph, '21-phone-move'); }
@@ -355,8 +359,12 @@ try {
         const ch = st.challenge;
         if (Date.now() < ch.gmWindowUntil) { await sleep(300); continue; }
         if (ch.entry.hosted && ch.entry.game === 'highestcard') {
-          for (const [pid, ph] of [[atk, aph], [def, dph]]) { if (!ch.hostedGame?.drawn?.[pid]) { const b = ph.locator('button:has-text("Draw")'); if (await b.count()) { await b.first().click(); console.log(`  · ${nameOfSeat[pid]} draws`); } } }
-          if (call === 'duel' && !played.shotDuel) { played.shotDuel = true; await sleep(300); await shot(aph, '41-duel-play'); }
+          for (const [pid, ph] of [[atk, aph], [def, dph]]) {
+            if (ch.hostedGame?.drawn?.[pid]) continue;
+            const b = ph.locator('button:has-text("Draw")'); if (!(await b.count())) continue;
+            await b.first().click(); console.log(`  · ${nameOfSeat[pid]} draws`);
+            if (call === 'duel' && !played.shotDuel) { played.shotDuel = true; await sleep(300); await shot(aph, '41-duel-play'); }   // one card up, waiting on the other
+          }
         } else if (!ch.entry.hosted) {
           for (const [pid, ph] of [[atk, aph], [def, dph]]) { if (ch.reports?.[pid] === undefined) { const b = ph.getByRole('button', { name: nameOfSeat[atk], exact: true }); if (await b.count()) { await b.first().click(); console.log(`  · ${nameOfSeat[pid]} reports ${nameOfSeat[atk]} won`); } } }
           if (!played.shotWager) { played.shotWager = true; await sleep(300); await shot(dph, '42-wager-report'); }
@@ -446,13 +454,18 @@ try {
     const st2 = await stateOf(tv), vc = charOf(st2, survivor);
     ok(vc.vaulted[0].name === itemName && !vc.items[vc.vaulted[0].id], `${itemName} left the character for the vault`);
     ok(!(st2.lastError && st2.lastError.type === 'VAULT_BANK'), 'no VAULT_BANK refusal');
+    ok(/pick items to vault/i.test(await vault.locator('button.primary.big').innerText()), 'the vault picker reset after banking');
     ok(st2.phase === 'ended', 'state.phase === ended');
     await shot(ph, '72-vault');
   });
   console.log(`\nBROWSER GATE PASSED in ${Math.round((Date.now() - T0) / 1000)}s`);
 } catch (e) {
   failed = true; console.error(e);
-  for (const [name, p] of Object.entries(pages)) await p.screenshot({ path: shotDir + `fail-${name}.png` }).catch(() => {});
+  for (const [name, p] of Object.entries(pages)) {
+    await p.screenshot({ path: shotDir + `fail-${name}.png` }).catch(() => {});
+    const v = await p.evaluate(() => { const s = window.__gwf?.session?.state; if (!s) return null; const me = window.__gwf.ctx?.me; return { me, phase: s.phase, mover: s.moverId, turnIdx: s.turnIdx, turnPhase: s.turnPhase, prompt: s.pendingPrompt?.kind || null, fight: s.fight && !s.fight.done ? `${s.fight.kind}/${s.fight.turn}` : null, challenge: s.challenge && !s.challenge.done ? s.challenge.call : null, held: Object.keys(s.held || {}), lastError: s.lastError ? `${s.lastError.type}: ${s.lastError.message}` : null, text: document.body.innerText.replace(/\s+/g, ' ').slice(0, 160) }; }).catch(() => null);
+    console.error(`  ${name}:`, JSON.stringify(v));
+  }
 } finally {
   await browser.close(); server.close(); dev.close();
 }

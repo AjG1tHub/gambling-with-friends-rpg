@@ -119,7 +119,8 @@ function lookStep(api) {
     if (draft.nameOk === false) return toast(draft.nameNote, 'bad');
     store.set('gwfrpg:phone:draft', { name, crest: draft.crest, look: draft.look });
     const ok = await dispatch('CHAR_LOOK', { name, crest: draft.crest, look: { ...draft.look } });
-    if (ok) draft.step = 'class';
+    // The room re-renders inside dispatch (before this line), so the step change needs its own redraw.
+    if (ok) { draft.step = 'class'; redraw(api); }
   } }, c ? 'Save the look' : 'That is me →'));
   screen.append(box);
 }
@@ -129,7 +130,7 @@ function classStep(api) {
   const { c, h, dispatch, screen } = api;
   const box = sect('Class', h('p', { class: 'muted ital' }, 'Fixes your starting weapon and gives +1 to its stat.'));
   for (const k of CLASSES) {
-    box.append(h('button', { class: `class-card ${c?.classId === k.id ? 'on' : ''}`, onClick: async () => { const ok = await dispatch('CHAR_CLASS', { classId: k.id }); if (ok) draft.step = 'stats'; } },
+    box.append(h('button', { class: `class-card ${c?.classId === k.id ? 'on' : ''}`, onClick: async () => { const ok = await dispatch('CHAR_CLASS', { classId: k.id }); if (ok) { draft.step = 'stats'; redraw(api); } } },
       h('div', { class: 'row between' }, h('b', { class: 'nm' }, k.name), h('span', { class: 'pill gold' }, `+1 ${statLabel(k.stat)}`)),
       h('span', { class: 'meta ital' }, k.playsLike), h('span', { class: 'meta' }, h('i', {}, 'Passive: '), k.passive.text), h('span', { class: 'meta' }, h('i', {}, `${k.active.name}: `), k.active.text),
       h('span', { class: 'meta faint' }, `Starts with ${k.startWeapon}`)));
@@ -182,7 +183,7 @@ function gambleRound(api, key, entry) {
   const finish = async (mult, label) => {
     if (entry.resolved) return; entry.resolved = true;
     const ok = await dispatch('CHAR_STAT_GAMBLE', { stat: draft.stat || entry.stat, chips: entry.chips ?? entry.round.stake, mult, gameId });
-    dropRound(key); draft.game = null; if (!ok) redraw(api);
+    dropRound(key); draft.game = null; redraw(api);   // the event's own re-render ran while the round was still live
   };
   entry.stat ||= draft.stat;
   const box = sect(`${gameMeta(gameId === 'buyin' ? 'bigwheel' : gameId).icon} ${gameId === 'buyin' ? 'Buy-in Wheel' : gameMeta(gameId).name} for ${statLabel(entry.stat)}`);

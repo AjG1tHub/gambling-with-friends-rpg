@@ -5,7 +5,7 @@
 import { h, lenient, fmtTime, buzz } from '../../../packages/ui/dom.js';
 import { portalOptions } from '../../../packages/shared/handlers/movement.js';
 import { tileLabel, tileGlyph, hexDistance } from '../../../packages/shared/map/query.js';
-import { characterOf } from '../../../packages/shared/state.js';
+import { characterOf, currentPlayerId } from '../../../packages/shared/state.js';
 import { group } from '../../../packages/shared/balance.js';
 import { speciesDef } from '../../../packages/shared/handlers/pets.js';
 import { gameMeta } from '../../../packages/games/adapter.js';
@@ -15,7 +15,16 @@ import { wheelStrip } from '../../../packages/ui/dice.js';
 // play.js registers its tab renderer here so sub-screens can redraw the Play tab from local UI state without
 // waiting for an event (and without an import cycle).
 export const playHooks = { tabPlay: null };
-export function redraw(api) { try { api.screen.replaceChildren(); if (playHooks.tabPlay) playHooks.tabPlay(api); } catch (e) { console.error(e); } }
+// A room event may have re-rendered the whole phone since `api` was built (its screen is then detached), so the
+// redraw targets the live screen and reads the live state; the state object itself is mutated in place by the room.
+export function redraw(api) {
+  try {
+    const screen = (api.screen?.isConnected ? api.screen : document.getElementById('phScreen')) || api.screen;
+    const state = api.session?.state || api.state;
+    const fresh = { ...api, screen, state, c: characterOf(state, api.me) || api.c, myTurn: state.phase === 'playing' && currentPlayerId(state) === api.me };
+    screen.replaceChildren(); if (playHooks.tabPlay) playHooks.tabPlay(fresh);
+  } catch (e) { console.error(e); }
+}
 export const sect = (title, ...kids) => lenient(h('section', { class: 'ph-sect' }, title ? h('h3', {}, title) : null, ...kids));
 export const why = (text) => (text ? h('p', { class: 'why muted ital' }, text) : null);
 export const line = (...kids) => h('div', { class: 'row between ph-line' }, ...kids);

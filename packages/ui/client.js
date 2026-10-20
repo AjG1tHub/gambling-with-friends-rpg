@@ -23,7 +23,10 @@ export async function attach({ backend, roomId, code, role, view, onEvent, creat
   rerender(null);
   // Presence: ping while the tab is alive; the TV watches for silence.
   let leave = null;
-  const onPresence = (map) => { Object.assign(session.presence, map); try { view(session.state, session, null); } catch { /* ignore */ } };
+  // Only the GM console draws presence ("seen 5s ago"); the TV reads it from a ticker and the phone never shows it.
+  // Every client pings every 5 s and the backend fans the map out to everyone, so re-rendering a phone on each ping
+  // rebuilt its whole screen about once a second: the name field lost focus mid-word and the screen jumped to the top.
+  const onPresence = (map) => { Object.assign(session.presence, map); if (role !== 'gm') return; try { view(session.state, session, null); } catch { /* ignore */ } };
   if (presence && backend.presence) leave = backend.presence(session.roomId, presence, onPresence);
   // A phone that takes a seat after attaching re-registers under its player id, or the TV proxies it for silence.
   const setPresence = (meta) => { if (!backend.presence) return; leave?.(); leave = backend.presence(session.roomId, meta, onPresence); };

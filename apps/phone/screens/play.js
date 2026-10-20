@@ -268,7 +268,8 @@ function endedScreen(api) {
   if (banked) box.append(why(`Vaulted: ${c.vaulted.map(v => v.name).join(', ')}`));
   if (room > 0 && items.length) {
     for (const it of items) box.append(itemRow({ item: it, meta: `${it.slot} · ${it.rarity || 'common'}${it.gameId ? ` · ${gameMeta(it.gameId).name}` : ''}`, action: vaultPick.has(it.id) ? '✓' : 'PICK', hot: vaultPick.has(it.id), onTap: () => { if (vaultPick.has(it.id)) vaultPick.delete(it.id); else if (vaultPick.size < room) vaultPick.add(it.id); else toast(`Only ${room} fit`, 'bad'); redraw(api); } }));
-    box.append(h('button', { class: 'primary big', disabled: !vaultPick.size, onClick: async () => { const ids = [...vaultPick]; const ok = await dispatch('VAULT_BANK', { playerId: me, itemIds: ids }); if (ok) vaultPick.clear(); } }, vaultPick.size ? `Vault ${vaultPick.size} item${vaultPick.size === 1 ? '' : 's'}` : 'Pick items to vault'));
+    // The event's re-render runs inside dispatch, so the pick is cleared before it (and restored on a refusal).
+    box.append(h('button', { class: 'primary big', disabled: !vaultPick.size, onClick: async () => { const ids = [...vaultPick]; vaultPick.clear(); const ok = await dispatch('VAULT_BANK', { playerId: me, itemIds: ids }); if (!ok) { for (const id of ids) vaultPick.add(id); redraw(api); } } }, vaultPick.size ? `Vault ${vaultPick.size} item${vaultPick.size === 1 ? '' : 's'}` : 'Pick items to vault'));
   } else if (room <= 0) box.append(why('The vault is full for this run.'));
   else box.append(why('Nothing left to vault.'));
   screen.append(box);
