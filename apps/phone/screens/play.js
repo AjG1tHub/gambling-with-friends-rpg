@@ -92,7 +92,7 @@ function movementScreen(api) {
     screen.append(h('p', { class: 'center muted' }, s.mode === 'barefoot' ? `You plod ${s.roll}.` : `Rolled ${s.rolls?.join(' + ') || s.roll}${s.rolls?.length > 1 ? ` = ${s.roll}` : ''}. ${s.mustWalk ? 'These boots walk the full roll.' : s.canStopAfter > s.stepsTaken ? `Walk at least ${s.canStopAfter} before you stop.` : 'Stop whenever you like.'}`));
   } else if (s.mode === 'wheel') {
     const spin = state.lastSpin?.wheel === 'movement' && state.lastSpin.playerId === me ? state.lastSpin : null;
-    if (spin) { const strip = wheelStrip({ outcomes: spin.outcomes, index: spin.index, title: 'the movement wheel' }); screen.append(strip); if (rolling) { animateStrip(strip, spin.index, () => redraw(api)); screen.append(h('p', { class: 'center tag' }, 'Spinning…')); return; } }
+    if (spin) { const strip = wheelStrip({ outcomes: spin.outcomes, weights: spin.weights || null, index: spin.index, title: 'the movement wheel' }); screen.append(strip); if (rolling) { animateStrip(strip, spin.index, () => redraw(api)); screen.append(h('p', { class: 'center tag' }, 'Spinning…')); return; } }
     screen.append(h('p', { class: 'center muted' }, `${s.wheel}: ${s.roll} step${s.roll === 1 ? '' : 's'}.`));
   } else if (s.mode === 'card') {
     const cv = cardView(state, me);
@@ -131,7 +131,7 @@ function actionScreen(api) {
   const { state, me, c, h, dispatch, screen } = api;
   const here = state.map?.hexes?.[c.pos]; const type = here?.type;
   const spin = state.lastSpin && state.lastSpin.playerId === me && Date.now() - state.lastSpin.ts < 20000 && ['fortune', 'fate', 'chaos', 'loot', 'boss'].includes(state.lastSpin.wheel) ? state.lastSpin : null;
-  if (spin) screen.append(wheelStrip({ outcomes: spin.outcomes, index: spin.index, title: `${spin.wheel} wheel: ${spin.outcomes?.[spin.index]}` }));
+  if (spin) screen.append(wheelStrip({ outcomes: spin.outcomes, weights: spin.weights || null, index: spin.index, title: `${spin.wheel} wheel: ${spin.outcomes?.[spin.index]}` }));
   screen.append(h('div', { class: 'row between tile-line' }, h('span', { class: 'tag' }, `${tileGlyph(type)} ${tileLabel(type)} · ${state.map?.regions?.[here?.regionId]?.name || ''}`), h('span', { class: 'muted' }, `${c.gold || 0} Gold`)));
   tilePanel(api, here);
   lootPanel(api);

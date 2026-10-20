@@ -40,7 +40,10 @@ export function diceElement({ dice = [6], rolls = [], rolling = false, ms = 900,
 }
 
 // A small wheel-stop strip for the movement wheel: the outcomes in a row, the landed one lit.
-export function wheelStrip({ outcomes = [], index = 0, title = '' } = {}) {
+// Segment widths follow the weights (the odds), like the wheel's slices; a zero-weight segment is left out.
+export function wheelStrip({ outcomes = [], weights = null, index = 0, title = '' } = {}) {
+  const w = outcomes.map((_, i) => { const v = Number(weights?.[i]); return weights ? (Number.isFinite(v) && v > 0 ? v : 0) : 1; });
+  const total = w.reduce((a, b) => a + b, 0) || 1;
   return h('div', { class: 'wheel-strip' }, title ? h('div', { class: 'tag' }, title) : null,
-    h('div', { class: 'segs' }, outcomes.map((o, i) => h('span', { class: `seg ${i === index ? 'hit' : ''}` }, String(o)))));
+    h('div', { class: `segs${weights ? ' weighted' : ''}` }, outcomes.map((o, i) => w[i] <= 0 ? null : h('span', { class: `seg ${i === index ? 'hit' : ''}`, style: { flex: `${(w[i] / total * outcomes.length).toFixed(3)} 1 0`, minWidth: '0' }, title: weights ? `${Math.round(w[i] / total * 100)}%` : null }, String(o)))));
 }

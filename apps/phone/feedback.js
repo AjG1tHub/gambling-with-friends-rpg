@@ -58,7 +58,7 @@ export function rewardOverlay({ state, ctx, me, dispatch }) {
   const already = Array.isArray(animated) && animated.includes(r.id);
   const outcomes = r.outcomes || [r.label];
   const index = Math.max(0, Math.min(outcomes.length - 1, r.index ?? 0));
-  const wheel = wheelElement({ outcomes, size: null });
+  const wheel = wheelElement({ outcomes, weights: r.weights || null, size: null });
   const result = h('div', { class: 'reward-result' }, h('div', { class: 'reward-label display' }, ''), h('div', { class: 'reward-text ital' }, ''));
   const btn = h('button', { class: 'primary big reward-ok', disabled: true, onClick: async () => { const ok = await dispatch('BUG_REWARD_SEEN', {}); if (ok !== false) { overlay?.el.remove(); overlay = null; } } }, 'Got it 🤐');
   const el = h('div', { class: 'qa-reward', role: 'dialog', 'aria-label': 'Secret reward' },

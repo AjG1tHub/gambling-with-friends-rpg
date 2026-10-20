@@ -26,27 +26,44 @@ async function loadFace(id) {
 }
 
 // Draw a wheel face: n wedges, labels along each wedge's bisector, a brass rim and a bone hub.
-function drawFace(svg, outcomes, colors) {
-  const n = Math.max(1, outcomes.length), R = 480, cx = 512, cy = 512, step = 360 / n;
+// Slice geometry from the segment weights: a segment's angle is its share of the odds, so what the eye sees is
+// what the RNG does. `arcs(n, weights)` → [{ mid, span, a0, a1 }] in degrees with segment 0 centred on the top.
+export function arcs(outcomes, weights = null) {
+  const n = Math.max(1, outcomes.length);
+  const w = Array.from({ length: n }, (_, i) => { const v = Number(weights?.[i]); return Number.isFinite(v) && v > 0 ? v : 0; });
+  const total = w.reduce((a, b) => a + b, 0);
+  const share = total > 0 ? w.map(v => v / total) : w.map(() => 1 / n);
+  const out = []; let acc = -share[0] * 360 / 2;        // segment 0 straddles 0° (the pointer)
+  for (let i = 0; i < n; i++) { const span = share[i] * 360; out.push({ a0: acc, a1: acc + span, mid: acc + span / 2, span }); acc += span; }
+  return out;
+}
+export const equalWeights = (weights, n) => !weights || weights.length !== n || weights.every(v => Number(v) === Number(weights[0]));
+
+function drawFace(svg, outcomes, colors, weights = null) {
+  const n = Math.max(1, outcomes.length), R = 480, cx = 512, cy = 512;
+  const A = arcs(outcomes, weights);
   svg.replaceChildren();
   svgEl('circle', { cx, cy, r: 500, fill: '#120d10' }, svg);
   svgEl('circle', { cx, cy, r: 492, fill: 'none', stroke: '#c9a24a', 'stroke-width': 10 }, svg);
   const segs = svgEl('g', { id: 'segments' }, svg), labels = svgEl('g', { id: 'labels' }, svg);
   const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
   for (let i = 0; i < n; i++) {
-    const a0 = i * step - step / 2, a1 = a0 + step, [x0, y0] = pt(a0, R), [x1, y1] = pt(a1, R);
-    const d = n === 1 ? `M${cx - R},${cy} A${R},${R} 0 1,1 ${cx + R},${cy} A${R},${R} 0 1,1 ${cx - R},${cy} Z` : `M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${step > 180 ? 1 : 0},1 ${x1.toFixed(1)},${y1.toFixed(1)} Z`;
+    const { a0, a1, mid, span } = A[i];
+    if (span <= 0) continue;                                       // a zero-weight segment is not on the wheel
+    const [x0, y0] = pt(a0, R), [x1, y1] = pt(a1, R);
+    const d = span >= 359.99 ? `M${cx - R},${cy} A${R},${R} 0 1,1 ${cx + R},${cy} A${R},${R} 0 1,1 ${cx - R},${cy} Z` : `M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${span > 180 ? 1 : 0},1 ${x1.toFixed(1)},${y1.toFixed(1)} Z`;
     svgEl('path', { d, fill: colors?.[i] || PALETTE[i % PALETTE.length], stroke: '#9c7a2e', 'stroke-width': 3, 'data-index': i }, segs);
-    const label = String(outcomes[i] ?? ''), mid = i * step, short = label.length > 22 ? label.slice(0, 21) + '…' : label;
-    if (n <= 8) {
-      // Few segments: the label sits across the wedge, upright-ish, sized to fit the chord.
-      const fs = Math.max(22, Math.min(48, 1200 / Math.max(6, short.length) / Math.max(1, n / 6)));
+    const label = String(outcomes[i] ?? ''), short = label.length > 22 ? label.slice(0, 21) + '…' : label;
+    const stepEq = 360 / n, wide = span >= 30;                      // narrow wedges get the spoke layout whatever n is
+    if (n <= 8 && wide) {
+      // Few, wide segments: the label sits across the wedge, upright-ish, sized to fit the chord.
+      const fs = Math.max(22, Math.min(48, 1200 / Math.max(6, short.length) / Math.max(1, n / 6), span * 1.4));
       const [lx, ly] = pt(mid, R * 0.6);
       const rot = mid > 90 && mid < 270 ? mid + 180 : mid;      // keep the bottom half's labels upright
       svgEl('text', { x: lx.toFixed(1), y: ly.toFixed(1), transform: `rotate(${rot} ${lx.toFixed(1)} ${ly.toFixed(1)})`, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-family': 'Cinzel, serif', 'font-size': fs, fill: '#e9e1cf', 'letter-spacing': '1', text: short }, labels);
     } else {
       // Many segments: the label runs along the spoke from the hub outward, sized to the wedge's width.
-      const arc = 2 * Math.PI * R * 0.55 / n, fs = Math.max(16, Math.min(34, arc * 0.72, 560 / Math.max(6, short.length)));
+      const arc = 2 * Math.PI * R * 0.55 * (span / 360), fs = Math.max(14, Math.min(34, arc * 0.72, 560 / Math.max(6, short.length)));
       const [lx, ly] = pt(mid, R * 0.22);
       svgEl('text', { x: lx.toFixed(1), y: ly.toFixed(1), transform: `rotate(${mid - 90} ${lx.toFixed(1)} ${ly.toFixed(1)})`, 'text-anchor': 'start', 'dominant-baseline': 'middle', 'font-family': 'Cinzel, serif', 'font-size': fs, fill: '#e9e1cf', 'letter-spacing': '.5', text: short }, labels);
     }
@@ -65,30 +82,32 @@ async function applyFace(svg, faceId, outcomes) {
   return true;
 }
 
-export function wheelElement({ outcomes = [], colors = null, face = null, size = null, title = null } = {}) {
+export function wheelElement({ outcomes = [], weights = null, colors = null, face = null, size = null, title = null } = {}) {
   const svg = svgEl('svg', { viewBox: '0 0 1024 1024', class: 'wheel-face' });
-  drawFace(svg, outcomes, colors);
-  if (face) applyFace(svg, face, outcomes).catch(() => {});
+  drawFace(svg, outcomes, colors, weights);
+  // A painted face has equal wedges: only honest when the odds are equal.
+  if (face && equalWeights(weights, outcomes.length)) applyFace(svg, face, outcomes).catch(() => {});
   const rotor = h('div', { class: 'wheel-rotor' }); rotor.append(svg);
   const pointer = h('div', { class: 'wheel-pointer', 'aria-hidden': 'true' });
   const el = h('div', { class: 'wheel', style: size ? { width: size, height: size } : {} }, rotor, pointer);
-  el.__wheel = { outcomes, rotor, angle: 0 };
+  el.__wheel = { outcomes, weights, rotor, angle: 0 };
   if (title) el.append(h('div', { class: 'wheel-title' }, title));
   return el;
 }
-export const segmentAngle = (n, index) => (n ? 360 / n * index : 0);
+export const segmentAngle = (n, index, weights = null) => arcs(Array.from({ length: n || 1 }), weights)[index]?.mid ?? 0;
+const segmentAt = (angle, outcomes, weights) => { const A = arcs(outcomes, weights); const a = ((angle % 360) + 360) % 360; const t = a > 180 ? a - 360 : a; return Math.max(0, A.findIndex(x => t >= x.a0 && t < x.a1)); };
 // Rotate the rotor so segment `index` (its centre) sits under the top pointer. Time-driven (not a CSS transition),
 // so a re-parented wheel keeps spinning; ease-out cubic with `turns` extra full turns.
 export function spinTo(el, index, { ms = WHEEL_SPIN_MS, turns = 5, start = null } = {}) {
   const w = el.__wheel; if (!w) return Promise.resolve();
-  const n = w.outcomes.length || 1, target = -(segmentAngle(n, index)) + 360 * turns;
+  const n = w.outcomes.length || 1, target = -(segmentAngle(n, index, w.weights)) + 360 * turns;
   const from = w.angle % 360, t0 = start ?? performance.now();
   if (w.raf) cancelAnimationFrame(w.raf);
   return new Promise((done) => {
     const tick = (t) => {
       const p = Math.min(1, Math.max(0, (t - t0) / ms)), e = 1 - Math.pow(1 - p, 3);
       w.angle = from + (target - from) * e; w.rotor.style.transform = `rotate(${w.angle}deg)`;
-      const seg = Math.round(((-w.angle % 360) + 360) % 360 / (360 / n)) % n; if (seg !== w.seg) { w.seg = seg; el.dispatchEvent(new CustomEvent('ratchet', { detail: seg })); }
+      const seg = segmentAt(-w.angle, w.outcomes, w.weights); if (seg !== w.seg) { w.seg = seg; el.dispatchEvent(new CustomEvent('ratchet', { detail: seg })); }
       if (p < 1) w.raf = requestAnimationFrame(tick); else { w.raf = null; el.classList.add('landed'); done(); }
     };
     el.classList.remove('landed'); w.raf = requestAnimationFrame(tick);
@@ -116,9 +135,9 @@ export function spinOverlay(stage, lastSpin, { now = Date.now(), holdMs = 2000, 
   if (now - (spin.ts || 0) > 60000) { seen.add(spin.ts); return null; }       // stale: from before this TV opened
   seen.add(spin.ts); if (seen.size > 200) seen = new Set([...seen].slice(-100));
   const el = h('div', { class: 'stage-wrap wheel-overlay' });
-  const wheels = spin.wheel === 'pets' && spin.wheels ? spin.wheels.map((w, i) => ({ id: ['pet_common', 'pet_region', 'pet_rare'][i], outcomes: w.outcomes.map(petLabel), index: w.index, title: TITLES[['pet_common', 'pet_region', 'pet_rare'][i]] })) : [{ id: spin.wheel, outcomes: spin.outcomes || [], index: spin.index, title: null }];
+  const wheels = spin.wheel === 'pets' && spin.wheels ? spin.wheels.map((w, i) => ({ id: ['pet_common', 'pet_region', 'pet_rare'][i], outcomes: w.outcomes.map(petLabel), weights: w.weights || null, index: w.index, title: TITLES[['pet_common', 'pet_region', 'pet_rare'][i]] })) : [{ id: spin.wheel, outcomes: spin.outcomes || [], weights: spin.weights || null, index: spin.index, title: null }];
   const row = h('div', { class: `wheel-row n${wheels.length}` });
-  const els = wheels.map(w => { const we = wheelElement({ outcomes: w.outcomes, colors: spin.colors || null, face: w.id, title: w.title }); row.append(we); return { ...w, el: we }; });
+  const els = wheels.map(w => { const we = wheelElement({ outcomes: w.outcomes, weights: w.weights, colors: spin.colors || null, face: w.id, title: w.title }); row.append(we); return { ...w, el: we }; });
   const waitForGm = spin.revealAt && now < spin.revealAt;
   const who = spinnerName ? `${spinnerName} spins. ` : '';
   const sub = h('div', { class: 'wheel-sub ital muted' }, waitForGm ? `${who}The House considers the wheel…` : `${who}The wheel turns…`);
@@ -146,7 +165,7 @@ export function spinOverlay(stage, lastSpin, { now = Date.now(), holdMs = 2000, 
   return el;
 }
 function retarget(cur, spin) {
-  cur.els.forEach((w, i) => { const src = spin.wheel === 'pets' && spin.wheels ? spin.wheels[i] : spin; w.index = src?.index ?? 0; w.outcomes = src?.outcomes || w.outcomes; w.el.__wheel.outcomes = w.outcomes; drawFace(w.el.querySelector('svg'), w.outcomes, spin.colors || null); });
+  cur.els.forEach((w, i) => { const src = spin.wheel === 'pets' && spin.wheels ? spin.wheels[i] : spin; w.index = src?.index ?? 0; w.outcomes = src?.outcomes || w.outcomes; w.weights = src?.weights || null; w.el.__wheel.outcomes = w.outcomes; w.el.__wheel.weights = w.weights; drawFace(w.el.querySelector('svg'), w.outcomes, spin.colors || null, w.weights); });
   cur.startAt = spin.revealAt && spin.revealAt > Date.now() ? spin.revealAt : Date.now(); cur.dismissAt = cur.startAt + WHEEL_SPIN_MS + 2000 + (cur.els.length - 1) * 400;
 }
 export const wheelTitle = (id) => TITLES[id] || id;

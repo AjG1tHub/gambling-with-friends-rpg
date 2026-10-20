@@ -80,7 +80,7 @@ function rewardWheel(r, h) {
   let rec = wheels.get(r.id);
   if (rec) return rec.el;
   const outcomes = r.outcomes || [r.label], index = Math.max(0, Math.min(outcomes.length - 1, r.index ?? 0));
-  const wheel = wheelElement({ outcomes });
+  const wheel = wheelElement({ outcomes, weights: r.weights || null });
   const label = h('div', { class: 'reward-label display' }, ''), text = h('div', { class: 'reward-text muted ital' }, '');
   const el = h('div', { class: 'reward-spin row' }, h('div', { class: 'reward-wheel' }, wheel), h('div', { class: 'col reward-result', style: { gap: '4px' } }, label, text));
   rec = { el, landed: false }; wheels.set(r.id, rec);

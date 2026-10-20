@@ -110,7 +110,7 @@ export function stageOverlay(stage, state, { now = Date.now(), onDismiss = null 
   const revealAt = snap?.view?.revealAt || 0;
   // Wheel games (50/50, Big Wheel, Roulette, Wheel of Colours) carry the spin in the snapshot: the TV turns a wheel.
   const spin = snap?.spin && Array.isArray(snap.spin.outcomes) && snap.spin.index != null ? snap.spin : null;
-  if (spin && !rec.wheelEl) { rec.wheelEl = wheelElement({ outcomes: spin.outcomes, colors: spin.colors || null, title: spin.wheel || null }); rec.wheelEl.classList.add('round-wheel'); rec.spinStart = now; spinTo(rec.wheelEl, spin.index, { ms: WHEEL_SPIN_MS }).then(() => { rec.landed = true; onDismiss?.(); }); }
+  if (spin && !rec.wheelEl) { rec.wheelEl = wheelElement({ outcomes: spin.outcomes, weights: spin.weights || null, colors: spin.colors || null, title: spin.wheel || null }); rec.wheelEl.classList.add('round-wheel'); rec.spinStart = now; spinTo(rec.wheelEl, spin.index, { ms: WHEEL_SPIN_MS }).then(() => { rec.landed = true; onDismiss?.(); }); }
   const spinEnd = spin ? rec.spinStart + WHEEL_SPIN_MS : 0;
   const dismissAt = rec.doneSeen ? Math.max(rec.doneSeen, revealAt, spinEnd) + 3000 : Infinity;
   if (now >= dismissAt) return null;

@@ -251,7 +251,7 @@ register({
     if (mode === 'wheel') {
       const segs = wheelSegments(item, affixes, MV);
       const i = rigAwareWeightedIndex(state, 'wheels', segs), seg = segs[i];
-      state.lastSpin = { wheel: 'movement', outcomes: segs.map(x => x.label), index: i, playerId: pid, ts: ctx.now };
+      state.lastSpin = { wheel: 'movement', outcomes: segs.map(x => x.label), weights: segs.map(x => Number(x.weight ?? 1) || 0), index: i, playerId: pid, ts: ctx.now };
       const s = state.moveSession = newSession(pid, c, 'wheel', { wheel: seg.label, segment: seg.id, octane: item?.unique === 'octane' });
       note(state, `${who} spins ${seg.label}`, 'wheel', ctx.now);
       if (seg.special === 'teleport') {

@@ -41,7 +41,7 @@ register({
     if (!characterOf(state, pid)) refuse('that player has no character yet', 'character');
     const r = spinWheelSecret(state, ctx, 'bugreward', pid);
     const b = ctx.payload.bugId ? reports(state).find(x => x.id === ctx.payload.bugId) : null;
-    const reward = { id: `reward-${ctx.now.toString(36)}`, ts: ctx.now, wheel: 'bugreward', outcomes: r.outcomes, index: r.index, label: r.seg.label, text: r.result?.text || null, bugId: b?.id || null, seen: false,
+    const reward = { id: `reward-${ctx.now.toString(36)}`, ts: ctx.now, wheel: 'bugreward', outcomes: r.outcomes, weights: r.weights, index: r.index, label: r.seg.label, text: r.result?.text || null, bugId: b?.id || null, seen: false,
       message: 'You get a secret reward for helping squash a bug. Don\u2019t tell anyone \ud83e\udd2b' };
     (state.secretSpins ||= {})[pid] = reward;
     if (b) { b.status = 'rewarded'; b.reward = { ts: ctx.now, label: r.seg.label, text: r.result?.text || null }; }

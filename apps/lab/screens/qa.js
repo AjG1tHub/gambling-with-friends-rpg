@@ -68,7 +68,7 @@ function snapshot(sb, bossId = null) {
       'Chaos': `tier ${ch.tier} · ${ch.effects.length} effect${ch.effects.length === 1 ? '' : 's'}${ch.effects.length ? ` (${ch.effects.map(e => e.label).join('; ')})` : ''}`, 'Vote open': st.votes ? `${st.votes.kind}: ${st.votes.question}` : '—',
       ...(m ? { [`${m.name}`]: `${m.mood ? m.mood.name : 'no mood'} · ${m.health}/${m.maxHealth} HP` } : {}),
     },
-    items, health: c.health, maxHealth: c.maxHealth, gold: c.gold, statPoints: c.statPoints || 0, pos: c.pos, region: c.region, pendingLoot: (c.pendingLoot || []).length, pets: c.pets.length, missTurns: c.missTurns || 0,
+    items, potions: Object.values(c.items || {}).filter(it => it.baseId === 'potion').reduce((n, it) => n + (it.qty || 1), 0), health: c.health, maxHealth: c.maxHealth, gold: c.gold, statPoints: c.statPoints || 0, pos: c.pos, region: c.region, pendingLoot: (c.pendingLoot || []).length, pets: c.pets.length, missTurns: c.missTurns || 0,
     bounties: st.bounties.length, gridEffects: (c.gridEffects || []).length, tier: ch.tier, effects: ch.effects.length, vote: !!st.votes, logLen: st.log.length, lastSpinTs: st.lastSpin?.ts ?? null,
     boss: m ? { maxHealth: m.maxHealth, health: m.health, mood: m.mood?.id || null } : null, luck: c.stats.luck,
     positions: Object.fromEntries(Object.values(st.characters).map(x => [x.id, x.pos])),
@@ -170,7 +170,7 @@ function runSpin(sb, step, seed) {
     check('lastSpin untouched', a.lastSpinTs === b.lastSpinTs);
     switch (r.seg.effect) {
       case 'gold': check(`gold +wheels.bugGold (${W.bugGold}): ${b.gold} → ${a.gold}`, a.gold === b.gold + W.bugGold); break;
-      case 'potions': check(`items +wheels.bugPotions (${W.bugPotions}): ${b.items.length} → ${a.items.length}`, a.items.length === b.items.length + W.bugPotions); break;
+      case 'potions': check(`potions +wheels.bugPotions (${W.bugPotions}), stacking onto the ones held: ${b.potions} → ${a.potions}`, a.potions === b.potions + W.bugPotions); break;
       case 'heal': check(`max +wheels.bugMaxHealth (${W.bugMaxHealth}) and full: ${b.health}/${b.maxHealth} → ${a.health}/${a.maxHealth}`, a.maxHealth === b.maxHealth + W.bugMaxHealth && a.health === a.maxHealth); break;
       case 'stat': check(`stat points +1: ${b.statPoints} → ${a.statPoints}`, a.statPoints === b.statPoints + 1); break;
       case 'rare': case 'epic': case 'legendary': { const it = r.result?.item ? c.items[r.result.item] : null; check(`one ${r.seg.effect} item in the grid at once${it ? ` (${it.name}, ${it.rarity})` : ''}`, a.items.length === b.items.length + 1 && !!it && (it.rarity === r.seg.effect || (r.seg.effect === 'legendary' && it.rarity === 'epic'))); break; }
@@ -218,9 +218,10 @@ function runSpin(sb, step, seed) {
       else if (eff === 'apocalypse') { const regions = Object.keys(state.map?.regions || {}).length; check(`tier pinned at ${C.maxTier}, Collector's cut (${C.collectorTakes}) taken, one region effect per region (${regions}): tier ${b.tier} → ${a.tier}, HP ${b.health} → ${a.health}, effects ${b.effects} → ${a.effects}`, a.tier === C.maxTier && a.health === Math.max(floor, b.health - C.collectorTakes) && a.effects === b.effects + regions); }
       else check('mercy: nothing changes', a.health === b.health && a.effects === b.effects && a.gridEffects === b.gridEffects);
     } else if (wheel === 'boss') {
-      const exp = Math.max(1, Math.round(b.boss.maxHealth * (r.seg.healthMult ?? 1)));
+      const base = state.monsters[bossId].baseMaxHealth ?? b.boss.maxHealth;   // moods scale from the unmooded Health, never compounding
+      const exp = Math.max(1, Math.round(base * (r.seg.healthMult ?? 1)));
       check(`mood set to ${r.seg.name} (${r.seg.id})`, a.boss.mood === r.seg.id);
-      check(`max Health ${b.boss.maxHealth} × ${r.seg.healthMult ?? 1} = ${exp}, healed to full: ${b.boss.health}/${b.boss.maxHealth} → ${a.boss.health}/${a.boss.maxHealth}`, state.monsters[bossId].parts ? a.boss.health === a.boss.maxHealth : a.boss.maxHealth === exp && a.boss.health === exp);
+      check(`max Health ${base} (unmooded) × ${r.seg.healthMult ?? 1} = ${exp}, healed to full: ${b.boss.health}/${b.boss.maxHealth} → ${a.boss.health}/${a.boss.maxHealth}`, state.monsters[bossId].parts ? a.boss.health === a.boss.maxHealth : a.boss.maxHealth === exp && a.boss.health === exp);
     }
     check('lastSpin written for the TV', state.lastSpin?.wheel === wheel && state.lastSpin.index === r.index);
   }
@@ -269,7 +270,7 @@ export function screenQa(ctx) {
     const size = phone ? 250 : 300;
     const face = h('div', { class: rec.wheels ? 'cards3 qa-face' : 'center qa-face' });
     if (rec.wheels) for (const w of rec.wheels) face.append(wheelSvg({ outcomes: w.outcomes, index: w.index, size: phone ? 104 : 190 }));
-    else face.append(wheelSvg({ outcomes: rec.segs.map(s => s.label), index: rec.index, size }));
+    else face.append(wheelSvg({ outcomes: rec.segs.map(s => s.label), weights: rec.segs.map(s => Number(s.weight ?? 1) || 0), index: rec.index, size }));
     if (fast) for (const g of face.querySelectorAll('g.face')) g.style.transition = 'transform .1s linear';
     const landedEl = h('p', { class: 'qa-landed muted' }, 'Spinning…');
     const segTable = (segs, index, title = null) => h('div', { class: 'qa-table' }, title ? h('h4', {}, title) : null, h('table', { class: 'lab' }, h('thead', {}, h('tr', {}, h('th', {}, 'Segment'), h('th', {}, 'Weight'), h('th', {}, 'Odds'), h('th', {}, 'What it does'))),

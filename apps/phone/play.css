@@ -41,6 +41,7 @@
 @keyframes shake { from { transform: rotate(-9deg) translateY(-2px); } to { transform: rotate(9deg) translateY(2px); } }
 @keyframes land { from { transform: scale(1.25); } to { transform: scale(1); } }
 .wheel-strip .segs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.wheel-strip .segs.weighted { flex-wrap: nowrap; gap: 3px; } .wheel-strip .segs.weighted .seg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 4px; text-align: center; }
 .wheel-strip .seg { padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 4px; font-family: var(--font-display); font-size: .75rem; letter-spacing: .08em; color: var(--muted); background: var(--velvet-3); }
 .wheel-strip .seg.hit { border-color: var(--gold); color: var(--gold-2); background: #2b2218; box-shadow: 0 0 12px rgba(201,164,92,.35); }
 .boots-line .moves { font-family: var(--font-display); font-size: .7rem; letter-spacing: .14em; color: var(--gold-dim); }

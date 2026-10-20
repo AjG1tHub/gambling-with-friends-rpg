@@ -45,7 +45,7 @@ export function screenWheels(ctx) {
   const drawFace = (index = null, wheels = null) => {
     face.replaceChildren();
     if (wheel === 'pets') { const ws = wheels || [{ outcomes: Array(8).fill('?') }, { outcomes: Array(8).fill('?') }, { outcomes: Array(8).fill('?') }]; face.className = 'cards3'; for (const w of ws) face.append(wheelSvg({ outcomes: w.outcomes.map(o => speciesDef(o)?.name || (o === null ? 'dud' : o)), index: w.index ?? null, size: phone ? 110 : 200 })); return; }
-    face.className = 'center'; face.append(wheelSvg({ outcomes: labels.length ? labels : ['—'], index, size: phone ? 260 : 320 }));
+    face.className = 'center'; face.append(wheelSvg({ outcomes: labels.length ? labels : ['—'], weights: labels.length ? segs.map(s => Number(s.weight ?? 1) || 0) : null, index, size: phone ? 260 : 320 }));
   };
   const spin = () => {
     const ctxN = sb.ctx(); sb.tick(1500);

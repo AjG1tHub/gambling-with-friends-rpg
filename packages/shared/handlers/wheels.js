@@ -100,7 +100,7 @@ export function spinWheel(state, ctx, wheel, playerId, extra = {}) {
   if (!segs || !segs.length) refuse(`no such wheel: ${wheel}`);
   const index = rigAwareWeightedIndex(state, 'wheels', segs);
   const seg = segs[index];
-  state.lastSpin = { wheel, outcomes: segs.map(s => s.label), index, playerId, ts: ctx.now, effect: seg.effect || seg.id };
+  state.lastSpin = { wheel, outcomes: segs.map(s => s.label), weights: segs.map(s => Number(s.weight ?? 1) || 0), index, playerId, ts: ctx.now, effect: seg.effect || seg.id };
   const c = characterOf(state, playerId);
   if (c) counter(c, 'spins');
   if (c || wheel === 'boss') note(state, `${c ? c.name : 'The house'} spins the ${wheel} wheel: ${seg.label}`, 'wheel', ctx.now);
@@ -119,7 +119,7 @@ export function spinWheelSecret(state, ctx, wheel, playerId, extra = {}) {
   const logLen = state.log.length;
   const apply = APPLY[wheel]; const result = apply ? apply(state, ctx, seg, playerId, extra) : null;
   if (state.log.length > logLen) state.log.splice(logLen);
-  return { seg, index, result, outcomes: segs.map(s => s.label) };
+  return { seg, index, result, outcomes: segs.map(s => s.label), weights: segs.map(s => Number(s.weight ?? 1) || 0) };
 }
 
 function needChar(state, playerId) { const c = characterOf(state, playerId); if (!c) refuse(`no character for ${playerId}`); return c; }
@@ -345,7 +345,7 @@ register({
     if (ctx.payload.effect) {
       const seg = wheelsData.chaos.find(s => s.id === ctx.payload.effect || s.effect === ctx.payload.effect); if (!seg) refuse(`no Chaos effect ${ctx.payload.effect}`);
       const pid = ctx.payload.playerId || currentPlayerId(state);
-      state.lastSpin = { wheel: 'chaos', outcomes: wheelsData.chaos.map(s => s.label), index: wheelsData.chaos.indexOf(seg), playerId: pid, ts: ctx.now, effect: seg.effect, forced: true };
+      state.lastSpin = { wheel: 'chaos', outcomes: wheelsData.chaos.map(s => s.label), weights: wheelsData.chaos.map(s => Number(s.weight ?? 1) || 0), index: wheelsData.chaos.indexOf(seg), playerId: pid, ts: ctx.now, effect: seg.effect, forced: true };
       applyChaos(state, ctx, seg, pid);
     }
   },

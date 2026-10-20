@@ -72,7 +72,7 @@ register({
     const segments = Array.from({ length: steps }, (_, i) => ({ label: String(Math.round(H.buyinMin + span * i / (steps - 1))), weight: 1 }));
     const i = rigAwareWeightedIndex(state, 'wheels', segments);
     const v = Number(segments[i].label); c.maxHealth = v; c.health = v; c.buyinSpun = true;
-    state.lastSpin = { wheel: 'buyin', outcomes: segments.map(s => s.label), index: i, playerId: pid, ts: ctx.now };
+    state.lastSpin = { wheel: 'buyin', outcomes: segments.map(s => s.label), weights: segments.map(s => s.weight), index: i, playerId: pid, ts: ctx.now };
     note(state, `${state.players[pid].name} buys in at ${v} Health`, 'wheel', ctx.now);
   },
   META_LEDGER(state, ev, ctx) {

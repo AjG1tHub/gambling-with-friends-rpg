@@ -55,3 +55,7 @@ Calls made during the build where the spec and the build prompt left room. Newes
 19. **The clock stops while the monster acts.** A fight exchange is the player's round (their time) and the
     monster's (the TV's). `holdForMonster` banks the mover's clock when `fight.turn` is `monster` and releases
     it on `MONSTER_ACT`, so a long boss fight never times a player out while they are only watching.
+20. **Slices are odds.** Every wheel renderer (TV overlay and stage, phone strips and the reward overlay, GM
+    console, Lab) draws segment angles proportional to the segment weights, and every `lastSpin` carries
+    `weights` so clients never guess. A painted wheel face (equal wedges) is used only when the odds are equal.
+    Found by the QA run on 20 Oct: the wheels showed equal slices for weighted segments.

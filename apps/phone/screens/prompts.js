@@ -71,7 +71,7 @@ export function renderPrompt(api, pr) {
     screen.append(h('div', { class: 'prompt' }, h('h3', {}, `${String(pr.wheel || 'the').toUpperCase()} WHEEL`), h('p', { class: 'muted' }, `You landed on ${tileLabel(state.map?.hexes?.[pr.hexKey]?.type || '')}. Spin it.`),
       h('img', { class: 'wheel-face', src: `/wheels/${pr.wheel}.svg`, alt: '', onError: (e) => { e.target.remove(); } }),
       h('button', { class: 'primary big', onClick: () => dispatch('WHEEL_SPIN', { wheel: pr.wheel }) }, '🎡 Spin'),
-      recent ? wheelStrip({ outcomes: recent.outcomes, index: recent.index, title: 'last result' }) : null));
+      recent ? wheelStrip({ outcomes: recent.outcomes, weights: recent.weights || null, index: recent.index, title: 'last result' }) : null));
     return true;
   }
   if (pr.kind === 'portal') {

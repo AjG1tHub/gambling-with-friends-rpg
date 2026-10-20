@@ -19,6 +19,7 @@ import * as G from '../games/legacy/games.js';
 import { EXTRA } from '../games/legacy/games-extra.js';
 import { group } from '../shared/balance.js';
 import { esc } from './dom.js';
+import { arcs } from './wheel.js';
 
 // ── stage CSS ────────────────────────────────────────────────────────────────────────────────────
 // legacy/site/css/app.css › game stage, ported: the legacy token names are defined on .gwf-stage from the theme.
@@ -252,20 +253,23 @@ export function returnsText(gameId, odds = null) {
 
 // ── a small SVG wheel ────────────────────────────────────────────────────────────────────────────
 const PALETTE = ['#5a1218', '#2b2218', '#1f2a33', '#3a2a12', '#23301f', '#2a1a2e', '#3a1a1a', '#1d1d2a'];
-export function wheelSvg({ outcomes, index = null, size = 260, colors = null }) {
+// Slices are proportional to `weights` (the odds) — the same geometry as packages/ui/wheel.js.
+export function wheelSvg({ outcomes, weights = null, index = null, size = 260, colors = null }) {
   const n = Math.max(1, outcomes.length), r = size / 2 - 4, cx = size / 2, cy = size / 2;
+  const A = arcs(outcomes, weights);
   const wrap = document.createElement('div'); wrap.className = 'gwf-wheel'; wrap.style.width = `${size}px`;
   const seg = (i) => {
-    const a0 = (i / n) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2, large = 1 / n > 0.5 ? 1 : 0;
+    const { a0: d0, a1: d1, span } = A[i]; if (span <= 0) return '';
+    const a0 = (d0 - 90) * Math.PI / 180, a1 = (d1 - 90) * Math.PI / 180, large = span > 180 ? 1 : 0;
     const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0), x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
     const am = (a0 + a1) / 2, tx = cx + r * 0.62 * Math.cos(am), ty = cy + r * 0.62 * Math.sin(am), rot = (am * 180) / Math.PI;
-    const label = String(outcomes[i] ?? '').slice(0, 14);
+    const label = String(outcomes[i] ?? '').slice(0, span < 20 ? 8 : 14);
     return `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${large} 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${colors?.[i] || PALETTE[i % PALETTE.length]}" stroke="#c9a45c" stroke-width="1"/><text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" transform="rotate(${rot.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})" text-anchor="middle" dominant-baseline="middle" fill="#e9e1cf" font-size="${n > 10 ? 9 : 11}" font-family="Cinzel, serif">${esc(label)}</text>`;
   };
   wrap.innerHTML = `<div class="ptr"></div><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><g class="face">${Array.from({ length: n }, (_, i) => seg(i)).join('')}<circle cx="${cx}" cy="${cy}" r="14" fill="#0d0a0b" stroke="#c9a45c" stroke-width="2"/></g></svg>`;
   const face = wrap.querySelector('g.face');
   let turns = 0;
-  wrap.spinTo = (i) => { turns += 4; const target = -(((i + 0.5) / n) * 360) - turns * 360; face.style.transform = `rotate(${target}deg)`; };
+  wrap.spinTo = (i) => { turns += 4; const target = -(A[i]?.mid ?? 0) - turns * 360; face.style.transform = `rotate(${target}deg)`; };
   if (index != null) requestAnimationFrame(() => wrap.spinTo(index));
   return wrap;
 }

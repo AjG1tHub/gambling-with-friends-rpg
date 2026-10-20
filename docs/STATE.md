@@ -51,7 +51,7 @@ events to it through `applyEvent` (`reducer.js`). This file is the field referen
 | `challenge` | `Challenge \| null` | the active PvP challenge |
 | `held` | `{playerId: {since, challengeId, missedTurn}}` | seats away in a challenge |
 | `clocks` | `{playerId: {bankMs, runningSince, pendingStart, heldForMonster}}` | `runningSince` is null while paused or while the monster acts (`heldForMonster`); remaining time is always computed from timestamps |
-| `lastSpin` | `{wheel, outcomes[], index, playerId, ts, colors?, effect?}` | what the TV animates |
+| `lastSpin` | `{wheel, outcomes[], weights[], index, playerId, ts, colors?, effect?, revealAt?, wheels?}` | what the TV animates. `weights` are the segment weights (the odds): every renderer draws slice angles proportional to them, never equal slices |
 | `area` | `AreaWindow \| null` | open Area bet window |
 | `pendingPrompt` | `{playerId, kind, …} \| null` | the prompt a phone must answer before the turn moves on |
 | `pacts, bounties, shops, tileLoot, auction, ledger, ledgerSeq` | | economy |

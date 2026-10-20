@@ -468,7 +468,7 @@ function placeEntry(state, ctx, entry, pool, index, CH, how = 'spin') {
     ch.seed = streamRng(state, 'challenge').int(0, 0x7fffffff);
     ch.hostedGame = hosted.create(ch.seed, ch.entry, { aId: ch.attackerId, bId: ch.defenderId }, ch.gmWindowUntil, CH, state.gm.triviaBank);
   } else ch.hostedGame = null;
-  state.lastSpin = { wheel: 'challenge', outcomes: pool.map(e => e.name), index, playerId: ch.attackerId, ts: ctx.now, revealAt: ch.gmWindowUntil, challengeId: ch.id, how };
+  state.lastSpin = { wheel: 'challenge', outcomes: pool.map(e => e.name), weights: pool.map(e => Number(e.weight ?? 1) || 0), index, playerId: ch.attackerId, ts: ctx.now, revealAt: ch.gmWindowUntil, challengeId: ch.id, how };
   note(state, how === 'spin' ? `The Challenge Wheel lands on ${entry.name}` : how === 'reroll' ? `The GM rerolls: ${entry.name}` : `The GM forces ${entry.name}`, how === 'spin' ? 'wheel' : 'gm', ctx.now);
 }
 
