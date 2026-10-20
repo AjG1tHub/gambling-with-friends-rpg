@@ -6,7 +6,7 @@
 //   hooks.roundEnd(state, ctx)        when turnIdx wraps the table (Chaos tier, tile loot sweep)
 //   hooks.endCheck(state, ctx)        after every event while playing; return { winner, reason } to end the run
 import { register, refuse, requireGm, requirePhase, requireActor, onAfter } from '../reducer.js';
-import { activeSeats, currentPlayerId, characterOf, note, ensureCharacterShape } from '../state.js';
+import { activeSeats, tableSeats, currentPlayerId, characterOf, note, ensureCharacterShape } from '../state.js';
 import { startClock, stopClock } from '../clock.js';
 import { streamRng, rigAwareWeightedIndex } from '../rng.js';
 
@@ -35,7 +35,7 @@ export function finishTurn(state, ctx, pid, how) {
   stopClock(state, pid, ctx.now);
   state.moverId = null;
   for (const h of hooks.turnEnd) h(state, ctx, pid, how);
-  const seats = activeSeats(state), before = state.turnIdx;
+  const seats = tableSeats(state), before = state.turnIdx;
   state.turnIdx += 1;
   // One lap of the table = a round.
   if (seats.length && Math.floor(state.turnIdx / seats.length) > Math.floor(before / seats.length)) { state.round += 1; for (const h of hooks.roundEnd) h(state, ctx); }

@@ -38,6 +38,10 @@ events to it through `applyEvent` (`reducer.js`). This file is the field referen
 | `players` | `{id: Player}` | seats and spectators |
 | `seats` | `[playerId]` | turn order after `RUN_START` shuffles it |
 | `turnIdx, round, turnStartedAt, turnPhase, moveSession` | | `turnPhase`: `'move' \| 'resolve' \| 'action' \| 'done'` |
+| `moverId` | `playerId \| null` | the seat whose turn is in progress; set by `beginTurn`, cleared by `finishTurn`. `currentPlayerId` returns it while set, otherwise derives from `turnIdx` over `tableSeats` (active seats minus eliminated characters), skipping `held` seats |
+| `owedTurns, turnCredits, owedInsert` | `[{playerId, at}]`, `{playerId: n}`, `playerId \| null` | turns a held seat missed and is owed back (challenge.js) |
+| `startedAt, endedAt` | ms | `RUN_START` / run end; `table.lastCallMinutes` after `startedAt` the run ends on placings |
+| `throneReachedBy, cleared, runRecorded, seasonEnded, season` | | end-of-run bookkeeping (modes.js) |
 | `characters` | `{id: Character}` | |
 | `roster` | `{id: RosterEntry}` | mirror of what the backend knows for the seated owners |
 | `wall` | `[name]` | names retired in this room (the backend holds the global Wall) |
@@ -46,7 +50,7 @@ events to it through `applyEvent` (`reducer.js`). This file is the field referen
 | `fight` | `Fight \| null` | the active encounter |
 | `challenge` | `Challenge \| null` | the active PvP challenge |
 | `held` | `{playerId: {since, challengeId, missedTurn}}` | seats away in a challenge |
-| `clocks` | `{playerId: {bankMs, runningSince, pendingStart}}` | |
+| `clocks` | `{playerId: {bankMs, runningSince, pendingStart, heldForMonster}}` | `runningSince` is null while paused or while the monster acts (`heldForMonster`); remaining time is always computed from timestamps |
 | `lastSpin` | `{wheel, outcomes[], index, playerId, ts, colors?, effect?}` | what the TV animates |
 | `area` | `AreaWindow \| null` | open Area bet window |
 | `pendingPrompt` | `{playerId, kind, …} \| null` | the prompt a phone must answer before the turn moves on |
@@ -75,6 +79,8 @@ events to it through `applyEvent` (`reducer.js`). This file is the field referen
   items: { itemId: Item },                                  // every item the character holds (worn or in the grid)
   pets: [Pet], activePetId,
   dead, missTurns, deaths, graveyardPos, diedTo: 'monster'|'player'|'boss'|null,
+  eliminated,                                               // a player kill in pvp/teams/royale: out of the run and the turn order, still in the ledger
+  flags: {}, counters: {}, visitedRegions: [], innVisit, innSafeRound, lootSeen,   // filled by ensureCharacterShape
   cooldowns: { active: 0 },  activeUses, effects: [ { id, kind, turnsLeft, data } ],
   pactIds: [], wanted: 0, kills, titles: [], quests: [],
   usedThisTurn: { attack, spell, moved }, turnsTaken, streak,
@@ -118,8 +124,10 @@ Region { id, name, tier, family, accent, modifier, hexKeys: [], monsterTable: [m
 ## Fight (encounter)
 
 ```
-{ id, kind: 'encounter'|'boss'|'raid'|'petbattle'|'arena', monsterId, playerIds: [], playerId (whose turn), turn: 'player'|'monster',
-  game: ItemGame | null, log: [], done, result, startedAt }
+{ id, kind: 'encounter'|'boss'|'raid'|'petbattle'|'arena'|'solo', monsterId, playerIds: [], playerId (whose turn), turn: 'player'|'monster',
+  game: ItemGame | null, log: [], done, result: 'won'|'lost'|'fled'|'left'|'ended', startedAt, endedAt, exchanges,
+  passed, abandonedGame, calledOut, fled, rig, lastGame }
+// 'solo' is a one-round fight with no monster: a hit on a player or a spell on yourself; it closes when the round resolves.
 ItemGame { itemId, gameId, mode: 'health'|'chips', stake, attackerId, targetId, targetKind: 'monster'|'character'|'self',
            phase, view, result, pending, startedTs, legacy: { …snapshot of the legacy game object minus `secret`… } }
 ```

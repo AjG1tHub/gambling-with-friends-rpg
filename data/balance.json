@@ -5,7 +5,8 @@
     "tunedMin": { "v": 4, "unit": "players", "spec": "Decisions", "note": "Lower end of the player count the auto-scaling targets." },
     "tunedMax": { "v": 6, "unit": "players", "spec": "Decisions", "note": "Upper end of the player count the auto-scaling targets." },
     "targetRunMinutes": { "v": 90, "unit": "minutes", "spec": "Runs", "note": "Auto-scaling aims a full map at this length; Short is ~60, Long ~120." },
-    "proxyAfterSeconds": { "v": 30, "unit": "seconds", "spec": "Interrupts", "note": "A phone silent this long hands its prompts to the GM console." }
+    "proxyAfterSeconds": { "v": 30, "unit": "seconds", "spec": "Interrupts", "note": "A phone silent this long hands its prompts to the GM console." },
+    "lastCallMinutes": { "v": 100, "unit": "minutes", "spec": "Runs", "note": "Last Call: a run still going this long after RUN_START ends on placings (score, then kills). 0 turns it off." }
   },
   "health": {
     "maxAtLevel1": { "v": 100, "unit": "Health", "spec": "Characters", "note": "Max Health of a fresh character." },
@@ -121,7 +122,7 @@
     "starterPotions": { "v": 2, "unit": "items", "spec": "Before the run", "note": "Potions in the starter kit (with Coin Blade, Loaded Dice, Mend)." },
     "critXpMultiplierThreshold": { "v": 1.0, "unit": "fraction", "spec": "Attacks and spells", "note": "A result at or above this fraction of the game's top multiplier is a crit." },
     "leverPenaltyPerPoint": { "v": 0.05, "unit": "fraction", "spec": "Attacks and spells", "note": "Threshold levers (\"at 5\", \"at 6\") have no graded downside, so below the neutral stat each point instead trims win payouts by this fraction." },
-    "monsterStakeFraction": { "v": 1.0, "unit": "fraction", "spec": "Attacks and spells", "note": "A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool)." },
+    "monsterStakeFraction": { "v": 0.6, "unit": "fraction", "spec": "Attacks and spells", "note": "Tuned 1.0 → 0.6 after bot runs. A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool)." },
     "setDropChance": { "v": 0.15, "unit": "fraction", "spec": "Blockcraft", "note": "Chance an armour drop (helmet, torso, pants, boots) is a Blockcraft set piece instead of a rolled base." }
   },
   "affix": {
@@ -171,7 +172,7 @@
     "regionHexesShort": { "v": 10, "unit": "hexes", "spec": "Map", "note": "Hexes per region at Short size for the tuned table." },
     "regionHexesRegular": { "v": 14, "unit": "hexes", "spec": "Map", "note": "Hexes per region at Regular size." },
     "regionHexesLong": { "v": 19, "unit": "hexes", "spec": "Map", "note": "Hexes per region at Long size." },
-    "hexesPerExtraPlayer": { "v": 2, "unit": "hexes", "spec": "Map", "note": "Region hexes added per player above the tuned minimum." },
+    "hexesPerExtraPlayer": { "v": 0, "unit": "hexes", "spec": "Map", "note": "Spec 2; 0 after bot runs: every player gets fewer turns at a bigger table, so the map must not grow with them. Region hexes added per player above the tuned minimum." },
     "bridgesPerPair": { "v": 2, "unit": "hexes", "spec": "Map", "note": "Bridge hexes joining neighbouring regions." },
     "monstersPerRegion": { "v": 2, "unit": "monsters", "spec": "Map", "note": "Monsters rolled per region at the tuned table. Spec 3; 2 after bot runs (plus the boss) keeps a Regular map inside two hours." },
     "monstersPerExtraPlayer": { "v": 0.5, "unit": "monsters", "spec": "Map", "note": "Monsters added per player above the tuned minimum." },
@@ -186,13 +187,14 @@
   },
   "monsters": {
     "healthCommon": { "v": 40, "unit": "Health", "spec": "Attacks and spells", "note": "Health of a standard region monster at tier 1. Spec 60; 40 after bot runs so a monster dies inside two or three turns of Common hits." },
-    "healthBoss": { "v": 140, "unit": "Health", "spec": "RPG layer", "note": "Health of a region boss at tier 1. Spec 200; 140 after bot runs." },
-    "healthRaid": { "v": 240, "unit": "Health", "spec": "RPG layer", "note": "Health of a raid boss at tier 1. Spec 320; 240 after bot runs." },
-    "healthFinal": { "v": 260, "unit": "Health", "spec": "RPG layer", "note": "Health of the Dealer. Spec 400; 260 after bot runs." },
+    "healthBoss": { "v": 100, "unit": "Health", "spec": "RPG layer", "note": "Health of a region boss at tier 1. Spec 200; 140 after bot runs." },
+    "healthRaid": { "v": 180, "unit": "Health", "spec": "RPG layer", "note": "Health of a raid boss at tier 1. Spec 320; 240 after bot runs." },
+    "healthFinal": { "v": 180, "unit": "Health", "spec": "RPG layer", "note": "Health of the Dealer. Spec 400; 260 after bot runs." },
     "tierScale": { "v": 0.5, "unit": "fraction", "spec": "Runs", "note": "Monster Health and damage rise this fraction per difficulty tier." },
     "itemsMin": { "v": 2, "unit": "items", "spec": "Attacks and spells", "note": "Fewest items a monster carries." },
     "itemsMax": { "v": 3, "unit": "items", "spec": "Attacks and spells", "note": "Most items a monster carries." },
     "pitBossReduce": { "v": 0.10, "unit": "fraction", "spec": "Classes", "note": "Pit Boss takes this much less from monsters." },
+    "hitCapFraction": { "v": 0.6, "unit": "fraction", "spec": "RPG layer", "note": "No single monster hit takes more than this fraction of a character's max Health (0 turns the cap off). Added after bot runs: bosses one-shot level-1 characters." },
     "raidMinPlayers": { "v": 2, "unit": "players", "spec": "RPG layer", "note": "Players needed on the tile to start a raid." },
     "snareThreshold": { "v": 0.25, "unit": "fraction", "spec": "Legendaries", "note": "Tamer's Snare catches below this Health fraction." },
     "lootGoldTierScale": { "v": 0.5, "unit": "fraction", "spec": "Runs", "note": "Monster Gold drops rise this fraction per difficulty tier above 1." },

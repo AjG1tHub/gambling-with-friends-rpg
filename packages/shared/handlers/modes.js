@@ -21,7 +21,9 @@ import { applyPenalty } from './challenge.js';
 const charOf = (state, pid) => characterOf(state, pid);
 const nameOf = (state, pid) => state.players[pid]?.name || pid;
 const seatsWithCharacter = (state) => activeSeats(state).filter(id => charOf(state, id));
-export const standing = (state, pid) => { const p = state.players[pid], c = charOf(state, pid); return !!(p && !p.kicked && !p.spectator && c && !c.dead && !c.eliminated); };
+// Standing = still in the run: alive, or dead but due to wake at the Graveyard. Only `eliminated` (a player kill in
+// pvp/teams/royale, set by death.js) or a kicked seat takes a character out.
+export const standing = (state, pid) => { const p = state.players[pid], c = charOf(state, pid); return !!(p && !p.kicked && !p.spectator && c && !c.eliminated && (!c.dead || (c.missTurns || 0) >= 0)); };
 export const finalBossDead = (state) => Object.values(state.monsters || {}).some(m => m && (m.final || m.id === 'the_dealer') && m.dead);
 const VOID = new Set(['blocker', 'water', 'chasm', 'wall']);
 
@@ -67,6 +69,9 @@ export function endCheck(state, ctx) {
   const G = ctx.B('gold'), R = ctx.B('runs');
   const seats = seatsWithCharacter(state); if (!seats.length) return null;
   const up = seats.filter(id => standing(state, id));
+  // Last Call: whatever the mode, a run that outlives table.lastCallMinutes ends on placings so the night ends on time.
+  const L = ctx.B('table').lastCallMinutes;
+  if (L > 0 && state.startedAt && ctx.now - state.startedAt >= L * 60000) { const top = placings(state, G, R)[0]; return { winner: state.mode === 'teams' ? (top?.teamId ?? top?.playerId ?? null) : (top?.playerId || null), reason: 'Last Call: the House closed' }; }
   const lastStanding = () => (seats.length >= 2 && up.length <= 1 ? { winner: up[0] || null, reason: up.length ? `${nameOf(state, up[0])} is the last one standing` : 'everyone fell' } : null);
   switch (state.mode) {
     case 'pvp': return lastStanding();

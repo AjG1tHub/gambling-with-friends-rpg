@@ -13,11 +13,14 @@ import { currentPlayerId, characterOf } from '../packages/shared/state.js';
 import { nextAction, tableDuties } from '../packages/shared/bot.js';
 import { writeFileSync } from 'node:fs';
 
-// Simulated time: every event advances the clock a little, a move or a fight step more, so chess clocks and
-// deadlines behave as they would at a real table (about 20 s of thinking per phone action).
-const COST_MS = { default: 4000, MOVE_STEP: 2500, ITEM_RESOLVE: 15000, CHAR_STAT_GAMBLE: 20000, MONSTER_ACT: 12000, TURN_END: 3000, PLAYER_READY: 1000, CHALLENGE_STEP: 6000, CHALLENGE_REPORT: 45000 };
+// Simulated time: every event advances the clock, so chess clocks and deadlines behave as they would at a real
+// table. The costs are deliberately pessimistic for human phones: ~8 s to find and tap a button, ~25 s to play a
+// minigame round, ~10 s to watch a monster act; a plain turn (roll, two steps, a tile, one attack, end) comes to
+// roughly 70–80 s, in line with the 1:30 chess clock.
+const CREATION_MS = 10 * 60 * 1000;
+const COST_MS = { default: 8000, MOVE_STEP: 3000, MOVE_ROLL: 5000, ITEM_RESOLVE: 25000, CHAR_STAT_GAMBLE: 25000, MONSTER_ACT: 10000, TURN_END: 2000, PLAYER_READY: 1000, CHALLENGE_STEP: 8000, CHALLENGE_REPORT: 45000, VOTE_CAST: 3000 };
 
-export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', seed = 1, maxEvents = 30000, maxSimMs = 2 * 3600 * 1000 * 2, verbose = false, aggression = 0.5 } = {}) {
+export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', seed = 1, maxEvents = 30000, maxSimMs = 2 * 3600 * 1000 * 2, verbose = false, aggression = 0.5, keepState = false } = {}) {
   let now = 1_700_000_000_000, seq = 0;
   const rng = makeRng(seed * 7919 + 17);
   const recent = [];
@@ -28,7 +31,10 @@ export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', se
     const before = state;
     state = applyEvent(state, ev, { clone: false, strict: false });
     const err = state.lastError && state.lastError.ts === now && state.lastError.type === type ? state.lastError : null;
-    now += COST_MS[type] || COST_MS.default;
+    // Creation happens on every phone at once, so lobby/creation events cost a second each and RUN_START charges
+    // one flat block for the whole table (runs.creationMinutes in the balance file).
+    if (state.phase === 'lobby' || state.phase === 'creation') now += 1000;
+    else now += COST_MS[type] || COST_MS.default;
     return { err, state, before };
   };
   let state = applyEvent({}, { ...makeEvent('ROOM_CREATED', { roomId: 'bots', code: 'BOTS', seed, mode, tier, size, gmPinHash: 'x' }, { actor: 'gm', ts: now }), seq: ++seq }, { clone: false, strict: true });
@@ -44,7 +50,7 @@ export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', se
     // creation: everyone acts; playing: the mover first, then everyone else (prompts, challenges, area windows)
     if (state.phase === 'creation' || state.phase === 'lobby') {
       for (const id of ids) { const a = nextAction(state, id, rng, now, { aggression }); if (a) { const r = apply(a.type, a.payload, a.actor); counts[a.type] = (counts[a.type] || 0) + 1; if (r.err) (refusals[a.type + ': ' + r.err.message] ||= 0), refusals[a.type + ': ' + r.err.message]++; acted = true; } }
-      if (!acted && (state.phase === 'creation' || state.phase === 'lobby')) { const r = apply('RUN_START', {}, 'gm'); if (r.err) { stallWitness = 'RUN_START refused: ' + r.err.message; break; } acted = true; }
+      if (!acted && (state.phase === 'creation' || state.phase === 'lobby')) { now += CREATION_MS; const r = apply('RUN_START', {}, 'gm'); if (r.err) { stallWitness = 'RUN_START refused: ' + r.err.message; break; } acted = true; }
     } else {
       for (const a of tableDuties(state, rng, now)) { const r = apply(a.type, a.payload, a.actor); counts[a.type] = (counts[a.type] || 0) + 1; if (r.err) (refusals[a.type + ': ' + r.err.message] ||= 0), refusals[a.type + ': ' + r.err.message]++; else acted = true; }
       const order = [currentPlayerId(state), ...ids.filter(id => id !== currentPlayerId(state))].filter(Boolean);
@@ -67,6 +73,7 @@ export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', se
     monstersDead: Object.values(state.monsters).filter(m => m.dead).length, monstersTotal: Object.keys(state.monsters).length,
     items: chars.map(c => Object.keys(c.items || {}).length), levels: chars.map(c => c.level), stalls, stallWitness, counts, refusals, curve: curve.slice(0, 60),
     legendaries: state.legendariesDropped || 0, challenges: state.challengeHistory?.length || 0, letters: state.letters.length,
+    ...(keepState ? { state } : {}),
   };
 }
 function describeStall(state) {

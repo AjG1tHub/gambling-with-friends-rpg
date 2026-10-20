@@ -37,8 +37,8 @@ function holdsItem(c, itemId) {
 export function gateBlocks(state, c, hex) {
   if (!hex) return 'no such hex';
   if (hex.type === 'throne') {
-    const boss = Object.values(state.monsters || {}).find(m => m.final && !m.dead);
-    if (boss) return `${boss.name || 'the Dealer'} still holds the throne`;
+    // The Dealer sits on the throne: walking onto it while he lives is the fight (a monster hex ends the move
+    // there); the throne only counts as reached once he is dead. Nothing blocks the step itself.
   }
   const g = hex.gate; if (!g) return null;
   if (!c) return 'gated';
@@ -78,13 +78,13 @@ export function blockReason(state, key, charId = null) {
 }
 
 // BFS over passable hexes where a monster hex is terminal. Returns Map(key → {dist, prev}) excluding the start.
-function walk(state, fromKey, maxSteps, charId) {
+function walk(state, fromKey, maxSteps, charId, through = false) {
   const out = new Map([[fromKey, { dist: 0, prev: null }]]);
   const queue = [fromKey];
   while (queue.length) {
     const k = queue.shift(), d = out.get(k).dist;
     if (d >= maxSteps) continue;
-    if (k !== fromKey && stopsHere(state, k)) continue;
+    if (!through && k !== fromKey && stopsHere(state, k)) continue;
     for (const n of H.neighbors(H.parse(k))) {
       const nk = H.key(n); if (out.has(nk) || !passable(state, nk, charId)) continue;
       out.set(nk, { dist: d + 1, prev: k }); queue.push(nk);
@@ -97,10 +97,11 @@ function walk(state, fromKey, maxSteps, charId) {
 export function reachableFrom(state, key, steps, charId = null) {
   return [...walk(state, key, steps, charId)].map(([k, v]) => ({ key: k, dist: v.dist, stops: stopsHere(state, k) })).sort((a, b) => a.dist - b.dist || (a.key < b.key ? -1 : 1));
 }
-// Shortest walking path from → to as keys (excluding from), or null. Monster hexes may only be the last step.
-export function pathTo(state, from, to, charId = null, maxSteps = 64) {
+// Shortest walking path from → to as keys (excluding from), or null. Monster hexes may only be the last step,
+// unless `through` is set (route planning: the monsters on the way are fights, not walls).
+export function pathTo(state, from, to, charId = null, maxSteps = 64, through = false) {
   if (from === to) return [];
-  const w = walk(state, from, maxSteps, charId); if (!w.has(to)) return null;
+  const w = walk(state, from, maxSteps, charId, through); if (!w.has(to)) return null;
   const out = []; let cur = to; while (cur && cur !== from) { out.unshift(cur); cur = w.get(cur)?.prev; }
   return out;
 }

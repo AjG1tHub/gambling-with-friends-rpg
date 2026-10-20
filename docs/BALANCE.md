@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 324 tunables in 28 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 326 tunables in 28 groups.
 
 ## Changing a value
 
@@ -18,6 +18,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `table.tunedMax` | 6 | players | Decisions | Upper end of the player count the auto-scaling targets. |
 | `table.targetRunMinutes` | 90 | minutes | Runs | Auto-scaling aims a full map at this length; Short is ~60, Long ~120. |
 | `table.proxyAfterSeconds` | 30 | seconds | Interrupts | A phone silent this long hands its prompts to the GM console. |
+| `table.lastCallMinutes` | 100 | minutes | Runs | Last Call: a run still going this long after RUN_START ends on placings (score, then kills). 0 turns it off. |
 
 ## health
 
@@ -160,7 +161,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `items.starterPotions` | 2 | items | Before the run | Potions in the starter kit (with Coin Blade, Loaded Dice, Mend). |
 | `items.critXpMultiplierThreshold` | 1 | fraction | Attacks and spells | A result at or above this fraction of the game's top multiplier is a crit. |
 | `items.leverPenaltyPerPoint` | 0.05 | fraction | Attacks and spells | Threshold levers ("at 5", "at 6") have no graded downside, so below the neutral stat each point instead trims win payouts by this fraction. |
-| `items.monsterStakeFraction` | 1 | fraction | Attacks and spells | A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool). |
+| `items.monsterStakeFraction` | 0.6 | fraction | Attacks and spells | Tuned 1.0 → 0.6 after bot runs. A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool). |
 | `items.setDropChance` | 0.15 | fraction | Blockcraft | Chance an armour drop (helmet, torso, pants, boots) is a Blockcraft set piece instead of a rolled base. |
 
 ## affix
@@ -222,7 +223,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `map.regionHexesShort` | 10 | hexes | Map | Hexes per region at Short size for the tuned table. |
 | `map.regionHexesRegular` | 14 | hexes | Map | Hexes per region at Regular size. |
 | `map.regionHexesLong` | 19 | hexes | Map | Hexes per region at Long size. |
-| `map.hexesPerExtraPlayer` | 2 | hexes | Map | Region hexes added per player above the tuned minimum. |
+| `map.hexesPerExtraPlayer` | 0 | hexes | Map | Spec 2; 0 after bot runs: every player gets fewer turns at a bigger table, so the map must not grow with them. Region hexes added per player above the tuned minimum. |
 | `map.bridgesPerPair` | 2 | hexes | Map | Bridge hexes joining neighbouring regions. |
 | `map.monstersPerRegion` | 2 | monsters | Map | Monsters rolled per region at the tuned table. Spec 3; 2 after bot runs (plus the boss) keeps a Regular map inside two hours. |
 | `map.monstersPerExtraPlayer` | 0.5 | monsters | Map | Monsters added per player above the tuned minimum. |
@@ -240,13 +241,14 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | Key | Default | Unit | Spec section | What moving it does |
 | --- | --- | --- | --- | --- |
 | `monsters.healthCommon` | 40 | Health | Attacks and spells | Health of a standard region monster at tier 1. Spec 60; 40 after bot runs so a monster dies inside two or three turns of Common hits. |
-| `monsters.healthBoss` | 140 | Health | RPG layer | Health of a region boss at tier 1. Spec 200; 140 after bot runs. |
-| `monsters.healthRaid` | 240 | Health | RPG layer | Health of a raid boss at tier 1. Spec 320; 240 after bot runs. |
-| `monsters.healthFinal` | 260 | Health | RPG layer | Health of the Dealer. Spec 400; 260 after bot runs. |
+| `monsters.healthBoss` | 100 | Health | RPG layer | Health of a region boss at tier 1. Spec 200; 140 after bot runs. |
+| `monsters.healthRaid` | 180 | Health | RPG layer | Health of a raid boss at tier 1. Spec 320; 240 after bot runs. |
+| `monsters.healthFinal` | 180 | Health | RPG layer | Health of the Dealer. Spec 400; 260 after bot runs. |
 | `monsters.tierScale` | 0.5 | fraction | Runs | Monster Health and damage rise this fraction per difficulty tier. |
 | `monsters.itemsMin` | 2 | items | Attacks and spells | Fewest items a monster carries. |
 | `monsters.itemsMax` | 3 | items | Attacks and spells | Most items a monster carries. |
 | `monsters.pitBossReduce` | 0.1 | fraction | Classes | Pit Boss takes this much less from monsters. |
+| `monsters.hitCapFraction` | 0.6 | fraction | RPG layer | No single monster hit takes more than this fraction of a character's max Health (0 turns the cap off). Added after bot runs: bosses one-shot level-1 characters. |
 | `monsters.raidMinPlayers` | 2 | players | RPG layer | Players needed on the tile to start a raid. |
 | `monsters.snareThreshold` | 0.25 | fraction | Legendaries | Tamer's Snare catches below this Health fraction. |
 | `monsters.lootGoldTierScale` | 0.5 | fraction | Runs | Monster Gold drops rise this fraction per difficulty tier above 1. |
@@ -483,6 +485,13 @@ Bot runs (`npm run bots`, 4 and 8 bots in every mode) set these away from the sp
 reason is in each tunable's note above.
 
 - `items.charges` 5 → 15: at 5 a Common weapon is spent inside one monster fight and the table runs out of weapons by round 6.
-- `monsters.healthCommon` 60 → 40, `healthBoss` 200 → 140, `healthRaid` 320 → 240, `healthFinal` 400 → 260: a 10-stake Common hit lands about half the time for 10, so a 60-Health monster took a dozen weapon uses; fights now end inside two or three turns.
+- `monsters.healthCommon` 60 → 40, `healthBoss` 200 → 100, `healthRaid` 320 → 180, `healthFinal` 400 → 180: a 10-stake Common hit lands about half the time for 10, so a 60-Health monster took a dozen weapon uses; a region boss now falls in one long turn or two, and a key holder can take the Dealer in two.
+- `items.monsterStakeFraction` 1.0 → 0.6 and the new `monsters.hitCapFraction` 0.6: bosses were one-shotting level-1 characters (a 174-Health Hold'em hit on a 130-Health character). A monster now stakes 60% of its item and no single monster hit takes more than 60% of your max Health: two bad swings still kill you, one never does.
+- `table.lastCallMinutes` 100 (new): whatever the mode, a run still going 100 minutes after RUN_START ends on placings ("Last Call: the House closed"). Four-player tables reach the throne or the Dealer in 60–85 minutes on their own; six- and eight-player tables usually end on Last Call, because 8 players get only 10–12 turns each in 100 minutes. 0 turns it off.
+- `map.hexesPerExtraPlayer` 2 → 0: every extra player means fewer turns for everyone, so the map must not grow with the table; `monstersPerExtraPlayer` still adds monsters so nobody waits for a fight.
 - `map.monstersPerRegion` 3 → 2 (plus the region boss): with a 90-second clock a player clears one monster per turn at best; two per region plus bosses fits a Regular map in 60–90 minutes with four to six players.
-- Every Shop shelf now stocks one Common weapon (`shop.itemCommon`), and every region boss drops a Citadel Key, so the throne is reachable without level 10.
+- Every Shop shelf now stocks one Common weapon and one pair of Loaded Boots (both at `shop.itemCommon`), so nobody is weaponless or barefoot for long; every region boss drops a Citadel Key, so the throne is reachable without level 10, and the key is a quest item that stays with you through death.
+
+### How the simulated clock is charged
+
+`tools/bots.mjs` charges pessimistic phone times: 8 s per tap, 3 s per step, 25 s per minigame round, 10 s per monster action, 45 s per hosted-challenge report, and a flat 10 minutes for creation (everyone creates at once). A plain turn costs 50–80 s, a boss fight 3–5 minutes, in line with the 1:30 chess clock. The two-hour gate in CI is measured on that clock.

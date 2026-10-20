@@ -78,7 +78,7 @@ deathHooks.onDeath.push((state, ctx, info) => {
   c.deathsPenalised = c.deaths; c.diedTo = kind; c.diedAt = ctx.now;
   const noDrops = info.softDeath || info.noDrops, noMiss = info.softDeath || info.noMissTurns, noLevel = info.softDeath || info.noLevelLoss;
   if (!noDrops) {
-    for (const it of gridItems(c)) { removeItem(c, it.id); if (pos) dropOnTile(state, ctx, pos, it, c.id); }
+    for (const it of gridItems(c)) { if (it.quest || it.baseId === 'citadel_key') continue; removeItem(c, it.id); if (pos) dropOnTile(state, ctx, pos, it, c.id); }   // quest items (the Citadel Key) stay
     const worn = Object.entries(c.worn || {}).filter(([, it]) => it);
     if (byPlayer && worn.length) state.pendingPrompt = { playerId: killer.playerId, kind: 'takeWorn', victimId: c.id, options: worn.map(([, it]) => it.id) };
     else if (worn.length && D.wornDropsOnMonsterDeath > 0) {
@@ -108,6 +108,9 @@ deathHooks.onDeath.push((state, ctx, info) => {
   }
   c.graveyardPos = nearestGraveyard(state, pos);
   c.pos = c.graveyardPos; c.region = state.map?.hexes?.[c.pos]?.regionId ?? c.region;
+  // In the player-versus-player modes a kill by a player is final: the loser is out of the run (the mode ends on
+  // the last one standing). In Free-for-all and PvE the Graveyard gives everyone back, and the throne ends the run.
+  if (kind === 'player' && ['pvp', 'teams', 'royale'].includes(state.mode)) { c.eliminated = true; note(state, `${c.name} is out of the run`, 'death', ctx.now); }
   note(state, `${c.name} is dead (${kind === 'player' ? `killed by ${killer?.name || 'a player'}` : kind}); ${c.missTurns ? `misses ${c.missTurns} turn${c.missTurns === 1 ? '' : 's'}` : 'wakes next turn'}`, 'death', ctx.now);
 });
 
@@ -134,6 +137,7 @@ export function reviveAtGraveyard(state, ctx, charId, { byId = null } = {}) {
   return true;
 }
 runHooks.turnStart.push((state, ctx, pid) => {
+  { const c0 = characterOf(state, pid); if (c0?.eliminated) return 'skip'; }
   const c = characterOf(state, pid); if (!c) return;
   if (c.dead) {
     if ((c.missTurns || 0) > 0) { c.missTurns -= 1; note(state, `${c.name} lies in the Graveyard${c.missTurns ? ` (${c.missTurns} more)` : ''}`, 'death', ctx.now); return 'skip'; }

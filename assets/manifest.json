@@ -85,7 +85,7 @@
   "badges": 20,
   "body": 12,
   "cards": 13,
-  "consumables": 13,
+  "consumables": 14,
   "crest": 6,
   "dice": 18,
   "face": 8,
@@ -108,7 +108,7 @@
   "wheels": 13,
   "worn": 83
  },
- "total": 627,
+ "total": 628,
  "missing": [],
  "assets": {
   "badges/beast_friend": {
@@ -920,6 +920,18 @@
     "hex": "#6b3fa0",
     "double": true
    }
+  },
+  "consumables/citadel_key": {
+   "path": "assets/consumables/citadel_key.png",
+   "kind": "png",
+   "group": "consumables",
+   "size": [
+    128,
+    128
+   ],
+   "priority": "P1",
+   "placeholder": true,
+   "bytes": 546
   },
   "consumables/egg": {
    "path": "assets/consumables/egg.png",
@@ -12680,6 +12692,7 @@
   "item/bonetoss": "items/bonetoss",
   "item/briefcase": "items/briefcase",
   "item/chainlightning": "items/chainlightning",
+  "item/citadel_key": "consumables/citadel_key",
   "item/clash": "items/clash",
   "item/coinblade": "items/coinblade",
   "item/diceduel": "items/diceduel",

@@ -51,9 +51,12 @@ export function newPlayer({ id, name = 'Player', deviceId = null, spectator = fa
 // Derivations used everywhere. The current player is derived from turnIdx; players in a held challenge,
 // disconnected-and-proxied players still take turns (the GM acts for them), dead players still get a turn
 // which they spend missing (so penalties count down).
+// Seats in the run: not kicked, not spectating. `tableSeats` also drops eliminated characters (a player kill in
+// pvp/teams/royale): they keep their place in the ledger but no longer take turns.
 export function activeSeats(state) { return state.seats.filter(id => state.players[id] && !state.players[id].kicked && !state.players[id].spectator); }
+export function tableSeats(state) { return activeSeats(state).filter(id => { const p = state.players[id]; const c = p.characterId ? state.characters[p.characterId] : null; return !(c && c.eliminated); }); }
 export function currentPlayerId(state) {
-  const seats = activeSeats(state); if (!seats.length) return null;
+  const seats = tableSeats(state); if (!seats.length) return null;
   // While a turn is in progress the mover is fixed (a hold released mid-turn must not hand the turn to someone
   // else); between turns the mover is derived from turnIdx, skipping held seats (never by editing the order).
   if (state.moverId && seats.includes(state.moverId) && !state.held[state.moverId]?.challengeId) return state.moverId;

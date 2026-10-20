@@ -41,7 +41,7 @@ Creation is a gamble: every stat starts at 3, you hold 10 Stat Chips, stake 1 to
 
 ## The 36 weapons and spells <a id="items"></a>
 
-Every weapon or spell is one minigame. Using it: pick a target, stake its Health cost, play the game on your phone while the TV shows the stage. Win and the target takes stake × the game's payout as damage (spells heal, shield or steal instead); lose and the stake is gone; push, nothing. The game's top multiplier is a critical hit. Stakes by rarity: Common 10, Rare 20 (+10% damage), Epic 35 (+25%), Legendary 50 (+50%). Items have 5 charges. You cannot use an item whose stake is more than your current Health.
+Every weapon or spell is one minigame. Using it: pick a target, stake its Health cost, play the game on your phone while the TV shows the stage. Win and the target takes stake × the game's payout as damage (spells heal, shield or steal instead); lose and the stake is gone; push, nothing. The game's top multiplier is a critical hit. Stakes by rarity: Common 10, Rare 20 (+10% damage), Epic 35 (+25%), Legendary 50 (+50%). Items have 15 charges. You cannot use an item whose stake is more than your current Health.
 
 Kinds: Attack hits one target on your hex or an adjacent one (Long Arm reaches 2). Spell targets yourself or an ally. Area makes every player on the hex stake at once in a 20-second window. Versus has both players stake; the loser takes the winner's stake as damage.
 

@@ -224,7 +224,8 @@ export function applyChaos(state, ctx, seg, playerId) {
     case 'vote': {
       const options = livingCharacters(state).map(x => x.playerId);
       if (options.length < 2) return { text: `the Collector takes ${collectorVisit(state, ctx, c, 'Chaos: Scapegoat')}` };
-      state.votes = { kind: 'chaos', options, openedBy: playerId, openedAt: ctx.now, deadline: ctx.now + C.voteSeconds * 1000, votes: {} };
+      // Same shape social.js's VOTE_OPEN writes, so VOTE_CAST / VOTE_CLOSE and the phones' voteView read it.
+      state.votes = { id: `vote-${ctx.now.toString(36)}`, kind: 'chaos', question: 'Who does Chaos visit?', options, openedBy: playerId, openedAt: ctx.now, deadline: ctx.now + C.voteSeconds * 1000, ballots: {}, eligible: options.slice(), closed: false, result: null };
       chaosOf(state).pendingVictimEffect = { effect: 'collector', label: seg.label, openedBy: playerId, ts: ctx.now };
       note(state, 'The table votes for a scapegoat', 'chaos', ctx.now); return { text: 'vote', vote: true };
     }

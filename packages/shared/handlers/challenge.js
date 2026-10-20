@@ -17,7 +17,7 @@
 // skips them by derivation. If the spin happens on one of their turns that turn is finished (the attack was the
 // turn). A seat whose slot is passed over while held is owed a turn: see the owed-turn mechanism at the bottom.
 import { register, refuse, requireGm, requirePhase, requireActor, requireNotPaused, requirePlayer } from '../reducer.js';
-import { activeSeats, currentPlayerId, characterOf, sameTeam, note } from '../state.js';
+import { activeSeats, currentPlayerId, characterOf, sameTeam, note, tableSeats } from '../state.js';
 import { hooks as runHooks, beginTurn, finishTurn } from './run.js';
 import { stopClock } from '../clock.js';
 import { streamRng, rigAwareWeightedIndex } from '../rng.js';
@@ -479,7 +479,7 @@ function placeEntry(state, ctx, entry, pool, index, CH, how = 'spin') {
 // the table until it reaches the borrower, and the order settles back exactly as it was.
 function placeOwedTurn(state, ctx) {
   state.owedTurns ||= [];
-  const seats = activeSeats(state);
+  const seats = tableSeats(state);
   const head = state.owedTurns.find(o => seats.includes(o.playerId) && !(state.held[o.playerId] && !state.held[o.playerId].owedWait))?.playerId;
   if (!head) return;
   for (const id of seats) if (id !== head && !state.held[id]) state.held[id] = { since: ctx.now, owedWait: true, forId: head };
@@ -492,7 +492,7 @@ runHooks.turnStart.push((state, ctx, pid) => {
   state.owedTurns ||= []; state.turnCredits ||= {};
   const wasInsert = state.owedInsert === pid;   // the owedWait holds stay on for this whole turn: derivation must keep picking pid
   if (wasInsert) { const i = state.owedTurns.findIndex(o => o.playerId === pid); if (i >= 0) state.owedTurns.splice(i, 1); }
-  const seats = activeSeats(state), owner = seats.length ? seats[state.turnIdx % seats.length] : null;
+  const seats = tableSeats(state), owner = seats.length ? seats[state.turnIdx % seats.length] : null;
   if (owner && owner !== pid) {
     if (state.held[owner] && !state.held[owner].owedWait) { const h = state.held[owner]; h.missedTurn = true; (h.misses ||= []).push(state.turnIdx); if (!wasInsert) state.turnCredits[pid] = (state.turnCredits[pid] || 0) + 1; }
     else if ((state.turnCredits[owner] || 0) > 0) state.turnCredits[owner] -= 1;

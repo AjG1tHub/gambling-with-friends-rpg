@@ -133,7 +133,7 @@
    "blocks": [
     {
      "type": "p",
-     "text": "Every weapon or spell is one minigame. Using it: pick a target, stake its Health cost, play the game on your phone while the TV shows the stage. Win and the target takes stake × the game's payout as damage (spells heal, shield or steal instead); lose and the stake is gone; push, nothing. The game's top multiplier is a critical hit. Stakes by rarity: Common 10, Rare 20 (+10% damage), Epic 35 (+25%), Legendary 50 (+50%). Items have 5 charges. You cannot use an item whose stake is more than your current Health."
+     "text": "Every weapon or spell is one minigame. Using it: pick a target, stake its Health cost, play the game on your phone while the TV shows the stage. Win and the target takes stake × the game's payout as damage (spells heal, shield or steal instead); lose and the stake is gone; push, nothing. The game's top multiplier is a critical hit. Stakes by rarity: Common 10, Rare 20 (+10% damage), Epic 35 (+25%), Legendary 50 (+50%). Items have 15 charges. You cannot use an item whose stake is more than your current Health."
     },
     {
      "type": "p",

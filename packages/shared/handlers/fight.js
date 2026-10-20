@@ -11,6 +11,7 @@ import { resolveHit, inReach, stripSecret } from './items.js';
 import { startRound } from '../../games/adapter.js';
 import { makeRng } from '../rng.js';
 import { group } from '../balance.js';
+import { holdForMonster } from '../clock.js';
 
 // A ctx for callers outside the reducer (the TV, bots, tests): the clock they pass and the room's balance.
 export const headlessCtx = (state, now) => ({ now, actor: 'tv', isGm: false, payload: {}, B: (g) => group(state, g) });
@@ -160,7 +161,11 @@ runHooks.turnEnd.push((state, ctx, pid) => {
 
 // When the mover's fight ends (won, fled, left, lost) while the tile is still resolving, the turn moves on to the
 // action phase so the phone shows Shop/Bag/End turn instead of waiting on a finished fight.
-onAfter((state) => {
-  const f = state.fight; if (!f || !f.done || state.phase !== 'playing') return;
-  if (state.turnPhase === 'resolve' && !state.pendingPrompt && (f.playerId === currentPlayerId(state) || f.kind === 'solo')) state.turnPhase = 'action';
+onAfter((state, ev) => {
+  if (state.phase !== 'playing') return;
+  const f = state.fight, pid = currentPlayerId(state);
+  // The mover's chess clock pauses while the monster acts.
+  if (pid) holdForMonster(state, pid, ev.ts, !!(f && !f.done && f.kind !== 'solo' && f.playerId === pid && f.turn === 'monster'));
+  if (!f || !f.done) return;
+  if (state.turnPhase === 'resolve' && !state.pendingPrompt && (f.playerId === pid || f.kind === 'solo')) state.turnPhase = 'action';
 });

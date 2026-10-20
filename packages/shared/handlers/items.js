@@ -127,7 +127,10 @@ export function resolveHit(state, ctx, { attackerId, attackerKind = 'character',
   const who = nameOf(state, attackerId, attackerKind);
   if (info.cancel) { info.notes.push('cancelled'); note(state, `${who}'s ${item?.name || info.gameId}: ${info.cancelText || 'voided'}`, 'fight', ctx.now); return info; }
   // info.damageMult is the Chaos / region / monster-tier scale (handlers/wheels.js); it scales the whole hit.
-  const payout = won ? Math.max(0, r0((info.stake * info.mult * (1 + bonusFor(state, item?.rarity || 'common')) + info.flat) * (info.damageMult ?? 1))) : 0;
+  let payout = won ? Math.max(0, r0((info.stake * info.mult * (1 + bonusFor(state, item?.rarity || 'common')) + info.flat) * (info.damageMult ?? 1))) : 0;
+  // No single monster hit takes more than monsters.hitCapFraction of a character's max Health: a boss can still
+  // kill in two swings, but never from full in one.
+  if (attackerKind === 'monster' && targetKind === 'character' && payout > 0) { const t = state.characters[targetId], cap = ctx.B('monsters').hitCapFraction; if (t && cap > 0) { const lim = Math.max(1, r0(t.maxHealth * cap)); if (payout > lim) { info.notes.push(`capped from ${payout}`); payout = lim; } } }
   info.payout = payout;
   if (info.kind === 'spell') {
     const t = state.characters[targetKind === 'self' ? attackerId : targetId] || attacker;

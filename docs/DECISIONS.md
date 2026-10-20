@@ -35,3 +35,23 @@ Calls made during the build where the spec and the build prompt left room. Newes
     (`royale.*` tunables) and the Chicken Dinner Platter.
 12. **Classic mode** is `legacy/site` copied to `dist/classic` at build time and linked from the GM console's
     start screen ("Backend down? Run classic"). It is never edited.
+13. **Sticky mover.** `state.moverId` is set by `beginTurn` and cleared by `finishTurn`; while set, `currentPlayerId`
+    returns it even if a hold is released mid-turn, so a challenge ending never hands the turn to someone else.
+14. **Standing and elimination.** A dead character who will wake at the Graveyard is still *standing*; only
+    `c.eliminated` (set by a player kill in pvp/teams/royale) or a kicked seat takes a character out of the run,
+    and eliminated seats leave the turn order (`tableSeats`) while keeping their place in the ledger. In
+    Free-for-all three deaths in a row therefore do not end the night.
+15. **Last Call.** `table.lastCallMinutes` (100) ends any run still going on placings. It is the normal ending
+    for seven or eight players and the safety net for everyone else; bot runs showed 8-player tables get 10–12
+    turns each in 100 minutes, not enough for a throne run however the monsters are tuned.
+16. **The Citadel Key.** Every region boss drops one for its killer; it is a quest item (never dropped on death,
+    never vaulted) and opens the Sky Citadel's inner gates like level 10 does. Without it the Dealer is a season-two
+    fight.
+17. **Monster hits are capped.** `monsters.hitCapFraction` caps a single monster hit at 60% of max Health and
+    monsters stake 60% of their item (`items.monsterStakeFraction`). Health stays hidden and hard to heal; a boss
+    still kills in two swings, but never from full in one.
+18. **The Shop never lets you plod.** Every shelf carries one Common weapon and one pair of Loaded Boots (d6) at the
+    Common price, on top of the staples and the rolled gear.
+19. **The clock stops while the monster acts.** A fight exchange is the player's round (their time) and the
+    monster's (the TV's). `holdForMonster` banks the mover's clock when `fight.turn` is `monster` and releases
+    it on `MONSTER_ACT`, so a long boss fight never times a player out while they are only watching.

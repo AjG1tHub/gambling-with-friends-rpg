@@ -8,7 +8,7 @@ export function remainingMs(state, playerId, now) {
   return Math.max(0, c.bankMs - elapsed);
 }
 export function startClock(state, playerId, now, B, bonusSeconds = 0) {
-  const c = clockOf(state, playerId);
+  const c = clockOf(state, playerId); c.heldForMonster = false;
   c.bankMs = Math.min(B.bankCapSeconds * 1000, c.bankMs + (B.perTurnSeconds + bonusSeconds) * 1000);
   c.runningSince = state.gm.paused ? null : now;
   c.pendingStart = state.gm.paused ? true : false;
@@ -21,3 +21,10 @@ export function stopClock(state, playerId, now) {
 export function pauseAll(state, now) { for (const [id, c] of Object.entries(state.clocks)) if (c.runningSince != null) { c.bankMs = Math.max(0, c.bankMs - Math.max(0, now - c.runningSince)); c.runningSince = null; c.pendingStart = true; } }
 export function resumeAll(state, now) { for (const c of Object.values(state.clocks)) if (c.pendingStart) { c.runningSince = now; c.pendingStart = false; } }
 export const fmtClock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+// The mover's clock does not run while the monster acts (the TV plays that turn): hold it when the fight hands
+// over to the monster, release it when the player is up again. Called after every event by handlers/fight.js.
+export function holdForMonster(state, playerId, now, monsterActing) {
+  const c = state.clocks[playerId]; if (!c) return;
+  if (monsterActing && c.runningSince != null) { c.bankMs = Math.max(0, c.bankMs - Math.max(0, now - c.runningSince)); c.runningSince = null; c.heldForMonster = true; }
+  else if (!monsterActing && c.heldForMonster) { c.heldForMonster = false; if (!state.gm.paused) c.runningSince = now; else c.pendingStart = true; }
+}
