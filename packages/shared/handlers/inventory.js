@@ -61,7 +61,7 @@ function dropToTile(state, ctx, c, item, why = 'dropped') {
 export function afterWornChange(state, ctx, c) {
   recomputeSets(state, ctx, c);
   const bonus = wornAffixes(c).filter(a => a.kind === 'utility' && a.effect === 'maxHealth').reduce((s, a) => s + Number(a.value || 0), 0);
-  const had = c.flags.wornMaxHealth || 0;
+  c.flags ||= {}; const had = c.flags.wornMaxHealth || 0;
   if (bonus !== had) { moveMaxHealth(state, c, bonus - had, 'worn gear', ctx); if (bonus > had) health(state, c, bonus - had, 'worn gear', ctx); c.flags.wornMaxHealth = bonus; }
   recomputePassives(state, ctx, c);
 }
@@ -241,9 +241,9 @@ deathHooks.onZero.push((state, ctx, info) => {
   const c = state.characters[info.charId]; if (!c || info.prevented) return;
   const L = ctx.B('legendaries');
   const pendantSlot = WORN_SLOTS.find(s => c.worn[s]?.legendaryId === 'pendant');
-  if (pendantSlot) { const p = c.worn[pendantSlot]; c.worn[pendantSlot] = null; delete c.items[p.id]; health(state, c, 1 - c.health, 'the pendant', ctx, { overheal: false }); afterWornChange(state, ctx, c); info.prevented = true; note(state, `${c.name}'s Weighted Companion Pendant is destroyed. It never said goodbye.`, 'death', ctx.now); return; }
+  if (pendantSlot) { const p = c.worn[pendantSlot]; c.worn[pendantSlot] = null; delete c.items[p.id]; health(state, c, 1 - c.health, 'the pendant', ctx, { overheal: false }); afterWornChange(state, ctx, c); info.prevented = true; info.preventedBy = 'pendant'; note(state, `${c.name}'s Weighted Companion Pendant is destroyed. It never said goodbye.`, 'death', ctx.now); return; }
   const jar = G.gridItems(c).find(it => it.legendaryId === 'fairyjar');
-  if (jar) { G.remove(c, jar.id, { forget: true }); health(state, c, Math.round(c.maxHealth * L.fairyRevive) - c.health, 'Fairy in a Jar', ctx); info.prevented = true; info.noDrops = true; info.noMissTurns = true; note(state, `The jar breaks: ${c.name} stands back up`, 'death', ctx.now); return; }
+  if (jar) { G.remove(c, jar.id, { forget: true }); health(state, c, Math.round(c.maxHealth * L.fairyRevive) - c.health, 'Fairy in a Jar', ctx); info.prevented = true; info.preventedBy = 'fairy'; info.noDrops = true; info.noMissTurns = true; note(state, `The jar breaks: ${c.name} stands back up`, 'death', ctx.now); return; }
   const life = c.effects.find(e => e.id === 'extralife');
   if (life) { c.effects.splice(c.effects.indexOf(life), 1); info.noDrops = true; info.noMissTurns = true; info.noLevelLoss = true; note(state, `${c.name} spends an extra life`, 'death', ctx.now); }
 });

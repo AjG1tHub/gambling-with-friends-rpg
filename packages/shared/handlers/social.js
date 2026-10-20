@@ -126,8 +126,8 @@ onAfter((state, ev, ctx) => {
 
 // ---------------------------------------------------------------- handlers
 register({
-  LETTER_SEND(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: ctx.payload.kind === 'alliance' ? 'alliance' : 'letter' }); },
-  ALLIANCE_PROPOSE(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: 'alliance' }); },
+  LETTER_SEND(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.payload.playerId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: ctx.payload.kind === 'alliance' ? 'alliance' : 'letter' }); },
+  ALLIANCE_PROPOSE(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.payload.playerId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: 'alliance' }); },
 
   LETTER_INTERCEPT(state, ev, ctx) {
     requirePhase(state, 'playing');
@@ -146,6 +146,12 @@ register({
     runMods(letterHooks.onIntercept, state, ctx, { letter: l, byId: pid, action });
   },
 
+  LETTER_READ(state, ev, ctx) {
+    const pid = ctx.payload.playerId || ctx.actor; requireActor(state, ctx, pid);
+    const l = letterOf(state, ctx.payload.letterId); if (!l) refuse('no such letter', 'letter');
+    if (l.toId !== pid) refuse('not your letter', 'forbidden'); if (!l.deliveredAt || l.destroyed) refuse('it has not arrived', 'letter');
+    l.read = true; l.readAt = ctx.now;
+  },
   ALLIANCE_ANSWER(state, ev, ctx) {
     requirePhase(state, 'playing');
     const p = ctx.payload, pid = p.playerId || ctx.actor; requireActor(state, ctx, pid);

@@ -56,3 +56,18 @@ Read with ARCHITECTURE.md and STATE.md. Everything below exists and is unit-test
 ## GM
 - Everything in `packages/shared/events.js` under GM_*; `GM_PROXY {playerId, on}` (a proxied seat is played from the console: open `/phone/?code=X&as=<playerId>` which dispatches as `'gm'` with `payload.playerId`); `GM_AUTOPILOT {playerId, on}` (the TV runs `nextAction` from `packages/shared/bot.js` for that seat); `GM_SPOTLIGHT {playerIds}` (≤4) → the TV renders those phones' `fight.game.legacy` / creation rounds in a 2×2 grid; `GM_RIG {stream, value}`; `GM_CONFIG {balance}`; `CHALLENGE_GM_DECIDE`.
 - Table duties (`tableDuties(state, rng, now)` in bot.js) are appended by the TV: TURN_TIMEOUT, MONSTER_ACT, AREA_RESOLVE, CHALLENGE_TIMEOUT, VOTE_CLOSE, and GM decisions when nobody is at the console (`gmPending`) — leave those to the GM when a console is connected (`session.presence.gm` recent).
+
+## Added after the app builders' reports
+
+- `CHAR_GAMBLE_STEP {stat, gameId, chips, game, text}` (phone, during creation) mirrors a creation gamble round into
+  `c.creation.liveGame = {stat, gameId, chips, legacy, text, ts}` for the TV Spotlight; `CHAR_STAT_GAMBLE` clears it.
+- `CHAR_STAT_POINT {stat}` spends one level-up stat point (any phase); refuses with the reason when none are pending.
+- `LETTER_READ {letterId}` marks a delivered letter read (`l.read`, `l.readAt`); the Letters tab dot uses it.
+- `PET_RENAME {petId, name}` sets `pet.nickname` (≤ 18 chars).
+- `GM_MONSTER_MOVE {monsterId, hex}` (GM) moves a monster that is not in a fight.
+- `LETTER_SEND` / `ALLIANCE_PROPOSE` take `playerId` as the sender when the GM proxies a phone.
+- `attach()` returns `{ session, close, setPresence(meta) }`; the phone re-registers presence under its player id
+  once it has a seat, so the TV never proxies a fresh seat for silence.
+- The bot's `tableDuties` leaves a `gmControlled` monster to the GM console.
+- Creation gamble `'buyin'`: the phone spins an 8-segment wheel with multipliers `creation.buyinMultipliers`
+  (actor-authoritative, like any round) and reports the result through `CHAR_STAT_GAMBLE`.

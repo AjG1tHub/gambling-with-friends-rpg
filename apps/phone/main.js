@@ -3,6 +3,8 @@
 // This file is the frame and the join flow; tab screens live in ./screens/*.js.
 import { h, render, $, qs, toast, buzz, store, fmtTime, ticker, lenient } from '../../packages/ui/dom.js';
 import { boot, attach, rememberSeat, recallSeat, dispatchOrToast } from '../../packages/ui/client.js';
+import { ensureRoster } from '../../packages/ui/roster.js';
+import { readSet } from '../../packages/ui/letters.js';
 import { shortId } from '../../packages/shared/ids.js';
 import { currentPlayerId, characterOf } from '../../packages/shared/state.js';
 import { remainingMs } from '../../packages/shared/clock.js';
@@ -48,9 +50,10 @@ async function join(code) {
     if (ctx.proxyFor) { if (!session.state.players[ctx.proxyFor]) throw new Error(`no seat ${ctx.proxyFor} in this room`); ctx.me = ctx.proxyFor; view(session.state, session); return; }
     const seat = recallSeat(code);
     const existing = seat && session.state.players[seat];
-    if (existing && !existing.kicked) { ctx.me = seat; await session.dispatch('PLAYER_RECONNECT', { playerId: seat, deviceId: ctx.deviceId }, seat); view(session.state, session); return; }
+    const roster = () => ensureRoster(session, ctx.backend, ctx.me).catch(e => console.warn('roster', e));
+    if (existing && !existing.kicked) { ctx.me = seat; await session.dispatch('PLAYER_RECONNECT', { playerId: seat, deviceId: ctx.deviceId }, seat); roster(); view(session.state, session); return; }
     const byDevice = Object.values(session.state.players).find(p => p.deviceId === ctx.deviceId && !p.kicked);
-    if (byDevice) { ctx.me = byDevice.id; rememberSeat(code, byDevice.id); setPresence({ role: 'phone', playerId: byDevice.id }); await session.dispatch('PLAYER_RECONNECT', { playerId: byDevice.id, deviceId: ctx.deviceId }, byDevice.id); view(session.state, session); return; }
+    if (byDevice) { ctx.me = byDevice.id; rememberSeat(code, byDevice.id); setPresence({ role: 'phone', playerId: byDevice.id }); await session.dispatch('PLAYER_RECONNECT', { playerId: byDevice.id, deviceId: ctx.deviceId }, byDevice.id); roster(); view(session.state, session); return; }
     render(app, nameScreen(session));
   } catch (e) { console.error(e); render(app, joinScreen(e.message)); }
 }
@@ -64,7 +67,7 @@ function nameScreen(session) {
     const playerId = shortId('p');
     const ok = await dispatchOrToast(session, 'PLAYER_JOIN', { playerId, name: name || 'Watcher', deviceId: ctx.deviceId, spectator }, playerId);
     if (!ok) return;
-    ctx.me = playerId; rememberSeat(ctx.code, playerId); store.set('gwfrpg:phone:last', { code: ctx.code, name }); ctx.setPresence?.({ role: 'phone', playerId });
+    ctx.me = playerId; rememberSeat(ctx.code, playerId); store.set('gwfrpg:phone:last', { code: ctx.code, name }); ctx.setPresence?.({ role: 'phone', playerId }); ensureRoster(session, ctx.backend, playerId).catch(e => console.warn('roster', e));
     view(session.state, session);
   };
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(false); });
@@ -100,6 +103,6 @@ function view(state, session) {
   for (const t of state.toasts.slice(-5)) if (!seen.has(t.id) && (t.to == null || t.to === ctx.me) && Date.now() - t.ts < 60000) { seen.add(t.id); toast(t.text, '', 5000); buzz(40); }
 }
 const tell = (c) => (c.dead ? 'dead' : c.health / c.maxHealth > 0.66 ? '' : c.health / c.maxHealth >= 0.33 ? 'mid' : 'low');
-const unread = (state) => state.letters.some(l => l.toId === ctx.me && l.deliveredAt && !l.read);
+const unread = (state) => { let seen; try { seen = readSet(ctx.me); } catch { seen = new Set(); } return state.letters.some(l => l.toId === ctx.me && l.deliveredAt && !l.destroyed && !l.read && !seen.has(l.id)); };
 
 main();

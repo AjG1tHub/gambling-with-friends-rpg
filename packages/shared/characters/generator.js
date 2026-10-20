@@ -6,6 +6,7 @@
 import items36 from '../../../data/items36.json' with { type: 'json' };
 import affixData from '../../../data/affixes.json' with { type: 'json' };
 import bases from '../../../data/bases.json' with { type: 'json' };
+import bootsRaw from '../../../data/boots.json' with { type: 'json' };
 import legendaryData from '../../../data/legendaries.json' with { type: 'json' };
 import setsData from '../../../data/sets.json' with { type: 'json' };
 import { makeRng, streamRng, hash32 } from '../rng.js';
@@ -31,15 +32,13 @@ export const GEAR_SLOTS = ['weapon', 'spell', 'helmet', 'torso', 'pants', 'glove
 
 // Boots: the map module owns data/boots.json; when it is there (and lists the same ids) it wins, else our fallback.
 export let BOOT_BASES = bases.boots;
-try {
-  const url = new URL('../../../data/boots.json', import.meta.url);
-  const mod = await import(/* @vite-ignore */ url.href, { with: { type: 'json' } });
-  const raw = mod.default; const list = Array.isArray(raw) ? raw : raw?.boots || raw?.bases || raw?.items || null;
+{
+  const list = Array.isArray(bootsRaw) ? bootsRaw : bootsRaw?.boots || bootsRaw?.bases || bootsRaw?.items || null;
   if (Array.isArray(list) && list.length) {
     const norm = list.filter(b => b && b.id && (b.bootMode || b.mode)).map(b => ({ id: b.id, name: b.name || b.id, bootMode: b.bootMode || b.mode, die: b.die ?? b.sides ?? null, sprite: b.sprite || `worn/${b.id}` }));
     if (norm.length) BOOT_BASES = norm;
   }
-} catch { /* no boots.json yet: the fallback list in bases.json stands */ }
+}
 
 export function basesFor(slot) {
   if (slot === 'boots') return BOOT_BASES;

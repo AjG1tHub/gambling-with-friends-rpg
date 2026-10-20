@@ -272,6 +272,15 @@ register({
     const h = state.map?.hexes?.[ctx.payload.hex]; if (!isLandable(h)) refuse('not a hex anyone can stand on', 'hex');
     c.prevPos = c.pos; c.pos = h.key; c.region = h.regionId; note(state, `GM moves ${c.name} to ${h.key}`, 'gm', ctx.now);
   },
+  GM_MONSTER_MOVE(state, ev, ctx) {
+    requireGm(ctx); const m = state.monsters[ctx.payload.monsterId]; if (!m || m.dead) refuse('no such monster', 'monster');
+    const h = state.map?.hexes?.[ctx.payload.hex]; if (!h || h.void) refuse('no such hex', 'hex');
+    if (h.monsterId && h.monsterId !== m.id && state.monsters[h.monsterId] && !state.monsters[h.monsterId].dead) refuse('a monster already stands there', 'hex');
+    if (state.fight && state.fight.monsterId === m.id && !state.fight.done) refuse('it is in a fight', 'busy');
+    const from = state.map.hexes[m.pos]; if (from && from.monsterId === m.id) from.monsterId = null;
+    m.pos = h.key; m.regionId = h.regionId || m.regionId; h.monsterId = m.id;
+    note(state, `GM moves ${m.name} to ${h.key}`, 'gm', ctx.now);
+  },
   GM_SPAWN(state, ev, ctx) {
     requireGm(ctx); const h = state.map?.hexes?.[ctx.payload.hex]; if (!h || h.void) refuse('no such hex', 'hex');
     if (h.monsterId && state.monsters[h.monsterId] && !state.monsters[h.monsterId].dead) refuse('a monster already stands there', 'hex');

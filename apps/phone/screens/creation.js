@@ -15,7 +15,8 @@ import { sect, why, amountPicker, itemRow, statLabel, countdown, hatchingScreen,
 
 const CRESTS = ['🂡', '🂱', '🃁', '🃑', '🃏', '🎴', '🀄', '🎲', '🎰', '🪙', '🔔', '💎', '👑', '🕯', '🐦', '🩸', '⚔', '🪦', '🦊', '🐺', '🦇', '🐍', '🦂', '🕷'];
 const COATS = ['#5a1218', '#1c1614', '#2a3a5a', '#3f8a73', '#6b3fa0', '#9c7a2e', '#7a1a22', '#c9bfae'];
-const BUYIN_MULTS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 0];   // the Buy-in Wheel as a chip gamble: eight segments, two blanks
+// The Buy-in Wheel as a chip gamble: eight segments from creation.buyinMultipliers (two blanks by default).
+const buyinMults = (state) => { try { const v = group(state, 'creation').buyinMultipliers; if (Array.isArray(v) && v.length) return v; } catch { /* fall through */ } return [0, 0.5, 1, 1.5, 2, 2.5, 3, 0]; };
 // Draft look kept across re-renders; seeded from the last character this phone made.
 const draft = Object.assign({ name: '', crest: CRESTS[0], look: { body: 0, skin: 0, face: 0, hair: 0, coat: COATS[0] }, step: null, stat: null, game: null, chips: 1, alloc: {}, nameNote: '', nameOk: null, vaultPick: new Set(), petPick: null }, store.get('gwfrpg:phone:draft') || {});
 draft.vaultPick = new Set(); draft.petPick = null;
@@ -157,7 +158,7 @@ function statsStep(api) {
       const amt = amountPicker({ value: Math.min(draft.chips || 1, c.chips, C.maxStake), min: C.minStake, max: Math.min(C.maxStake, c.chips), label: 'Stake (chips)', onChange: (v) => { draft.chips = v; } });
       box.append(amt, h('button', { class: 'primary big', onClick: () => {
         const chips = amt.value(); const key = `${liveKey}:${draft.game}`;
-        if (draft.game === 'buyin') { liveRound(key, () => makeBuyinSpin(chips)); }
+        if (draft.game === 'buyin') { liveRound(key, () => makeBuyinSpin(chips, buyinMults(state).length)); }
         else liveRound(key, () => startRound({ state, B: (g) => group(state, g) }, { gameId: draft.game, mode: 'chips', stake: chips, attacker: c, rng: makeRng(hash32(seedFor('creation', c.id, draft.game, Date.now()))), now: Date.now(), holdPending: false }));
         redraw(api);
       } }, `Play for ${statLabel(draft.stat)}`), why(`A win pays chips × the game's multiplier into ${statLabel(draft.stat)}; a loss burns them.${c.stats.greed > S.neutral ? ` Greed ${c.stats.greed} adds ${Math.round(C.greedPayoutPerPoint * (c.stats.greed - S.neutral) * 100)}%.` : ''}`));
@@ -187,6 +188,7 @@ function gambleRound(api, key, entry) {
   const box = sect(`${gameMeta(gameId === 'buyin' ? 'bigwheel' : gameId).icon} ${gameId === 'buyin' ? 'Buy-in Wheel' : gameMeta(gameId).name} for ${statLabel(entry.stat)}`);
   if (gameId === 'buyin') {
     const spin = entry.round;
+    const BUYIN_MULTS = buyinMults(api.state);
     const strip = wheelStrip({ outcomes: BUYIN_MULTS.map(m => `${m}×`), index: spin.index, title: `${spin.chips} chips on the wheel` });
     if (!spin.spun) { strip.querySelector('.seg.hit')?.classList.remove('hit'); box.append(strip, h('button', { class: 'primary big', onClick: () => { spin.spun = true; animateStrip(strip, spin.index, () => finish(BUYIN_MULTS[spin.index], `${BUYIN_MULTS[spin.index]}×`)); } }, '🎡 Spin the Buy-in Wheel')); }
     else box.append(strip, why('Spinning…'));
@@ -200,7 +202,7 @@ function gambleRound(api, key, entry) {
   screen.append(box);
   if (round.done && !entry.resolved && !entry.timer) { entry.timer = true; const o = round.outcome(); setTimeout(() => finish(o.mult, o.label), Math.max(0, (round.revealAt?.() || 0) - Date.now()) + 900); }
 }
-function makeBuyinSpin(chips) { return { chips, index: Math.floor(Math.random() * BUYIN_MULTS.length), spun: false, stake: chips, done: false }; }
+function makeBuyinSpin(chips, n = 8) { return { chips, index: Math.floor(Math.random() * n), spun: false, stake: chips, done: false }; }
 function animateStrip(strip, index, onDone) {
   const segs = [...strip.querySelectorAll('.seg')]; let i = 0, n = 0; const total = segs.length * 3 + index;
   const tick = () => { segs.forEach(s => s.classList.remove('hit')); segs[i % segs.length].classList.add('hit'); if (n++ >= total) { onDone(); return; } i++; setTimeout(tick, 40 + n * 6); };

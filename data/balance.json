@@ -92,7 +92,8 @@
     "bloodHealthPerChip": { "v": 10, "unit": "Health", "spec": "Creation", "note": "Max Health staked per chip in the Blood option." },
     "bloodMax": { "v": 30, "unit": "Health", "spec": "Creation", "note": "Most max Health the Blood option may stake." },
     "safePointPerChip": { "v": 1, "unit": "points", "spec": "Creation", "note": "Unstaked chips become this many stat points each." },
-    "gambleGames": { "v": ["fifty", "dice", "hilo", "buyin"], "unit": "games", "spec": "Creation", "note": "Games a stat may be gambled on: the starter kit's three plus a Buy-in Wheel spin." }
+    "gambleGames": { "v": ["fifty", "dice", "hilo", "buyin"], "unit": "games", "spec": "Creation", "note": "Games a stat may be gambled on: the starter kit's three plus a Buy-in Wheel spin." },
+    "buyinMultipliers": { "v": [0, 0.5, 1, 1.5, 2, 2.5, 3, 0], "unit": "multipliers", "spec": "Character creation", "note": "The eight segments of the Buy-in Wheel when it is played as a creation gamble (chips × segment)." }
   },
   "clock": {
     "perTurnSeconds": { "v": 90, "unit": "seconds", "spec": "A turn", "note": "Added to a player's clock at the start of their turn." },

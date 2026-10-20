@@ -162,7 +162,7 @@ body.tv { overflow: hidden; font-size: clamp(13px, 1.05vw, 20px); }
 /* Spotlight */
 .spotlight { display: grid; grid-template-rows: auto 1fr; place-items: stretch; padding: 1vw; gap: .6vw; }
 .spot-head { text-align: center; } .spot-grid { display: grid; gap: .8vw; min-height: 0; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; } .spot-grid.n1 { grid-template-columns: 1fr; grid-template-rows: 1fr; } .spot-grid.n2 { grid-template-rows: 1fr; }
-.spot-cell { width: auto; max-height: none; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: .4vw; min-height: 0; } .spot-stage { font-size: clamp(10px, .8vw, 15px); } .spot-stage .stage-big { font-size: 2em; } .spot-stage.idle { opacity: .5; }
+.stage-wrap .spot-cell { width: auto; max-height: none; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: .4vw; min-height: 0; } .spot-stage { font-size: clamp(10px, .8vw, 15px); } .spot-stage .stage-big { font-size: 2em; } .spot-stage.idle { opacity: .5; }
 
 /* Recap */
 .recap { position: absolute; inset: 0; overflow: auto; padding: 1.2vw 1.6vw; display: flex; flex-direction: column; gap: 1vw; }

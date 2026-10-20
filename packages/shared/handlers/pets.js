@@ -125,6 +125,12 @@ register({
     if (state.stats[pid]) state.stats[pid].petsCaught += 1;
     note(state, `${c.name} hatches a ${pet.name}`, 'pet', ctx.now);
   },
+  PET_RENAME(state, ev, ctx) {
+    const { c } = actingCharacter(state, ctx);
+    const pet = c.pets.find(p => p.id === ctx.payload.petId); if (!pet) refuse('no such pet', 'pet');
+    const name = String(ctx.payload.name || '').trim().slice(0, 18); if (!name) refuse('a pet needs a name', 'name');
+    pet.nickname = name; note(state, `${c.name} names a ${pet.species || pet.speciesId || 'pet'} ${name}`, 'pet', ctx.now);
+  },
   PET_SWITCH(state, ev, ctx) {
     requirePhase(state, 'playing');
     const { pid, c } = actingCharacter(state, ctx);

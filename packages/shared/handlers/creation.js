@@ -23,9 +23,10 @@ import { hooks as runHooks } from './run.js';
 import { cleanName } from './lobby.js';
 import { chips as moveChips, maxHealth as moveMaxHealth, health } from '../health.js';
 import { bal } from '../balance.js';
-import { newCharacter, setClass, cleanLook, classDef, STAT_IDS, CLASS_IDS, unlockUpgrades, recomputePassives, recomputeSets, WORN_SLOTS } from '../characters/character.js';
+import { newCharacter, setClass, cleanLook, classDef, STAT_IDS, CLASS_IDS, unlockUpgrades, recomputePassives, recomputeSets, WORN_SLOTS, spendStatPoint } from '../characters/character.js';
 import { makeWeapon, makeConsumable, weaponDefById, GAMES } from '../characters/generator.js';
 import { insert } from '../characters/grid.js';
+import { stripSecret } from '../../games/adapter.js';
 import { equip, afterWornChange } from './inventory.js';
 import classesData from '../../../data/classes.json' with { type: 'json' };
 
@@ -116,8 +117,24 @@ register({
     if (!CLASS_IDS.includes(ctx.payload.classId)) refuse('no such class', 'class');
     setClass(state, ctx, c, ctx.payload.classId);
   },
-  CHAR_STAT_GAMBLE(state, ev, ctx) {
+  // A creation gamble round mirrored for the TV's Spotlight: the phone publishes the game snapshot (minus its
+  // secret) as it plays; CHAR_STAT_GAMBLE clears it.
+  CHAR_GAMBLE_STEP(state, ev, ctx) {
     const { c } = seat(state, ctx); unlocked(c);
+    const { stat = null, gameId = null, chips = null, game = null, text = null } = ctx.payload;
+    c.creation ||= {};
+    c.creation.liveGame = { stat, gameId, chips, legacy: game ? stripSecret(game) : null, text: text ? String(text).slice(0, 200) : null, ts: ctx.now };
+  },
+  // Spend a level-up stat point (any phase with a character; the Self tab shows the pending points).
+  CHAR_STAT_POINT(state, ev, ctx) {
+    const { c } = seat(state, ctx, { phases: null });
+    const { stat } = ctx.payload;
+    try { spendStatPoint(state, ctx, c, stat); } catch (e) { refuse(e.message, 'stat'); }
+    recomputePassives(state, ctx, c);
+    note(state, `${c.name} puts a point into ${stat}`, 'level', ctx.now);
+  },
+  CHAR_STAT_GAMBLE(state, ev, ctx) {
+    const { c } = seat(state, ctx); unlocked(c); if (c.creation) c.creation.liveGame = null;
     const C = ctx.B('creation'), S = ctx.B('stats');
     const { stat, gameId } = ctx.payload; const chipsIn = Math.round(Number(ctx.payload.chips)); const mult = Number(ctx.payload.mult);
     if (!STAT_IDS.includes(stat)) refuse('no such stat', 'stat');

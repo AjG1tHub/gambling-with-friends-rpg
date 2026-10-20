@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 326 tunables in 28 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 327 tunables in 28 groups.
 
 ## Changing a value
 
@@ -126,6 +126,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `creation.bloodMax` | 30 | Health | Creation | Most max Health the Blood option may stake. |
 | `creation.safePointPerChip` | 1 | points | Creation | Unstaked chips become this many stat points each. |
 | `creation.gambleGames` | [fifty, dice, hilo, buyin] | games | Creation | Games a stat may be gambled on: the starter kit's three plus a Buy-in Wheel spin. |
+| `creation.buyinMultipliers` | [0, 0.5, 1, 1.5, 2, 2.5, 3, 0] | multipliers | Character creation | The eight segments of the Buy-in Wheel when it is played as a creation gamble (chips × segment). |
 
 ## clock
 
