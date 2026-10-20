@@ -154,6 +154,7 @@ register({
     else if (mult > 0) { back = Math.round(chipsIn * mult); if (back) moveChips(state, c, back, 'partial return', ctx); }
     c.stats[stat] = Math.max(S.min, c.stats[stat]);
     c.creation.gambles.push({ stat, gameId, chips: chipsIn, mult, points, back, ts: ctx.now });
+    c.creation.lastRound = { stat, gameId, chips: chipsIn, mult, points, legacy: ctx.payload.game ? stripSecret(ctx.payload.game) : null, ts: ctx.now };   // for the TV Spotlight
     note(state, points ? `${c.name} wins ${points} ${stat} on ${gameId}` : `${c.name} loses ${chipsIn - back} chip(s) on ${gameId}`, 'creation', ctx.now);
   },
   CHAR_BLOOD(state, ev, ctx) {

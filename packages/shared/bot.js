@@ -78,7 +78,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
           const stat = ['luck', 'nerve', 'greed', 'grit'][rng.int(0, 3)], chips = Math.min(c.chips, rng.int(Cr.minStake, Cr.maxStake));
           const gameId = (Cr.gambleGames || ['fifty', 'dice', 'hilo']).filter(g => g !== 'buyin')[rng.int(0, 2)] || 'fifty';
           const r = playRound(state, { gameId, mode: 'chips', stake: chips, attacker: c, rng, now });
-          return act('CHAR_STAT_GAMBLE', { stat, chips, mult: r.mult, gameId }, me);
+          return act('CHAR_STAT_GAMBLE', { stat, chips, mult: r.mult, gameId, game: r.snapshot || null }, me);
         }
         // Safe money: unstaked chips become points, spread over stats still under the creation cap.
         const S = group(state, 'stats'), alloc = {}; let left = c.chips; const stats = ['luck', 'nerve', 'greed', 'grit'];
@@ -140,7 +140,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
     const item = c.items?.[f.game.itemId] || Object.values(c.worn).find(it => it && it.id === f.game.itemId);
     const target = f.game.targetKind === 'monster' ? state.monsters[f.game.targetId] : state.characters[f.game.targetId];
     const r = playRound(state, { item: item || { gameId: f.game.gameId, stake: f.game.stake, rarity: 'common', kind: 'attack' }, mode: 'health', stake: f.game.stake, attacker: c, target, rng, now });
-    return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit }, me);
+    return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit, game: r.snapshot || null }, me);
   }
   if (f && !f.done && f.kind !== 'solo' && (f.playerId === pid || f.playerIds?.includes(pid))) {
     if (f.turn !== 'player' || f.playerId !== pid) return null;
@@ -148,7 +148,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
       const item = c.items?.[f.game.itemId] || Object.values(c.worn).find(it => it && it.id === f.game.itemId);
       const target = state.monsters[f.monsterId];
       const r = playRound(state, { item: item || { gameId: f.game.gameId, stake: f.game.stake, rarity: 'common', kind: 'attack' }, mode: 'health', stake: f.game.stake, attacker: c, target, rng, now });
-      return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit }, me);
+      return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit, game: r.snapshot || null }, me);
     }
     if (lowHealth(c) && hasConsumable(c, 'potion') && !c.usedThisTurn.potion) { c.usedThisTurn.potion = true; return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'potion').id }, me); }
     const re = reequip(state, c, me); if (re) return re;
@@ -161,7 +161,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
   if (f && !f.done && f.kind === 'solo' && f.game && !f.game.result && f.game.attackerPlayerId === pid) {
     const item = Object.values(c.worn).find(it => it && it.id === f.game.itemId) || c.items?.[f.game.itemId];
     const r = playRound(state, { item, mode: 'health', stake: f.game.stake, attacker: c, rng, now });
-    return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit }, me);
+    return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit, game: r.snapshot || null }, me);
   }
   if (state.turnPhase === 'move') {
     const s = state.moveSession;

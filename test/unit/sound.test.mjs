@@ -112,7 +112,7 @@ test('every cue in the catalogue renders to notes with an envelope, and matches 
 test('SoundPlayer picks a file only when the manifest has a real one', () => {
   const manifest = { sound: { hit: { path: 'assets/sound/hit.wav', placeholder: false }, miss: { path: 'assets/sound/miss.wav', placeholder: true } } };
   const p = new SoundPlayer({ AudioCtx: null, manifest, base: '/' });
-  assert.equal(p.fileFor('hit'), '/assets/sound/hit.wav'); assert.equal(p.fileFor('miss'), null); assert.equal(p.fileFor('crit'), null);
+  assert.equal(p.fileFor('hit'), '/sound/hit.wav', 'manifest paths are under assets/, which Vite serves at the root'); assert.equal(p.fileFor('miss'), null); assert.equal(p.fileFor('crit'), null);
   assert.equal(p.supported, false); assert.equal(p.unlocked, false);
   assert.equal(p.playNotes(renderCue('hit')), 0);
   assert.equal(p.schedule([{ cue: 'hit', at: 0 }, { cue: 'bogus', at: 0 }], { on: true, volume: 1 }, 0), 1);

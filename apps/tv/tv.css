@@ -192,6 +192,7 @@ body.tv { overflow: hidden; font-size: clamp(13px, 1.05vw, 20px); }
   .tv-main { grid-template-columns: minmax(0, 1fr) 26vw; }
   .tv-head .tagline { display: none; }
   .join canvas { width: 6vw; height: 6vw; }
-  .recap-charts { grid-template-columns: 1fr; }
+  .recap { gap: .6vw; padding: .8vw 1.2vw; } .recap-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5vw; } .recap-card { padding: .6vw .7vw; font-size: .9em; } .recap-head .recap-title { font-size: 1.7em; }
+  .recap-charts { grid-template-columns: 1.4fr 1fr; } .recap-chart { max-height: 30vh; } .hof-row { gap: .3vw 1.4vw; }
 }
 @media (prefers-reduced-motion: reduce) { .hexmap .flame, .hexmap .hm-crow, .offscreen-logo { animation: none; } }

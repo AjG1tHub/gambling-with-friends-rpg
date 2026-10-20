@@ -165,7 +165,7 @@ export class SoundPlayer {
     return this.unlocked;
   }
   // A real file exists for the cue when the manifest lists it and it is not one of our placeholders.
-  fileFor(cue) { const s = (this.manifest?.sound || this.manifest)?.[cue]; return s && s.path && s.placeholder === false ? this.base.replace(/\/?$/, '/') + s.path : null; }
+  fileFor(cue) { const s = (this.manifest?.sound || this.manifest)?.[cue]; return s && s.path && s.placeholder === false ? this.base.replace(/\/?$/, '/') + String(s.path).replace(/^assets\//, '') : null; }   // publicDir is assets/, served at the root
   async buffer(cue) {
     const url = this.fileFor(cue); if (!url || !this.ctx || !this.fetchFn) return null;
     if (this.buffers.has(cue)) return this.buffers.get(cue);

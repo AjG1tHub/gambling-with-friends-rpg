@@ -279,7 +279,7 @@ export function challengeView(state, playerId, now = state.lastEventTs) {
 register({
   CHALLENGE_CALL(state, ev, ctx) {
     requirePhase(state, 'playing'); requireNotPaused(state, ctx);
-    const p = ctx.payload, attackerId = p.attackerId || ctx.actor, defenderId = p.defenderId, call = p.call;
+    const p = ctx.payload, attackerId = p.attackerId || p.playerId || ctx.actor, defenderId = p.defenderId, call = p.call;
     requireActor(state, ctx, attackerId); requirePlayer(state, attackerId); requirePlayer(state, defenderId);
     if (!CALLS.includes(call)) refuse(`call must be one of ${CALLS.join('/')}`);
     if (active(state)) refuse('a challenge is already in progress', 'busy');
@@ -403,14 +403,17 @@ register({
 
   CHALLENGE_REPORT(state, ev, ctx) {
     const ch = active(state); if (!ch || !ch.spun) refuse('nothing to report');
-    const party = isParty(ch, ctx.actor);
-    if (!ctx.isGm && !party) refuse('not in this challenge', 'forbidden');
+    // A proxied or piloted seat reports as the GM with payload.playerId; the GM's own verdict carries no playerId.
+    const reporter = ctx.isGm && ctx.payload.playerId && isParty(ch, ctx.payload.playerId) ? ctx.payload.playerId : ctx.actor;
+    const asGm = ctx.isGm && reporter === ctx.actor;
+    const party = isParty(ch, reporter);
+    if (!asGm && !party) refuse('not in this challenge', 'forbidden');
     const w = ctx.payload.winnerId; if (w !== 'draw' && !isParty(ch, w)) refuse('winnerId must be a player in the challenge or "draw"');
     const winnerId = w === 'draw' ? null : w;
-    if (ch.entry.hosted || ctx.isGm) { settleRound(state, ctx, winnerId, { flawless: !!ctx.payload.flawless, how: ctx.isGm ? 'gm' : 'hosted' }); return; }
-    ch.reports[ctx.actor] = w;
+    if (ch.entry.hosted || asGm) { settleRound(state, ctx, winnerId, { flawless: !!ctx.payload.flawless, how: asGm ? 'gm' : 'hosted' }); return; }
+    ch.reports[reporter] = w;
     const a = ch.reports[ch.attackerId], b = ch.reports[ch.defenderId];
-    if (a === undefined || b === undefined) { note(state, `${nameOf(state, ctx.actor)} reports: ${w === 'draw' ? 'a draw' : nameOf(state, w) + ' won'}`, 'challenge', ctx.now); return; }
+    if (a === undefined || b === undefined) { note(state, `${nameOf(state, reporter)} reports: ${w === 'draw' ? 'a draw' : nameOf(state, w) + ' won'}`, 'challenge', ctx.now); return; }
     if (a === b) { settleRound(state, ctx, winnerId, { flawless: !!ctx.payload.flawless, how: 'agreed' }); return; }
     ch.gmPending = true;
     note(state, `${nameOf(state, ch.attackerId)} and ${nameOf(state, ch.defenderId)} disagree on who won — the GM decides`, 'challenge', ctx.now);
