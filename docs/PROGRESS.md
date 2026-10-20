@@ -62,3 +62,49 @@ usually do; seven or eight will hear Last Call. Bots play plainly (no alliances,
 adjacent), so humans who cooperate on raids will get there faster, and humans who dawdle will not.
 
 Placeholder: art is the generated placeholder set in `assets/`; sounds are the legacy engine's.
+
+## Phase 7 — the apps, the gates and the deploy
+
+- Phone: creation stepper (look, class, stat gamble, Blood option, lock), roll/spin/draw movement with the rosette
+  and the Card boots mini-map, every tile prompt, the fight screen with live rounds and the pet line, the Challenge
+  Wheel with seven hosted duels and the external "Who won?" report, Cage (drag-and-drop grid, paperdoll, item
+  sheet, shop sell, trade), Self (stats, class, quests, Mirror, claim code, Wall, rules), Pets, Map, Letters.
+- TV: the hex map with fog, cartouches, tokens, crows and emotes; wheel overlays; the fight stage over the map;
+  Spotlight; Off-Screen card; standings ticker; recap with charts; sound; autopilot (`?bots=N&autostart=1`).
+- GM: table, run, config over `balance.json`, rig/spotlight/hand of the house, Challenge lists editor, Monsters
+  (take over, spawn, move, moods), Proxy & Autopilot dock (acts for a phone in a frame), ledger/export.
+- Lab (`/lab`, `?phone=1`, `?botrun=`): every item, wheel, creation gamble, duel and pet attack against a dummy,
+  data pages, in-browser bot runs with Health/Gold curves.
+- Gates: `npm run test:unit` 361 tests · `npm run test:browser` (TV + GM + 4 phones: lobby, creation, a lap, a
+  fight, Duel/Wager/Robbery, a letter, a death, recap and vault; ~90 s) · `node test/browser/lab.mjs` ·
+  `npm run test:bots` (4 and 8 bots in every mode). All in CI; deploy on push to main.
+- Live: https://gwf-rpg.netlify.app — `/` TV, `/phone`, `/gm`, `/lab`, `/classic`. Supabase project `gwf-rpg`.
+
+## Test night checklist
+
+Before people arrive
+- [ ] Open https://gwf-rpg.netlify.app/gm on the PC, create the room (PIN, mode Free-for-all, Regular, fog on).
+      Keep the PIN; a second PC can take the console over with it.
+- [ ] Put the TV on https://gwf-rpg.netlify.app/?code=XXXX (the console shows the link and the QR). Click once
+      for sound.
+- [ ] Join from your own phone through the QR, make a character, check the claim code on Self.
+- [ ] Run `/lab` on a phone for two minutes: the items you expect to see most (Coin Blade, Loaded Dice, Mend,
+      the class starters) play cleanly at phone size.
+- [ ] Backend down? The console's start screen links classic mode (`/classic`), the 10 Oct build, untouched.
+
+At the table
+- [ ] Everyone scans, names, creates (5–10 min). Spotlight the slowest two so the room watches their gambles.
+- [ ] Start the run. The first lap is the tutorial: roll, step, tile, end turn. Watch for anyone stuck on a
+      prompt (the console's Proxy panel shows who the table is waiting on; "Act for this phone" if a phone dies).
+- [ ] First fight: confirm the TV plays the monster and the phone's round feels right at ~20 s.
+- [ ] First Challenge Wheel call: both phones get the duel; external entries need the "Who won?" tap from both.
+- [ ] Letters: have two people send one; it arrives two of the recipient's turns later.
+- [ ] Watch the clock: a turn is 1:30 banked to 5:00; the clock stops while the monster acts.
+- [ ] Last Call fires at 100 minutes after start if nobody reached the throne (Config → table.lastCallMinutes).
+
+What to note for the next pass
+- [ ] Which phone screens people fumbled (write the screen name and what they tried to tap).
+- [ ] Fights that dragged (monster, rounds, who) and hits that felt unfair (the 60% cap, the stakes).
+- [ ] Any refusal toast nobody understood (text + what they were doing).
+- [ ] The recap: did the placings and the vault picks match what people thought happened?
+- [ ] Afterwards: GM → Export the room JSON and keep it; `tools/sheet-import` for any balance edits from the Sheet.
