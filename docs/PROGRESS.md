@@ -79,6 +79,9 @@ Placeholder: art is the generated placeholder set in `assets/`; sounds are the l
   fight, Duel/Wager/Robbery, a letter, a death, recap and vault; ~90 s) · `node test/browser/lab.mjs` ·
   `npm run test:bots` (4 and 8 bots in every mode). All in CI; deploy on push to main.
 - Live: https://gwf-rpg.netlify.app — `/` TV, `/phone`, `/gm`, `/lab`, `/classic`. Supabase project `gwf-rpg`.
+- Live bot runs on the deployed site (20 Oct, TV autopilot over Supabase, real wall-clock): 4-bot Free-for-all
+  room GGZZ — "Vesper reached the throne", 68 minutes, 27 rounds, 821 events; 6-bot Teams room CZGF (3 v 3) —
+  "The Dealer is dead", 64 minutes, 23 rounds, 1168 events. Both under two hours; no stalls, no proxies fired.
 
 ## Test night checklist
 
