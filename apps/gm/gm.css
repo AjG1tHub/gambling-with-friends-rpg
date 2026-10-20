@@ -20,3 +20,15 @@ table.gm td button { min-height: 36px; min-width: 36px; padding: 0 10px; font-si
 .err-box { border: 1px solid var(--blood); background: #230c0e; padding: 8px 12px; border-radius: var(--radius); color: #f2b3b3; font-size: .88rem; }
 .mono { font-family: var(--font-mono); font-size: .8rem; }
 textarea.json { min-height: 240px; font-family: var(--font-mono); font-size: .78rem; }
+
+/* Challenge Wheel, Monsters and Proxy panels (appended) */
+.gm-main .panel.blood h3 { color: #f2b3b3; }
+.gm-main table.gm input, .gm-main table.gm select { min-height: 36px; padding: 4px 8px; font-size: .88rem; width: auto; }
+.gm-main table.gm input[type=checkbox] { min-height: 0; width: 20px; height: 20px; }
+.gm-main table.gm td .row { flex-wrap: wrap; gap: 6px; }
+.gm-main .gm-bar select, .gm-main .gm-bar input { width: auto; min-height: 44px; }
+.gm-main .gwf-stage { min-height: 220px; }
+.gm-main details > summary { cursor: pointer; padding: 6px 0; }
+#gmPhoneDock .tag { font-size: .64rem; }
+.gm-main label.row input[type=checkbox], .gm-main .row > input[type=checkbox] { width: 20px; height: 20px; min-height: 0; flex: 0 0 auto; }
+.gm-main .row > input:not([type=checkbox]), .gm-main .row > select { width: auto; flex: 1 1 160px; }

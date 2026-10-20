@@ -10,11 +10,13 @@ import { panelRun } from './panels/run.js';
 import { panelConfig } from './panels/config.js';
 import { panelRig } from './panels/rig.js';
 import { panelChallenge } from './panels/challenge.js';
+import { panelMonsters } from './panels/monsters.js';
+import { panelProxy } from './panels/proxy.js';
 import { panelLedger } from './panels/ledger.js';
 import { panelExport } from './panels/export.js';
 
 const app = $('#app');
-const PANELS = [['table', 'Table', panelTable], ['run', 'Run', panelRun], ['config', 'Config', panelConfig], ['rig', 'Rig & Spotlight', panelRig], ['challenge', 'Challenge lists', panelChallenge], ['ledger', 'Ledger & Recap', panelLedger], ['export', 'Export', panelExport]];
+const PANELS = [['table', 'Table', panelTable], ['run', 'Run', panelRun], ['config', 'Config', panelConfig], ['rig', 'Rig & Spotlight', panelRig], ['challenge', 'Challenge lists', panelChallenge], ['monsters', 'Monsters', panelMonsters], ['proxy', 'Proxy & Autopilot', panelProxy], ['ledger', 'Ledger & Recap', panelLedger], ['export', 'Export', panelExport]];
 const ctx = { backend: null, session: null, panel: 'table', code: null, pinOk: false };
 const gm = (type, payload) => dispatchOrToast(ctx.session, type, payload, 'gm');
 

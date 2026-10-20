@@ -22,6 +22,8 @@ async function main() {
   const { backend, identity } = await boot();
   ctx.backend = backend; ctx.deviceId = identity.deviceId;
   const code = (qs('code') || '').toUpperCase();
+  // GM proxy mode: /phone/?code=X&as=<playerId>&gm=1 — the console acts for a seat; refused without gm=1.
+  if (qs('as')) { if (qs('gm') !== '1') return render(app, h('div', { class: 'boot' }, h('h1', {}, 'Not allowed'), h('p', { class: 'muted' }, 'Acting for another seat needs the GM console (gm=1).'))); ctx.proxyFor = qs('as'); }
   if (code.length === 4) return join(code);
   render(app, joinScreen());
 }
@@ -41,8 +43,9 @@ async function join(code) {
   ctx.code = code;
   render(app, h('div', { class: 'boot' }, h('h1', {}, code), h('p', { class: 'muted' }, 'Finding the table…')));
   try {
-    const { session } = await attach({ backend: ctx.backend, code, role: 'phone', view, presence: { role: 'phone', playerId: recallSeat(code) || undefined } });
+    const { session } = await attach({ backend: ctx.backend, code, role: 'phone', view, presence: ctx.proxyFor ? { role: 'gm' } : { role: 'phone', playerId: recallSeat(code) || undefined } });
     ctx.session = session; window.__gwf = { session, ctx };
+    if (ctx.proxyFor) { if (!session.state.players[ctx.proxyFor]) throw new Error(`no seat ${ctx.proxyFor} in this room`); ctx.me = ctx.proxyFor; view(session.state, session); return; }
     const seat = recallSeat(code);
     const existing = seat && session.state.players[seat];
     if (existing && !existing.kicked) { ctx.me = seat; await session.dispatch('PLAYER_RECONNECT', { playerId: seat, deviceId: ctx.deviceId }, seat); view(session.state, session); return; }
@@ -86,9 +89,11 @@ function view(state, session) {
     clock, c ? h('span', { class: `lantern ${tell(c)}`, title: 'your lantern' }) : null);
   const screen = lenient(h('main', { class: 'screen', id: 'phScreen' }));
   const tabs = h('nav', { class: 'tabs' }, TABS.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
-  render(app, h('div', { class: 'shell' }, top, screen, tabs));
+  render(app, h('div', { class: 'shell', style: ctx.proxyFor ? { gridTemplateRows: 'auto auto 1fr auto' } : null }, ctx.proxyFor ? h('div', { class: 'banner', style: { position: 'static' } }, `GM acting for ${me.name}`) : null, top, screen, tabs));
   const tab = TABS.find(t => t[0] === ctx.tab) || TABS[0];
-  try { tab[2]({ state, session, me, c, myTurn, ctx, h, dispatch: (type, payload) => dispatchOrToast(session, type, payload, ctx.me), screen }); } catch (e) { console.error(e); screen.append(h('p', { class: 'log error' }, e.message)); }
+  // In proxy mode every event goes out as the GM with payload.playerId (handlers accept playerId for the GM).
+  const dispatch = ctx.proxyFor ? (type, payload) => dispatchOrToast(session, type, { ...(payload || {}), playerId: ctx.me }, 'gm') : (type, payload) => dispatchOrToast(session, type, payload, ctx.me);
+  try { tab[2]({ state, session, me, c, myTurn, ctx, h, dispatch, screen }); } catch (e) { console.error(e); screen.append(h('p', { class: 'log error' }, e.message)); }
   stopTicker?.(); stopTicker = ticker((now) => { if (state.phase === 'playing') clock.textContent = fmtTime(remainingMs(session.state, currentPlayerId(session.state), now)); });
   // GM whispers / broadcasts
   const seen = ctx.seenToasts ||= new Set();

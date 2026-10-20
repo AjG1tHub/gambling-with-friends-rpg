@@ -10,7 +10,11 @@ import * as hex from '../../packages/shared/hex.js';
 
 const B = shared.B;
 const ctxOf = (t) => ({ now: t.r.now(), B: (g) => shared.group(t.state, g) });
+// A death: the character lies in the Graveyard and will wake, so it still *stands* in the run (DECISIONS.md 14).
 const kill = (t, pid) => { const c = t.char(pid); c.dead = true; c.health = 0; };
+// Out of the run: what death.js does on a player kill in pvp / teams / royale (c.eliminated); the only thing besides a
+// kicked seat that takes a character out of `standing`.
+const out = (t, pid) => { kill(t, pid); t.char(pid).eliminated = true; };
 
 test('modeAdjust: multipliers per mode, set on state before any other runStart hook', () => {
   const R = B.runs;
@@ -60,34 +64,50 @@ test('end conditions: throne or last standing (ffa), last standing (pvp), the De
   assert.equal(endCheck(t.state, ctxOf(t)), null);
   t.state.throneReachedBy = b; t.r.append('EMOTE', { emoji: '👑' }, b);
   assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, b); assert.match(t.state.endReason, /throne/);
-  // ffa: last standing
-  t = table(); [a, b, c, d] = t.order; kill(t, a); kill(t, b); t.r.append('EMOTE', { emoji: '💀' }, c); assert.equal(t.state.phase, 'playing');
-  kill(t, c); t.r.append('EMOTE', { emoji: '💀' }, d); assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, d);
+  // ffa: last standing — the dead wake at the Graveyard, so three deaths in a row do not end the night; only
+  // characters out of the run (eliminated, kicked) leave the count
+  t = table(); [a, b, c, d] = t.order; kill(t, a); kill(t, b); kill(t, c); t.r.append('EMOTE', { emoji: '💀' }, d); assert.equal(t.state.phase, 'playing', 'the dead still stand');
+  for (const id of [a, b, c]) assert.equal(standing(t.state, id), true);
+  out(t, a); out(t, b); t.r.append('EMOTE', { emoji: '💀' }, c); assert.equal(t.state.phase, 'playing');
+  out(t, c); t.r.append('EMOTE', { emoji: '💀' }, d); assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, d); assert.match(t.state.endReason, /last one standing/);
   // a table of one never ends by "last standing"
   const solo = table({ names: ['Aj'] }); solo.r.append('EMOTE', { emoji: '🙂' }, 'p0'); assert.equal(solo.state.phase, 'playing');
-  // pvp
-  t = table({ mode: 'pvp' }); [a, b, c, d] = t.order; kill(t, b); kill(t, c); kill(t, d); t.r.append('EMOTE', { emoji: '⚔' }, a); assert.equal(t.state.winner, a);
+  // pvp: a player kill eliminates
+  t = table({ mode: 'pvp' }); [a, b, c, d] = t.order; out(t, b); out(t, c); kill(t, d); t.r.append('EMOTE', { emoji: '⚔' }, a); assert.equal(t.state.phase, 'playing', 'a death that was not a player kill is not an elimination');
+  out(t, d); t.r.append('EMOTE', { emoji: '⚔' }, a); assert.equal(t.state.winner, a);
   // pve: the Dealer
   t = table({ mode: 'pve' }); [a, b, c, d] = t.order;
   t.state.monsters.the_dealer = { id: 'the_dealer', name: 'The Dealer', final: true, dead: false, health: 400, maxHealth: 400 };
   t.char(c).gold = 500; t.r.append('EMOTE', { emoji: '🃏' }, a); assert.equal(t.state.phase, 'playing');
   t.state.monsters.the_dealer.dead = true; t.r.append('EMOTE', { emoji: '🃏' }, a);
   assert.equal(t.state.phase, 'ended'); assert.equal(t.state.cleared, true); assert.equal(t.state.winner, c, 'the top placing survivor carries the name'); assert.match(t.state.endReason, /Dealer/);
-  // pve: everyone dead (an eliminated flag counts as out too)
-  t = table({ mode: 'pve' }); [a, b, c, d] = t.order; for (const id of [a, b, c]) kill(t, id); t.char(d).eliminated = true; t.r.append('EMOTE', { emoji: '💀' }, a);
-  assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, null); assert.match(t.state.endReason, /everyone fell/);
+  // pve: everyone fell to the House — the dead wake, so a table in the Graveyard plays on; only when nobody is
+  // left in the run (eliminated or kicked) does the House win
+  t = table({ mode: 'pve' }); [a, b, c, d] = t.order; for (const id of [a, b, c, d]) kill(t, id); t.r.append('EMOTE', { emoji: '💀' }, a); assert.equal(t.state.phase, 'playing');
+  for (const id of [a, b, c]) t.char(id).eliminated = true; t.r.append('GM_KICK', { playerId: d });
+  assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, null); assert.match(t.state.endReason, /everyone fell to the House/);
   // teams
   t = table({ mode: 'teams', start: false }); const [x, y, z, w] = t.ids;
   t.r.append('GM_SET_TEAMS', { teams: { red: { name: 'Red', members: [x, y] }, blue: { name: 'Blue', members: [z, w] } } }); t.r.append('RUN_START');
-  kill(t, x); t.r.append('EMOTE', { emoji: '🟥' }, y); assert.equal(t.state.phase, 'playing');
-  kill(t, y); t.r.append('EMOTE', { emoji: '🟦' }, z); assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, 'blue'); assert.match(t.state.endReason, /Blue is the last team/);
+  out(t, x); t.r.append('EMOTE', { emoji: '🟥' }, y); assert.equal(t.state.phase, 'playing');
+  out(t, y); t.r.append('EMOTE', { emoji: '🟦' }, z); assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, 'blue'); assert.match(t.state.endReason, /Blue is the last team/);
   const p = placings(t.state); assert.equal(p[0].teamPlace, 1); assert.ok(['p2', 'p3'].includes(p[0].playerId)); assert.equal(p[3].teamPlace, 2);
+  // Last Call: whatever the mode, a run still going table.lastCallMinutes after RUN_START ends on placings
+  t = table(); [a, b, c, d] = t.order; t.char(b).gold = 900; t.r.tick(B.table.lastCallMinutes * 60000 - 1); t.r.append('EMOTE', { emoji: '🕛' }, a); assert.equal(t.state.phase, 'playing');
+  t.r.tick(1); t.r.append('EMOTE', { emoji: '🕛' }, a); assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, b, 'the top placing'); assert.equal(t.state.endReason, 'Last Call: the House closed');
+  t = table({ mode: 'teams', start: false }); t.r.append('GM_SET_TEAMS', { teams: { red: { name: 'Red', members: [x, y] }, blue: { name: 'Blue', members: [z, w] } } }); t.r.append('RUN_START'); t.char(w).gold = 900;
+  t.r.tick(B.table.lastCallMinutes * 60000); t.r.append('EMOTE', { emoji: '🕛' }, x); assert.equal(t.state.phase, 'ended'); assert.equal(t.state.winner, 'blue', 'teams: the top placing\'s team');
+  // 0 turns it off
+  t = table({ balance: { table: { lastCallMinutes: 0 } } }); t.r.tick(24 * 3600000); t.r.append('EMOTE', { emoji: '🕛' }, t.order[0]); assert.equal(t.state.phase, 'playing');
 });
 
 test('placings: Gold + 50 per kill + Health, standing first', () => {
   const t = table(); const [a, b, c, d] = t.order;
   t.char(a).gold = 300; t.char(a).health = 50; t.char(b).kills = 3; t.char(b).health = 100; t.char(b).gold = 50; kill(t, c); t.char(c).gold = 999; t.char(d).gold = 0; t.char(d).health = 100;
-  const p = placings(t.state, B.gold, B.runs);
+  // dead but due to wake, c still stands and its Gold leads the table
+  assert.equal(standing(t.state, c), true); assert.deepEqual(placings(t.state, B.gold, B.runs).map(r => r.playerId), [c, a, b, d]);
+  // out of the run, c drops to the bottom whatever its score
+  out(t, c); const p = placings(t.state, B.gold, B.runs);
   assert.deepEqual(p.map(r => [r.playerId, r.score, r.place]), [[a, 350, 1], [b, 300, 2], [d, 100, 3], [c, 999, 4]]);
   assert.equal(p[3].standing, false); assert.equal(standing(t.state, c), false);
 });
@@ -109,7 +129,8 @@ test('royale: the circle closes every shrinkEveryRounds rounds toward the throne
   // the Platter
   assert.equal(canUseChickenDinner(t.state, a), false);
   assert.throws(() => consumables.chickendinner(t.state, ctxOf(t), t.char(a)), /last one standing/);
-  for (const id of [b, c, d]) kill(t, id);
+  kill(t, b); kill(t, c); kill(t, d); assert.equal(canUseChickenDinner(t.state, a), false, 'the dead wake at the Graveyard: not yet the last one standing');
+  for (const id of [b, c, d]) out(t, id);   // player kills in Royale eliminate
   assert.equal(canUseChickenDinner(t.state, a), true);
   t.char(a).health = 30; consumables.chickendinner(t.state, ctxOf(t), t.char(a));
   assert.equal(t.char(a).health, t.char(a).maxHealth); assert.equal(t.char(a).vaultBonus, 1);

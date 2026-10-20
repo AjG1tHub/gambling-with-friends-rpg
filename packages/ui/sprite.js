@@ -78,7 +78,9 @@ function armourOffset(pose, frame) { const t = ARMOUR_OFFSETS[pose] || ARMOUR_OF
 function drawLayer(layer, pose, frame, tick, manifest) {
   const entry = assetEntry(layer.key, manifest); const rec = entry ? loadImage(assetUrl(entry.path)) : null;
   const out = scratch(); const g = px(out.getContext('2d'));
-  const isBody = layer.slot === 'body' || layer.slot === 'mainhand' || layer.slot === 'offhand' || (entry?.sprite?.frames || 0) >= 22;
+  // Hand-drawn sheets (22 frames: the body, and weapons once they are drawn per frame) move on their own;
+  // everything else is one sprite per pose and rides the body by the offset table.
+  const isBody = layer.slot === 'body' || (entry?.sprite?.frames || 0) >= 22;
   const [ox, oy] = isBody ? [0, 0] : armourOffset(pose, frame);
   if (rec?.ok) {
     const { sx, sy, sw, sh } = sourceRect(entry, pose, frame);
@@ -157,8 +159,10 @@ export function renderSprite(canvas, c, { pose = 'idle', frame = 0, scale = 2, m
   const layers = safeLayers(c, H);
   const dead = c.dead || pose === 'death';
   const bobY = bob && pose === 'idle' && !dead ? (frame % 4 === 1 || frame % 4 === 2 ? -1 : 0) : 0;
+  const drawn = new Set();   // the class outfit sheet covers torso + pants + boots in one; draw it once
   for (const layer of layers) {
     if (layer.slot === 'lantern') continue;   // drawn last, scaled, below
+    if (layer.key?.startsWith('outfit/')) { if (drawn.has(layer.key)) continue; drawn.add(layer.key); }
     const img = drawLayer(layer, pose, frame, tick, manifest); if (!img) continue;
     if (dead && pose !== 'death') g.globalAlpha = .55;
     g.drawImage(img, 0, bobY * scale, FRAME.w * scale, FRAME.h * scale);
@@ -239,3 +243,9 @@ export function itemIconUrl(item, manifest = manifestSync) {
 }
 export const frameUrl = (rarity, w, h, manifest = manifestSync) => { const e = assetEntry(`frames/${rarity || 'common'}_${w}x${h}`, manifest); return e ? assetUrl(e.path) : null; };
 export const uiUrl = (name, manifest = manifestSync) => { const e = assetEntry(`ui/${name}`, manifest); return e ? assetUrl(e.path) : null; };
+export const RARITY_COLOUR = { common: '#6a5a3a', rare: '#9aa7b0', epic: '#e0c07a', legendary: '#e9e1cf' };
+export const rarityColour = (rarity) => RARITY_COLOUR[rarity] || RARITY_COLOUR.common;
+// The class crest image (assets/crest/<classId>.png), null when the manifest lacks it.
+export const crestUrl = (classId, manifest = manifestSync) => { const e = assetEntry(`crest/${classId}`, manifest); return e ? assetUrl(e.path) : null; };
+// A pet's portrait url (pets/<species>_<stage+1>), null when missing.
+export const petIconUrl = (pet, manifest = manifestSync) => { if (!pet) return null; const e = assetEntry(`pets/${pet.speciesId}_${(pet.stage || 0) + 1}`, manifest) || assetEntry(petTokenKey(pet), manifest); return e ? assetUrl(e.path) : null; };

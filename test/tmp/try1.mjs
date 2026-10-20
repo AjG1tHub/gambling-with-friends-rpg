@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const ctx = await browser.newContext({ viewport: { width: 1500, height: 950 } });
+const page = await ctx.newPage();
+const errors = [];
+page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`); });
+page.on('pageerror', e => errors.push('pageerror: ' + e.message));
+page.on('response', r => { const ct = r.headers()['content-type'] || ''; if (r.url().includes('127.0.0.1') && (ct.includes('json') || r.status() >= 400)) errors.push(`resp ${r.status()} ${ct} ${r.url()}`); });
+await page.goto('http://127.0.0.1:4190/lab/');
+await page.waitForTimeout(1200);
+await page.screenshot({ path: 'test/shots/lab-00-home.png' });
+await page.evaluate(() => { location.hash = '#coinblade'; }); await page.waitForTimeout(800);
+await page.screenshot({ path: 'test/shots/lab-01-coinblade.png', fullPage: true });
+console.log(await page.evaluate(() => ({ cur: window.__lab.current, settled: !!window.__lab.mount?.round?.settled })));
+console.log(errors);
+await browser.close();

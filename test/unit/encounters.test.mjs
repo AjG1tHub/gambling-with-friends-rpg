@@ -132,14 +132,17 @@ test('throne: the Dealer guards it; killing him on the throne wins ffa; pve leav
 
 test('drops: Gold to the killer (split across a raid party), an item spec into pendingLoot, counters, linked monsters die together, Dungheaps open the hex', () => {
   const r = started({ seed: 3 }); const [a, b] = r.state.seats; const ca = characterOf(r.state, a), cb = characterOf(r.state, b);
-  const m = monsterAt(r.state, at('docks', COL.enc1));
+  const totalAlive = aliveMonsters(r.state).length;
+  // map.monstersPerRegion commons land on this seed's pick of the encounter columns, so take the Docks commons as rolled
+  const [m, m2] = byRegion(r.state, 'docks').filter(x => !x.boss); assert.ok(m && m2, 'two Docks commons');
+  assert.equal(monsterAt(r.state, m.pos), m);
   r.append('GM_RIG', { stream: 'loot', value: 'epic' });
   slayMonster(r, m.id, a);
   assert.ok(m.dead); assert.ok(ca.gold >= m.loot.gold[0] && ca.gold <= m.loot.gold[1]); assert.equal(ca.questCounters.monsterKills, 1);
   assert.equal(r.state.stats[a].goldEarned, ca.gold);
   const spec = (ca.pendingLoot || []).find(s => s.baseId === 'loot'); if (spec) { assert.equal(spec.region, 'docks'); assert.ok(['common', 'rare', 'epic', 'legendary'].includes(spec.rarity)); assert.equal(typeof spec.seed, 'number'); }
   // the killer may be named by player id or character id
-  const m2 = monsterAt(r.state, at('docks', COL.enc2)); const g = ca.gold; slayMonster(r, m2.id, ca.id); assert.ok(ca.gold > g);
+  const g = ca.gold; slayMonster(r, m2.id, ca.id); assert.ok(ca.gold > g);
   // raid party split: both on the tile and allied
   const litter = Object.values(r.state.monsters).find(x => x.speciesId === 'the_litter');
   ca.pos = cb.pos = litter.pos; r.state.alliances.push({ id: 'x', members: [a, b], active: true }); land(r, a, litter.pos);
@@ -152,16 +155,19 @@ test('drops: Gold to the killer (split across a raid party), an item spec into p
   // Dungheap
   const heap = monsterAt(r.state, at('strip', COL.blocker)); const g2 = ca.gold; slayMonster(r, heap.id, a);
   assert.equal(r.state.map.hexes[heap.pos].type, 'plain'); assert.equal(r.state.map.hexes[heap.pos].monsterId, null); assert.ok(ca.gold > g2);
-  assert.equal(aliveMonsters(r.state).length, 28 - 6);
+  assert.equal(aliveMonsters(r.state).length, totalAlive - 6, 'two Docks commons, the Litter, the linked pair and the Dungheap');
   // respawn (Ember Flask rest) brings the commons of a region back, never bosses
   const boss = monsterAt(r.state, at('docks', COL.bossgate)); slayMonster(r, boss.id, a);
-  assert.equal(respawnRegion(r.state, 'docks'), 2); assert.ok(!m.dead && m.health === m.maxHealth); assert.ok(boss.dead);
+  assert.equal(respawnRegion(r.state, 'docks'), B.map.monstersPerRegion); assert.ok(!m.dead && m.health === m.maxHealth); assert.ok(!m2.dead); assert.ok(boss.dead);
 });
 
 test('tiles: shop shelf, chest once, inn visit, portal and arena prompts, safe tiles set lastSafePos, tile loot pickup and the round sweep', () => {
   const r = started(); const pid = currentPlayerId(r.state); const c = characterOf(r.state, pid);
   land(r, pid, at('docks', COL.shop)); assert.equal(r.state.turnPhase, 'action'); const shop = r.state.shops[at('docks', COL.shop)];
-  assert.ok(shop); assert.equal(shop.stock.length, 9 + B.shop.stock); assert.ok(shop.stock.every(e => e.priceKey in B.shop)); assert.ok(shop.stock.some(e => e.spec.baseId === 'loot')); assert.ok(!shop.stock.some(e => e.spec.rarity === 'legendary'));
+  // nine staples + one Common weapon + one pair of Loaded Boots + shop.stock gear
+  assert.ok(shop); assert.equal(shop.stock.length, 9 + 1 + 1 + B.shop.stock); assert.ok(shop.stock.every(e => e.priceKey in B.shop)); assert.ok(shop.stock.some(e => e.spec.baseId === 'loot')); assert.ok(!shop.stock.some(e => e.spec.rarity === 'legendary'));
+  const weapon = shop.stock.find(e => e.sku === 'weapon'); assert.equal(weapon.spec.slot, 'weapon'); assert.equal(weapon.priceKey, 'itemCommon');
+  const boots = shop.stock.find(e => e.sku === 'boots'); assert.equal(boots.name, 'Loaded Boots'); assert.equal(boots.spec.baseId, 'loaded_boots'); assert.equal(boots.spec.slot, 'boots'); assert.equal(boots.priceKey, 'itemCommon');
   assert.equal(ensureShopStock(r.state, ctxFor(r), at('docks', COL.shop)), shop, 'the shelf persists');
   assert.equal(c.lastSafePos, at('docks', COL.shop)); assert.deepEqual(Object.keys(c.visitedRegions), ['docks']);
   land(r, pid, at('docks', COL.chest)); assert.deepEqual(r.state.pendingPrompt, { playerId: pid, kind: 'spin', wheel: 'loot', hexKey: at('docks', COL.chest) }); assert.equal(r.state.turnPhase, 'resolve');

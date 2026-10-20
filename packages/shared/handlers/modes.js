@@ -120,7 +120,9 @@ function recordRun(state, ctx) {
     const c = state.characters[r.characterId], s = state.stats[r.playerId] || {};
     const teamWon = state.mode === 'teams' && r.teamId != null && state.winner === r.teamId;
     const cleared = !byGm && !!(state.cleared || state.winner === r.playerId || teamWon);
-    state.hallOfFame.push({ ts: ctx.now, roomId: state.roomId, seasonId: state.season.id, playerId: r.playerId, characterId: r.characterId, rosterId: c.rosterId || null, name: c.name || r.name, classId: c.classId || null, mode: state.mode, tier: state.tier, placing: r.place, survived: r.standing, tierCleared: cleared ? state.tier : 0, kills: r.kills, level: r.level, bosses: s.bosses || 0, petsCaught: s.petsCaught || 0, turns: s.turns || 0, deaths: c.deaths || 0 });
+    // `survived` is "ended the run alive" (as the metagame ledger and the recap read it), not `standing`: a character
+    // lying in the Graveyard at the end still stands in the run but did not survive it.
+    state.hallOfFame.push({ ts: ctx.now, roomId: state.roomId, seasonId: state.season.id, playerId: r.playerId, characterId: r.characterId, rosterId: c.rosterId || null, name: c.name || r.name, classId: c.classId || null, mode: state.mode, tier: state.tier, placing: r.place, survived: r.standing && !c.dead, tierCleared: cleared ? state.tier : 0, kills: r.kills, level: r.level, bosses: s.bosses || 0, petsCaught: s.petsCaught || 0, turns: s.turns || 0, deaths: c.deaths || 0 });
   }
   state.season.nights += 1;
   if (state.season.nights >= R.seasonNights) { state.season = { id: state.season.id + 1, nights: 0 }; state.seasonEnded = true; note(state, `Season ${state.season.id - 1} ends: levels and quests reset for the roster; pets, titles and gear carry over`, 'end', ctx.now); }

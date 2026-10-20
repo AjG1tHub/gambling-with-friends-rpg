@@ -1,0 +1,79 @@
+/* Game Lab: three columns on a PC (catalog · the round · tick-list), one column in phone mode. */
+body.lab { font-size: 15px; }
+.boot { display: grid; place-items: center; min-height: 100vh; text-align: center; padding: 24px; gap: 10px; }
+.lab-shell { display: grid; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); min-height: 100vh; max-width: 100vw; }
+.lab-grid > * { min-width: 0; }
+.lab-top { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--velvet-2); position: sticky; top: 0; z-index: 5; }
+.lab-top h1 { font-size: 1rem; } .lab-top .sub { color: var(--bone-dim); font-style: italic; font-size: .9rem; }
+.lab-top .grow { flex: 1; } .lab-top button, .lab-top .btn { min-height: 40px; font-size: .66rem; padding: 0 12px; }
+.lab-top label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .9rem; }
+.lab-top input[type=checkbox] { width: 18px; height: 18px; min-height: 0; }
+.lab-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr) 320px; gap: 14px; padding: 14px 16px; align-items: start; }
+.lab-nav { position: sticky; top: 62px; max-height: calc(100vh - 76px); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 8px; }
+.lab-nav h4 { font-size: .62rem; letter-spacing: .16em; color: var(--gold-dim); margin: 10px 6px 4px; }
+.lab-nav h4:first-child { margin-top: 0; }
+.lab-nav button { display: grid; grid-template-columns: 1.6em 1fr auto; gap: 6px; align-items: center; width: 100%; text-align: left; padding: 6px 8px; min-height: 36px; border-color: transparent; background: transparent; font-family: var(--font-body); letter-spacing: 0; text-transform: none; font-size: .95rem; color: var(--bone-2); justify-content: start; }
+.lab-nav button:hover { border-color: var(--line); } .lab-nav button.on { background: var(--panel-2); border-color: var(--gold-dim); color: var(--gold-2); }
+.lab-nav button .st { font-size: .75rem; color: var(--bone-dim); white-space: nowrap; }
+.lab-nav button.ok .st { color: var(--ok); } .lab-nav button.bad .st { color: #f2b3b3; }
+.lab-nav .section { font-family: var(--font-display); letter-spacing: .1em; text-transform: uppercase; font-size: .68rem; color: var(--bone); grid-template-columns: 1.6em 1fr; }
+.lab-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.lab-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lab-head h2 { font-size: 1.2rem; } .lab-head .row button { min-height: 40px; font-size: .66rem; }
+.lab-side { position: sticky; top: 62px; display: flex; flex-direction: column; gap: 12px; }
+.lab-side textarea { min-height: 90px; font-size: .9rem; }
+.lab-side .row button { min-height: 40px; font-size: .64rem; padding: 0 10px; }
+.lab-side .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: .9rem; } .lab-side .kv span:nth-child(odd) { color: var(--bone-dim); }
+.lab-result { font-family: var(--font-display); font-size: 1rem; letter-spacing: .08em; min-height: 1.4em; color: var(--bone); }
+.lab-result.win { color: #9fd49a; } .lab-result.lose { color: #f2b3b3; }
+.opponent { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+.opponent .who { text-align: center; } .opponent .who b { display: block; font-family: var(--font-display); letter-spacing: .08em; color: var(--gold-2); }
+.opponent .vs { font-family: var(--font-display); color: var(--gold-dim); }
+.bar { height: 10px; border-radius: 999px; background: #2a1a1c; overflow: hidden; border: 1px solid var(--line); }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--oxblood-2), var(--blood)); }
+.bar.ok > i { background: linear-gradient(90deg, #2f5a2a, var(--ok)); }
+.levers { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 14px; }
+.levers label { display: flex; flex-direction: column; gap: 2px; font-size: .82rem; color: var(--bone-dim); }
+.levers input[type=range] { min-height: 28px; padding: 0; width: 100%; accent-color: var(--gold); }
+.levers select, .levers input[type=number] { min-height: 36px; padding: 4px 8px; }
+.lab-main .log-box { max-height: 160px; overflow-y: auto; font-size: .88rem; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-row button { min-height: 40px; min-width: 40px; font-size: .68rem; padding: 0 10px; }
+table.lab { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.lab th { text-align: left; font-family: var(--font-display); font-size: .62rem; letter-spacing: .14em; color: var(--gold-dim); padding: 6px 8px; border-bottom: 1px solid var(--line-2); }
+table.lab td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.lab td button { min-height: 34px; min-width: 34px; padding: 0 10px; font-size: .62rem; }
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.duel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 360px; }
+.duel-grid button { min-height: 64px; font-size: 1.6rem; }
+.emoji-seq { font-size: 2rem; letter-spacing: .3em; min-height: 1.4em; }
+.report { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.report .stat { padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.report .stat b { display: block; font-family: var(--font-display); font-size: 1.3rem; color: var(--gold-2); }
+.report .stat span { color: var(--bone-dim); font-size: .8rem; }
+.pill-list { display: flex; gap: 6px; flex-wrap: wrap; }
+.mono { font-family: var(--font-mono); font-size: .8rem; }
+.wrap { white-space: pre-wrap; word-break: break-word; }
+@media (max-width: 1150px) { .lab-grid { grid-template-columns: 220px minmax(0, 1fr); } .lab-side { grid-column: 1 / -1; position: static; flex-direction: row; flex-wrap: wrap; } .lab-side .panel { flex: 1 1 280px; } }
+@media (max-width: 760px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } .lab-nav { position: static; max-height: 240px; } }
+
+/* Phone mode: one column, the phone's shell, 60 px targets. */
+body.lab-phone { font-size: 17px; }
+body.lab-phone .lab-shell { grid-template-rows: auto 1fr auto; min-height: 100dvh; overflow-x: hidden; }
+body.lab-phone .lab-top { gap: 6px 10px; } body.lab-phone .lab-top .sub { display: none; } body.lab-phone .lab-top .btn { padding: 0 8px; }
+body.lab-phone .lab-top { padding: calc(10px + env(safe-area-inset-top)) 14px 8px; }
+body.lab-phone .lab-grid { display: block; padding: 12px 14px calc(14px + env(safe-area-inset-bottom)); }
+body.lab-phone .lab-nav { position: static; max-height: none; padding: 0; gap: 6px; }
+body.lab-phone .lab-nav button { min-height: var(--tap); border-color: var(--line); background: var(--panel); font-size: 1rem; }
+body.lab-phone .lab-nav .section { min-height: 48px; }
+body.lab-phone .lab-side { position: static; }
+body.lab-phone .lab-side .row button, body.lab-phone .lab-head .row button, body.lab-phone .chip-row button { min-height: var(--tap); font-size: .72rem; flex: 1 1 30%; }
+body.lab-phone .gwf-stage { min-height: 200px; padding: 10px; }
+body.lab-phone .opponent { grid-template-columns: 1fr auto 1fr; }
+body.lab-phone .phone-tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); background: var(--velvet-2); position: sticky; bottom: 0; z-index: 5; }
+body.lab-phone .phone-tabs button { border: 0; border-radius: 0; background: transparent; min-height: 58px; font-size: .62rem; color: var(--bone-dim); }
+body.lab-phone .phone-tabs button.on { color: var(--gold-2); }
+body.lab-phone table.lab { font-size: .95rem; } body.lab-phone table.lab td button { min-height: 48px; }
+body.lab-phone .duel-grid button { min-height: var(--tap); }
+.lab-main .row > input:not([type=checkbox]), .lab-main .row > select, .lab-main label.row > input:not([type=checkbox]), .lab-main label.row > select { width: auto; min-height: 44px; }
+.lab-main .row > input[type=checkbox], .lab-main label.row > input[type=checkbox] { width: 20px; height: 20px; min-height: 0; }
