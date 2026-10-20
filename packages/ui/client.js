@@ -23,13 +23,16 @@ export async function attach({ backend, roomId, code, role, view, onEvent, creat
   rerender(null);
   // Presence: ping while the tab is alive; the TV watches for silence.
   let leave = null;
-  if (presence && backend.presence) leave = backend.presence(session.roomId, presence, (map) => { Object.assign(session.presence, map); try { view(session.state, session, null); } catch { /* ignore */ } });
+  const onPresence = (map) => { Object.assign(session.presence, map); try { view(session.state, session, null); } catch { /* ignore */ } };
+  if (presence && backend.presence) leave = backend.presence(session.roomId, presence, onPresence);
+  // A phone that takes a seat after attaching re-registers under its player id, or the TV proxies it for silence.
+  const setPresence = (meta) => { if (!backend.presence) return; leave?.(); leave = backend.presence(session.roomId, meta, onPresence); };
   const offline = () => banner('Connection lost — the game goes on without you until you are back', 'bad');
   const online = () => { banner(''); session.refresh().catch(() => {}); };
   window.addEventListener('offline', offline); window.addEventListener('online', online);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') session.refresh().catch(() => {}); });
   const close = () => { leave?.(); session.close(); window.removeEventListener('offline', offline); window.removeEventListener('online', online); };
-  return { session, close };
+  return { session, close, setPresence };
 }
 
 // A seat id per room on this device, so a reload rejoins the same seat.

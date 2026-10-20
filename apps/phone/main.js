@@ -43,14 +43,14 @@ async function join(code) {
   ctx.code = code;
   render(app, h('div', { class: 'boot' }, h('h1', {}, code), h('p', { class: 'muted' }, 'Finding the table…')));
   try {
-    const { session } = await attach({ backend: ctx.backend, code, role: 'phone', view, presence: ctx.proxyFor ? { role: 'gm' } : { role: 'phone', playerId: recallSeat(code) || undefined } });
-    ctx.session = session; window.__gwf = { session, ctx };
+    const { session, setPresence } = await attach({ backend: ctx.backend, code, role: 'phone', view, presence: ctx.proxyFor ? { role: 'gm' } : { role: 'phone', playerId: recallSeat(code) || undefined } });
+    ctx.session = session; ctx.setPresence = setPresence; window.__gwf = { session, ctx };
     if (ctx.proxyFor) { if (!session.state.players[ctx.proxyFor]) throw new Error(`no seat ${ctx.proxyFor} in this room`); ctx.me = ctx.proxyFor; view(session.state, session); return; }
     const seat = recallSeat(code);
     const existing = seat && session.state.players[seat];
     if (existing && !existing.kicked) { ctx.me = seat; await session.dispatch('PLAYER_RECONNECT', { playerId: seat, deviceId: ctx.deviceId }, seat); view(session.state, session); return; }
     const byDevice = Object.values(session.state.players).find(p => p.deviceId === ctx.deviceId && !p.kicked);
-    if (byDevice) { ctx.me = byDevice.id; rememberSeat(code, byDevice.id); await session.dispatch('PLAYER_RECONNECT', { playerId: byDevice.id, deviceId: ctx.deviceId }, byDevice.id); view(session.state, session); return; }
+    if (byDevice) { ctx.me = byDevice.id; rememberSeat(code, byDevice.id); setPresence({ role: 'phone', playerId: byDevice.id }); await session.dispatch('PLAYER_RECONNECT', { playerId: byDevice.id, deviceId: ctx.deviceId }, byDevice.id); view(session.state, session); return; }
     render(app, nameScreen(session));
   } catch (e) { console.error(e); render(app, joinScreen(e.message)); }
 }
@@ -64,7 +64,7 @@ function nameScreen(session) {
     const playerId = shortId('p');
     const ok = await dispatchOrToast(session, 'PLAYER_JOIN', { playerId, name: name || 'Watcher', deviceId: ctx.deviceId, spectator }, playerId);
     if (!ok) return;
-    ctx.me = playerId; rememberSeat(ctx.code, playerId); store.set('gwfrpg:phone:last', { code: ctx.code, name });
+    ctx.me = playerId; rememberSeat(ctx.code, playerId); store.set('gwfrpg:phone:last', { code: ctx.code, name }); ctx.setPresence?.({ role: 'phone', playerId });
     view(session.state, session);
   };
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(false); });
