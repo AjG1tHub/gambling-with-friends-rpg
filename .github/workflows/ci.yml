@@ -25,6 +25,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run test:browser
+      - run: node test/browser/lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: browser-shots, path: test/shots, if-no-files-found: ignore }
