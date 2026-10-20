@@ -10,7 +10,7 @@
 //   challengePanel(state, { now })        → the rail panel for a PvP challenge (hosted duels show hosted.tvView)
 //   areaPanel(state, { now })             → who has staked in an open Area window
 import { h, ticker, fmtTime } from './dom.js';
-import { wheelElement, spinTo } from './wheel.js';
+import { wheelElement, spinTo, landedFor } from './wheel.js';
 import { WHEEL_SPIN_MS } from './sound.js';
 import { stageHtml, esc, cardsHtml } from '../games/stage.js';
 import { EXTRA } from '../games/legacy/games-extra.js';
@@ -175,10 +175,13 @@ export function spotlightGrid(stage, state, { now = Date.now() } = {}) {
   return wrap;
 }
 
+// The Challenge Wheel's result is secret until the GM window closes and the TV's wheel has stopped.
+const challengeLanded = (state, now) => { const ch = state.challenge; if (!ch) return true; if (ch.gmWindowUntil && now < ch.gmWindowUntil) return false; const sp = state.lastSpin; return !(sp && sp.wheel === 'challenge' && sp.challengeId === ch.id) || landedFor(sp.ts); };
+
 // ── the Off-Screen card ─────────────────────────────────────────────
 export function offScreenCardEl(state, { now = Date.now() } = {}) {
   const card = offScreenCard(state); if (!card) return null;
-  if (state.challenge?.gmWindowUntil && now < state.challenge.gmWindowUntil) return null;   // the wheel has not landed on the TV yet
+  if (!challengeLanded(state, now)) return null;   // the wheel has not landed on the TV yet
   const a = characterOf(state, card.aId), b = characterOf(state, card.bId);
   const timer = h('div', { class: 'offscreen-timer display' }, card.deadline ? fmtTime(card.deadline - now) : '—');
   const el = h('div', { class: 'offscreen-card panel gold' },
@@ -221,7 +224,7 @@ export function challengePanel(state, { now = Date.now() } = {}) {
   if (ch.call === 'wager' || ch.call === 'robbery') panel.append(h('div', { class: 'small muted' }, `${ch.amount || ch.pot || 0} Gold on the line`));
   if (!ch.spun) panel.append(h('div', { class: 'small ital muted' }, ch.call === 'wager' && !ch.accepted ? `${B} decides whether to accept…` : !ch.defenderItemId && !ch.defenderAnswered ? `${B} picks a weapon…` : `${A} spins the Challenge Wheel…`));
   else {
-    const landed = !ch.gmWindowUntil || now >= ch.gmWindowUntil || ch.done;
+    const landed = challengeLanded(state, now) || ch.done;
     if (!landed) panel.append(h('div', { class: 'small ital muted' }, 'The Challenge Wheel is turning…'));
     else {
       panel.append(h('div', { class: 'row between small' }, h('span', { class: 'muted' }, 'The wheel says'), h('b', {}, ch.entry?.name || '—')));

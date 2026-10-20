@@ -154,3 +154,5 @@ export const activeOverlay = () => current?.el || null;
 // True while a wheel is turning on the TV (before it lands): screens hold back log lines that would spoil it.
 export const spinning = () => !!current && !current.landed;
 export const spinningTs = () => (current && !current.landed ? current.ts : null);
+// Has the TV finished animating the spin with this ts? (False while it turns or waits its turn in `pending`.)
+export const landedFor = (ts) => !(ts != null && ((current && current.ts === ts && !current.landed) || (pending && pending.ts === ts)));

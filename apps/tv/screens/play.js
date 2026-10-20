@@ -8,7 +8,7 @@ import { currentPlayerId, characterOf, activeSeats } from '../../../packages/sha
 import { remainingMs } from '../../../packages/shared/clock.js';
 import { group } from '../../../packages/shared/balance.js';
 import { renderHexMap } from '../../../packages/ui/hexmap.js';
-import { spinOverlay, spinningTs } from '../../../packages/ui/wheel.js';
+import { spinOverlay, spinningTs, landedFor } from '../../../packages/ui/wheel.js';
 import { fightPanel, stageOverlay, spotlightGrid, offScreenCardEl, challengePanel, areaPanel, tellLine } from '../../../packages/ui/stage.js';
 import { manifestNow } from '../../../packages/ui/sprite.js';
 import { className } from '../../../packages/ui/recap.js';
@@ -65,7 +65,7 @@ export function renderPlay({ state, session, stage, rail, clockEls, rerender = n
 export function visibleLog(state, now = Date.now()) {
   let log = state.log;
   const ch = state.challenge;
-  if (ch && !ch.done && ch.gmWindowUntil && now < ch.gmWindowUntil) { const since = state.lastSpin?.wheel === 'challenge' ? state.lastSpin.ts : ch.gmWindowUntil - 60000; log = log.filter(l => !(l.kind === 'challenge' && l.ts >= since)); }
+  if (ch && !ch.done && ((ch.gmWindowUntil && now < ch.gmWindowUntil) || (state.lastSpin?.wheel === 'challenge' && !landedFor(state.lastSpin.ts)))) { const since = state.lastSpin?.wheel === 'challenge' ? state.lastSpin.ts : ch.gmWindowUntil - 60000; log = log.filter(l => !(l.kind === 'challenge' && l.ts >= since)); }
   const ts = spinningTs(); if (ts != null) log = log.filter(l => l.ts < ts);
   return log;
 }
