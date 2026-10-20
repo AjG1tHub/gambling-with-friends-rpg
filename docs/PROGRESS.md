@@ -108,3 +108,20 @@ What to note for the next pass
 - [ ] Any refusal toast nobody understood (text + what they were doing).
 - [ ] The recap: did the placings and the vault picks match what people thought happened?
 - [ ] Afterwards: GM → Export the room JSON and keep it; `tools/sheet-import` for any balance edits from the Sheet.
+
+## QA tooling (20 Oct, from AJ's request)
+
+- **Phone 🐞**: every phone has a bug button in the top bar; a report carries the screen, turn and round and lands in
+  the room (`state.bugReports`, in the export). The TV only shows "X reports a bug".
+- **GM › Bugs & rewards**: the reports, status and notes, "Copy all as Markdown", and the **Bug Reward Wheel**:
+  the GM spins it for a player (from a report row or by seat); the console watches the wheel land and sees the
+  result; the player's phone shows the same wheel under "You get a secret reward for helping squash a bug. Don't
+  tell anyone 🤫"; nobody else sees anything (no TV wheel, no log line). Rewards: Rare / Epic / Legendary gear
+  straight into the grid, Hush Money (`wheels.bugGold`), a Round of Potions, Patched Up (full Health +15 max),
+  a stat point, a pet egg — segments in `data/wheels.json` → `bugreward`.
+- **Lab › QA run** (`/lab/?qa=1`, also `?phone=1&qa=1`): every wheel three times — Buy-in, Chaos at tiers 1/3/5,
+  Fortune, Fate, Loot, Boss moods, Movement (Croupier's Heels), Challenge, the Triple Pet Wheel, the Bug Reward
+  Wheel — each spin followed by the calculation: segment weights → odds with the landed row lit, the rule text with
+  its balance numbers resolved, a before → after diff of the test character (Health, Gold, items added, position,
+  Chaos tier, moods, steps…), the log lines produced and ✓/✗ arithmetic checks; ✅ Works / ❌ Problem + note per
+  spin, resumable, with a copyable report at the end. Both flows are in the browser gates.

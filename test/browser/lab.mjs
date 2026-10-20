@@ -1,7 +1,7 @@
 // Game Lab browser run: opens the built Lab (`npm run build` first), plays every one of the 36 items once with the
 // bot (auto-play), spins every wheel once, plays the creation gamble, a hosted duel and a pet attack, opens the
-// phone mode and every data page, and runs a short bot run — asserting no console errors and that every round
-// settles. Screenshots go to test/shots/lab-*.png.
+// phone mode and every data page, runs a short bot run, and walks the QA run (every wheel ×3, fast spins) on the PC
+// and the phone — asserting no console errors and that every round settles. Screenshots go to test/shots/lab-*.png.
 //   node test/browser/lab.mjs            serves dist/ itself on a free port
 //   LAB_URL=http://127.0.0.1:4190 node test/browser/lab.mjs    against a server already running
 import { chromium } from 'playwright';
@@ -139,6 +139,49 @@ try {
   ok(rep.turns > 0 && rep.events > 50, `bot run: ${rep.turns} turns, ${rep.events} events, ended "${rep.ended}", stalls ${rep.stalls}`);
   ok((await br.locator('svg polyline').count()) >= 3, 'curves drawn');
   await br.screenshot({ path: shotDir + 'lab-08-botrun.png', fullPage: true });
+
+  // ── QA run: every wheel ×3, one spin at a time (fast spins), verdicts by key and button, resume, phone ──
+  console.log('QA run: every wheel ×3');
+  const qc = await browser.newContext({ viewport: { width: 1500, height: 1000 } }); qc.setDefaultTimeout(20000);
+  const qa = await qc.newPage(); wire(qa, 'qa');
+  await qa.goto(`${url}/lab/?qa=1&fast=1`);
+  await waitFor(qa, () => !!window.__lab && window.__lab.current === 'qa' && !!document.querySelector('.qa-spin') && !!document.querySelector('.lab-nav button[data-id="qa"]'), 'QA run opened on its first spin and sits in the catalog under Runs');
+  const spinInfo = () => qa.evaluate(() => { const s = document.querySelector('.qa-spin'); return { wheel: s?.dataset.wheel, k: s?.dataset.k, landed: document.querySelector('.qa-landed')?.textContent || '', hit: !!document.querySelector('tr.qa-hit'), diffRows: document.querySelectorAll('.qa-row').length, changed: document.querySelectorAll('.qa-row.changed').length, checks: document.querySelectorAll('.qa-checks li').length, badChecks: [...document.querySelectorAll('.qa-checks li.bad')].map(x => x.textContent), logs: document.querySelector('.qa-log')?.textContent || '', wheels: document.querySelectorAll('.qa-face .gwf-wheel').length }; });
+  let qaSeen = 0, qaShots = 0;
+  for (let guard = 0; guard < 40; guard++) {
+    if (!(await spinInfo()).wheel) break;
+    await waitFor(qa, () => window.__lab.mount?.landed === true, null);
+    const info = await spinInfo();
+    ok(info.hit && info.diffRows >= 10 && info.checks >= 1 && /^Landed: /.test(info.landed), `${info.wheel} ${info.k}/3 ${info.landed} · ${info.diffRows} diff rows (${info.changed} changed) · ${info.checks} checks${info.badChecks.length ? ' · ✗ ' + info.badChecks.join(' | ') : ''}`);
+    if (info.wheel === 'pets') ok(info.wheels === 3, 'pet wheel shows three faces');
+    if (info.wheel === 'bugreward') ok(/no public log line ✓/.test(info.logs), 'bug reward wheel asserts no public log line');
+    if (['buyin', 'chaos', 'fortune', 'fate', 'loot', 'boss', 'pets', 'bugreward'].includes(info.wheel) && info.k === '1') await qa.screenshot({ path: shotDir + `lab-qa-${String(qaShots++).padStart(2, '0')}-${info.wheel}.png`, fullPage: true });
+    // Verdicts: key O on most; ❌ Problem + a note + Next on fate 2; Skip (N) on movement 3; the Works button on loot 1.
+    if (info.wheel === 'fate' && info.k === '2') { await qa.keyboard.press('x'); await waitFor(qa, () => document.querySelector('.qa-note')?.style.display === '', 'Problem reveals the note field'); await qa.fill('.qa-note textarea', 'QA walk: sample problem note'); await qa.click('.qa-verdict button:has-text("Next")'); }
+    else if (info.wheel === 'movement' && info.k === '3') await qa.keyboard.press('n');
+    else if (info.wheel === 'loot' && info.k === '1') await qa.click('.qa-verdict button:has-text("Works")');
+    else await qa.keyboard.press('o');
+    await waitFor(qa, (prev) => { const s = document.querySelector('.qa-spin'); return !s || s.dataset.wheel !== prev.wheel || s.dataset.k !== prev.k; }, null, { wheel: info.wheel, k: info.k });
+    qaSeen++;
+  }
+  ok(qaSeen === 30, `walked ${qaSeen} spins`);
+  await waitFor(qa, () => !!document.querySelector('.qa-done'), 'summary shown at the end');
+  const qaSum = await qa.evaluate(() => ({ title: document.querySelector('.qa-done h2')?.textContent, cells: document.querySelectorAll('.qa-summary td button').length, report: document.querySelector('.qa-report')?.textContent || '', qa: window.__lab.marks.qa?.status }));
+  ok(/30 \/ 30 · 1 problem/.test(qaSum.title) && qaSum.cells === 30 && /PROBLEM.*sample problem note/.test(qaSum.report) && /skipped/.test(qaSum.report) && qaSum.qa === 'bad', `summary: ${qaSum.title} · 30 cells · report carries the note and the skip · catalog mark ${qaSum.qa}`);
+  await qa.screenshot({ path: shotDir + 'lab-qa-90-summary.png', fullPage: true });
+  await qa.reload(); await waitFor(qa, () => !!window.__lab && !!document.querySelector('.qa-done'), 'reload resumes at the summary');
+  await qa.click('.qa-verdict button:has-text("Start over")');
+  await waitFor(qa, () => { const s = document.querySelector('.qa-spin'); return s?.dataset.wheel === 'buyin' && s.dataset.k === '1'; }, 'Start over returns to Buy-in 1/3');
+  await qa.keyboard.press('o'); await waitFor(qa, () => document.querySelector('.qa-spin')?.dataset.k === '2', 'verdict advances to 2/3');
+  await qa.reload(); await waitFor(qa, () => document.querySelector('.qa-spin')?.dataset.wheel === 'buyin' && document.querySelector('.qa-spin')?.dataset.k === '2', 'reload resumes at Buy-in 2/3');
+  const qph = await ph.newPage(); wire(qph, 'qa-phone');
+  await qph.goto(`${url}/lab/?phone=1&qa=1&fast=1`); await waitFor(qph, () => !!window.__lab && document.body.classList.contains('lab-phone') && !!document.querySelector('.qa-spin'), 'phone QA run opened');
+  await waitFor(qph, () => window.__lab.mount?.landed === true, null);
+  const qpm = await qph.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, btn: Math.min(...[...document.querySelectorAll('.qa-verdict button')].filter(b => b.offsetParent).map(b => b.getBoundingClientRect().height)) }));
+  ok(qpm.sw <= qpm.cw && qpm.btn >= 60, `phone QA: no horizontal overflow (${qpm.sw} ≤ ${qpm.cw}), verdict buttons ${Math.round(qpm.btn)} px`);
+  await qph.screenshot({ path: shotDir + 'lab-qa-phone-00.png' });
+  await qph.click('.qa-verdict button:has-text("Works")'); await waitFor(qph, () => document.querySelector('.qa-spin')?.dataset.k === '2', 'phone verdict advances');
+  await qph.screenshot({ path: shotDir + 'lab-qa-phone-01.png', fullPage: true });
 
   if (errors.length) { console.error('Console errors:\n' + errors.join('\n')); throw new Error(`${errors.length} console error(s)`); }
   console.log('  ✓ no console errors');

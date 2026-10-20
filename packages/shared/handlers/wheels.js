@@ -172,7 +172,9 @@ const APPLY = {
   boss(state, ctx, seg, playerId, extra) {
     const m = state.monsters[extra.monsterId]; if (!m) refuse('no such monster');
     m.mood = { id: seg.id, name: seg.name, healthMult: seg.healthMult, damageMult: seg.damageMult, lootMult: seg.lootMult, text: seg.text };
-    const scaled = Math.max(1, Math.round(m.maxHealth * (seg.healthMult || 1)));
+    // Scale from the unmooded Health so a second spin (the GM re-rolling a mood) does not compound.
+    m.baseMaxHealth ??= m.maxHealth;
+    const scaled = Math.max(1, Math.round(m.baseMaxHealth * (seg.healthMult || 1)));
     if (m.parts) { const each = Math.max(1, Math.round(scaled / m.parts.length)); for (const p of m.parts) { p.maxHealth = p.health = each; } m.maxHealth = m.health = each * m.parts.length; }
     else { m.maxHealth = m.health = scaled; }
     note(state, `${m.name} is ${seg.name}: ${seg.text}`, 'boss', ctx.now);
