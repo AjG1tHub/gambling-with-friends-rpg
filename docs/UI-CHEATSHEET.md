@@ -71,3 +71,19 @@ Read with ARCHITECTURE.md and STATE.md. Everything below exists and is unit-test
 - The bot's `tableDuties` leaves a `gmControlled` monster to the GM console.
 - Creation gamble `'buyin'`: the phone spins an 8-segment wheel with multipliers `creation.buyinMultipliers`
   (actor-authoritative, like any round) and reports the result through `CHAR_STAT_GAMBLE`.
+
+## QA: bug reports and the Bug Reward Wheel (handlers/qa.js, wheels.json `bugreward`)
+
+- `BUG_REPORT {text, screen?, context?}` from any phone (actor = the player; the GM/TV pass `playerId` or none) →
+  `state.bugReports[] = {id, ts, playerId, name, text, screen, context, phase, round, turnIdx, eventSeq, status, notes, reward}`.
+  Log line: "X reports a bug on <screen>" (kind `qa`).
+- `GM_BUG_STATUS {bugId, status: open|fixed|wontfix|dupe|rewarded, notes?}`.
+- `GM_BUG_REWARD {playerId, bugId?}` spins the Bug Reward Wheel **in secret**: no `lastSpin`, no log line (loot pickup
+  lines are trimmed). Result → `state.secretSpins[playerId] = {id, ts, wheel:'bugreward', outcomes[], index, label, text, bugId, seen, message}`
+  and a copy with `playerId` in `state.bugRewards[]`. Only that player's phone and the GM console may render it — the
+  TV must never read `secretSpins`/`bugRewards`. `message` is the line to show at the top of the phone's wheel:
+  "You get a secret reward for helping squash a bug. Don’t tell anyone 🤫". Effects (wheels.js `APPLY.bugreward`):
+  rare/epic/legendary gear into the grid at once, `wheels.bugGold`, `wheels.bugPotions`, full heal + `wheels.bugMaxHealth`,
+  +1 stat point, a pet egg. Segments and texts: `data/wheels.json` → `bugreward`.
+- `BUG_REWARD_SEEN {}` from the phone once it has shown the wheel (`seen: true`, mirrored into `bugRewards`).
+- `spinWheelSecret(state, ctx, wheel, playerId)` in wheels.js is the generic secret spin; `segmentsFor(state, 'bugreward')` lists the segments.

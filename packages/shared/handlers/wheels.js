@@ -24,7 +24,8 @@ import wheelsData from '../../../data/wheels.json' with { type: 'json' };
 import { register, refuse, requireGm, requirePhase, requireActor } from '../reducer.js';
 import { currentPlayerId, characterOf, livingCharacters, note } from '../state.js';
 import { streamRng, rigAwareWeightedIndex } from '../rng.js';
-import { health, gold } from '../health.js';
+import { health, gold, maxHealth as maxHealthMove } from '../health.js';
+import { materialisePendingLoot } from '../characters/generator.js';
 import { RARITIES, rarityKey } from '../balance.js';
 import { damageHooks, lootHooks, runMods } from '../hooks.js';
 import { hooks as runHooks } from '../handlers/run.js';
@@ -107,6 +108,19 @@ export function spinWheel(state, ctx, wheel, playerId, extra = {}) {
   if (result?.text) state.lastSpin.text = result.text;
   return { seg, index, result };
 }
+// A spin nobody else sees (the Bug Reward Wheel): same streams and rig, no lastSpin, no public log line. Whatever
+// the effect logged (loot pickups) is trimmed back out of the room log; the caller stores the result where only
+// the player and the GM read it.
+export function spinWheelSecret(state, ctx, wheel, playerId, extra = {}) {
+  const segs = segmentsFor(state, wheel, extra);
+  if (!segs || !segs.length) refuse(`no such wheel: ${wheel}`);
+  const index = rigAwareWeightedIndex(state, 'wheels', segs);
+  const seg = segs[index];
+  const logLen = state.log.length;
+  const apply = APPLY[wheel]; const result = apply ? apply(state, ctx, seg, playerId, extra) : null;
+  if (state.log.length > logLen) state.log.splice(logLen);
+  return { seg, index, result, outcomes: segs.map(s => s.label) };
+}
 
 function needChar(state, playerId) { const c = characterOf(state, playerId); if (!c) refuse(`no character for ${playerId}`); return c; }
 
@@ -165,6 +179,22 @@ const APPLY = {
     return { text: seg.name };
   },
   chaos(state, ctx, seg, playerId) { return applyChaos(state, ctx, seg, playerId); },
+  // The Bug Reward Wheel: the GM spins it for a player who reported a bug (handlers/qa.js). Items land in the grid
+  // at once rather than waiting for the next turn boundary.
+  bugreward(state, ctx, seg, playerId) {
+    const c = needChar(state, playerId), W = ctx.B('wheels'), rng = streamRng(state, 'wheels'), region = regionOf(state, c);
+    const seed = () => Math.floor(rng.next() * 4294967296) >>> 0;
+    const land = (spec) => { pushLoot(c, spec); const out = materialisePendingLoot(state, ctx, c); return out[out.length - 1]?.item || null; };
+    switch (seg.effect) {
+      case 'rare': case 'epic': case 'legendary': { const slot = rng.pick(['weapon', 'weapon', 'spell', 'helmet', 'torso', 'pants', 'gloves', 'boots', 'ring', 'necklace']); const it = land({ baseId: 'loot', rarity: seg.effect, slot, region, seed: seed() }); return { text: `${c.name} is handed ${it?.name || `a ${seg.effect} item`}`, item: it?.id || null }; }
+      case 'gold': gold(state, c, W.bugGold, 'Bug Reward Wheel', ctx); if (state.stats[playerId]) state.stats[playerId].goldEarned += W.bugGold; return { text: `${c.name} pockets ${W.bugGold} Gold` };
+      case 'potions': { for (let i = 0; i < W.bugPotions; i++) land({ baseId: 'potion', rarity: 'common', region, seed: seed() }); return { text: `${c.name} gets ${W.bugPotions} Potions` }; }
+      case 'heal': { maxHealthMove(state, c, W.bugMaxHealth, 'Bug Reward Wheel', ctx); const healed = health(state, c, c.maxHealth - c.health, 'Bug Reward Wheel', ctx); return { text: `${c.name} is patched up: full Health, +${W.bugMaxHealth} max` }; }
+      case 'stat': c.statPoints = (c.statPoints || 0) + 1; return { text: `${c.name} gains a stat point` };
+      case 'egg': land({ baseId: 'egg', slot: 'egg', rarity: 'common', region, seed: seed() }); return { text: `${c.name} finds a pet egg` };
+      default: return { text: 'nothing' };
+    }
+  },
 };
 
 // ---- Chaos ------------------------------------------------------------------------------------------------

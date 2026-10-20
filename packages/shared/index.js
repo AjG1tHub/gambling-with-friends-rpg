@@ -21,6 +21,7 @@ import './handlers/pets.js';
 import './handlers/classes.js';
 import './handlers/challenge.js';
 import './handlers/social.js';
+import './handlers/qa.js';
 export * from './reducer.js';
 export * from './state.js';
 export * from './events.js';

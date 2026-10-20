@@ -105,10 +105,10 @@
   "tiles": 31,
   "tv": 14,
   "ui": 39,
-  "wheels": 13,
+  "wheels": 14,
   "worn": 83
  },
- "total": 628,
+ "total": 629,
  "missing": [],
  "assets": {
   "badges/beast_friend": {
@@ -9600,6 +9600,31 @@
      "Hungry",
      "Furious",
      "Cunning"
+    ]
+   }
+  },
+  "wheels/bugreward": {
+   "path": "assets/wheels/bugreward.svg",
+   "kind": "svg",
+   "group": "wheels",
+   "size": [
+    1024,
+    1024
+   ],
+   "priority": "P2",
+   "placeholder": true,
+   "bytes": 3377,
+   "name": "bugreward",
+   "meta": {
+    "labels": [
+     "A Rare Find",
+     "Epic Thanks",
+     "The House Owes You",
+     "Hush Money",
+     "Round of Potions",
+     "Patched Up",
+     "Sharper",
+     "Something Hatching"
     ]
    }
   },

@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 327 tunables in 28 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 330 tunables in 28 groups.
 
 ## Changing a value
 
@@ -340,6 +340,9 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | Key | Default | Unit | Spec section | What moving it does |
 | --- | --- | --- | --- | --- |
 | `wheels.fortuneHealth` | 20 | Health | Wheels | Fortune Wheel Health prize. |
+| `wheels.bugGold` | 150 | Gold | QA | Bug Reward Wheel: Hush Money. |
+| `wheels.bugPotions` | 3 | potions | QA | Bug Reward Wheel: Round of Potions. |
+| `wheels.bugMaxHealth` | 15 | Health | QA | Bug Reward Wheel: Patched Up adds this much max Health for the run (and heals to full). |
 | `wheels.fortuneGold` | 60 | Gold | Wheels | Fortune Wheel Gold prize. |
 | `wheels.fateWindfall` | 80 | Gold | Wheels | Fate Wheel windfall. |
 | `wheels.chaosRegionRounds` | 3 | rounds | Wheels | Length of a region-targeted Chaos effect. |

@@ -271,6 +271,9 @@
   },
   "wheels": {
     "fortuneHealth": { "v": 20, "unit": "Health", "spec": "Wheels", "note": "Fortune Wheel Health prize." },
+    "bugGold": { "v": 150, "unit": "Gold", "spec": "QA", "note": "Bug Reward Wheel: Hush Money." },
+    "bugPotions": { "v": 3, "unit": "potions", "spec": "QA", "note": "Bug Reward Wheel: Round of Potions." },
+    "bugMaxHealth": { "v": 15, "unit": "Health", "spec": "QA", "note": "Bug Reward Wheel: Patched Up adds this much max Health for the run (and heals to full)." },
     "fortuneGold": { "v": 60, "unit": "Gold", "spec": "Wheels", "note": "Fortune Wheel Gold prize." },
     "fateWindfall": { "v": 80, "unit": "Gold", "spec": "Wheels", "note": "Fate Wheel windfall." },
     "chaosRegionRounds": { "v": 3, "unit": "rounds", "spec": "Wheels", "note": "Length of a region-targeted Chaos effect." },

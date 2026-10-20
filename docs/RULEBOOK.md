@@ -254,6 +254,17 @@ You tap spin on your phone; the TV animates it. Buy-in sets starting Health, For
 | Scatter | 7% | Every living character is thrown to a random hex of their region. |
 | Apocalypse | 5% | Everyone takes the Collector's cut, every region bleeds, and the tier is pinned at max. |
 
+| Bugreward wheel | Chance | What happens |
+| --- | --- | --- |
+| A Rare Find | 25% | A Rare item rolled for your region, straight into the grid. |
+| Epic Thanks | 20% | An Epic item rolled for your region, straight into the grid. |
+| The House Owes You | 6% | A Legendary (an Epic if the run's Legendary has already dropped). |
+| Hush Money | 15% | 150 Gold from the house. |
+| Round of Potions | 12% | 3 Potions. |
+| Patched Up | 10% | Full Health and +15 max Health for the run. |
+| Sharper | 8% | +1 stat point to spend on Self. |
+| Something Hatching | 4% | A pet egg of your region. |
+
 Chaos tiers multiply damage ×1, ×1.25, ×1.5, ×2, ×3; the tier rises every 4 rounds up to tier 5.
 
 ## Named Legendaries <a id="legendaries"></a>

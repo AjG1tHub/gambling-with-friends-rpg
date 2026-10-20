@@ -1,36 +1,249 @@
 {
-  "_about": "Segments of the Fortune, Fate, Loot, Chaos and Boss wheels (SPEC.md › Wheels and randomness). Weights are data; every amount comes from balance.json (the `effect` names the rule and packages/shared/handlers/wheels.js reads the number). Chaos segments carry a minTier: they are on the wheel only once state.chaos.tier has reached it, which is how the legacy tiers (Reshuffle → Repaint → Upheaval → Scatter → Apocalypse) escalate. The Boss wheel has no fixed segments: it spins over the boss species' moods table in data/monsters.json. The Buy-in wheel is built in run.js from health.buyinMin/buyinMax.",
+  "_about": "Segments of the Fortune, Fate, Loot, Chaos and Boss wheels (SPEC.md \u203a Wheels and randomness). Weights are data; every amount comes from balance.json (the `effect` names the rule and packages/shared/handlers/wheels.js reads the number). Chaos segments carry a minTier: they are on the wheel only once state.chaos.tier has reached it, which is how the legacy tiers (Reshuffle \u2192 Repaint \u2192 Upheaval \u2192 Scatter \u2192 Apocalypse) escalate. The Boss wheel has no fixed segments: it spins over the boss species' moods table in data/monsters.json. The Buy-in wheel is built in run.js from health.buyinMin/buyinMax. The Bug Reward Wheel (bugreward) is spun by the GM for a player who reported a bug (GM_BUG_REWARD).",
   "fortune": [
-    { "id": "health",  "label": "Second Wind", "weight": 30, "effect": "health",  "text": "Heal wheels.fortuneHealth." },
-    { "id": "gold",    "label": "Payday",      "weight": 30, "effect": "gold",    "text": "wheels.fortuneGold Gold from the house." },
-    { "id": "item",    "label": "A Gift",      "weight": 25, "effect": "item",    "text": "An item rolled on the Loot Wheel's rarity." },
-    { "id": "nothing", "label": "Nothing But Vibes", "weight": 15, "effect": "nothing", "text": "The wheel owes you nothing." }
+    {
+      "id": "health",
+      "label": "Second Wind",
+      "weight": 30,
+      "effect": "health",
+      "text": "Heal wheels.fortuneHealth."
+    },
+    {
+      "id": "gold",
+      "label": "Payday",
+      "weight": 30,
+      "effect": "gold",
+      "text": "wheels.fortuneGold Gold from the house."
+    },
+    {
+      "id": "item",
+      "label": "A Gift",
+      "weight": 25,
+      "effect": "item",
+      "text": "An item rolled on the Loot Wheel's rarity."
+    },
+    {
+      "id": "nothing",
+      "label": "Nothing But Vibes",
+      "weight": 15,
+      "effect": "nothing",
+      "text": "The wheel owes you nothing."
+    }
   ],
   "fate": [
-    { "id": "windfall", "label": "Windfall",      "weight": 18, "effect": "windfall",  "text": "wheels.fateWindfall Gold." },
-    { "id": "teleport", "label": "Trapdoor",      "weight": 16, "effect": "teleport",  "text": "Dropped onto a random hex in another region. The hex does not resolve." },
-    { "id": "swap",     "label": "Switcheroo",    "weight": 16, "effect": "swap",      "text": "Swap places with a random living player (never an Enforcer)." },
-    { "id": "item",     "label": "Found Property","weight": 16, "effect": "item",      "text": "A free item at Loot Wheel rarity." },
-    { "id": "loseturn", "label": "Blackout",      "weight": 18, "effect": "loseturn",  "text": "Miss wheels.fateMissTurns turn." },
-    { "id": "bounty",   "label": "Wanted",        "weight": 16, "effect": "bounty",    "text": "The house posts gold.perKO on your head." }
+    {
+      "id": "windfall",
+      "label": "Windfall",
+      "weight": 18,
+      "effect": "windfall",
+      "text": "wheels.fateWindfall Gold."
+    },
+    {
+      "id": "teleport",
+      "label": "Trapdoor",
+      "weight": 16,
+      "effect": "teleport",
+      "text": "Dropped onto a random hex in another region. The hex does not resolve."
+    },
+    {
+      "id": "swap",
+      "label": "Switcheroo",
+      "weight": 16,
+      "effect": "swap",
+      "text": "Swap places with a random living player (never an Enforcer)."
+    },
+    {
+      "id": "item",
+      "label": "Found Property",
+      "weight": 16,
+      "effect": "item",
+      "text": "A free item at Loot Wheel rarity."
+    },
+    {
+      "id": "loseturn",
+      "label": "Blackout",
+      "weight": 18,
+      "effect": "loseturn",
+      "text": "Miss wheels.fateMissTurns turn."
+    },
+    {
+      "id": "bounty",
+      "label": "Wanted",
+      "weight": 16,
+      "effect": "bounty",
+      "text": "The house posts gold.perKO on your head."
+    }
   ],
   "loot": [
-    { "id": "item", "label": "Item", "weight": 67, "effect": "item", "text": "An item; rarity from the four loot weights, shifted by Luck and region." },
-    { "id": "gold", "label": "Gold", "weight": 25, "effect": "gold", "text": "gold.chestGold plus gold.chestGoldPerTier per region tier." },
-    { "id": "egg",  "label": "Egg",  "weight": 8,  "effect": "egg",  "text": "A pet egg of the region." }
+    {
+      "id": "item",
+      "label": "Item",
+      "weight": 67,
+      "effect": "item",
+      "text": "An item; rarity from the four loot weights, shifted by Luck and region."
+    },
+    {
+      "id": "gold",
+      "label": "Gold",
+      "weight": 25,
+      "effect": "gold",
+      "text": "gold.chestGold plus gold.chestGoldPerTier per region tier."
+    },
+    {
+      "id": "egg",
+      "label": "Egg",
+      "weight": 8,
+      "effect": "egg",
+      "text": "A pet egg of the region."
+    }
   ],
   "chaos": [
-    { "id": "collector",   "label": "The Collector",   "weight": 14, "minTier": 1, "effect": "collector",   "text": "The hooded ledger-keeper takes chaos.collectorTakes Health from the spinner." },
-    { "id": "region",      "label": "Blood in the Water", "weight": 14, "minTier": 1, "effect": "region",   "text": "Damage ×chaos.regionMult in the spinner's region for wheels.chaosRegionRounds rounds." },
-    { "id": "class",       "label": "Marked Class",    "weight": 12, "minTier": 1, "effect": "class",       "text": "One class at the table takes ×chaos.classMult for wheels.chaosClassRounds rounds." },
-    { "id": "scramble",    "label": "Shuffle the Cage","weight": 12, "minTier": 1, "effect": "scramble",    "text": "The spinner's grid is scrambled (inventory module)." },
-    { "id": "mercy",       "label": "Mercy",           "weight": 10, "minTier": 1, "effect": "nothing",     "text": "The wheel spares you. This time." },
-    { "id": "vote",        "label": "Scapegoat",       "weight": 12, "minTier": 2, "effect": "vote",        "text": "The table votes a victim; the Collector visits them." },
-    { "id": "shrink",      "label": "Tighten the Bars","weight": 10, "minTier": 2, "effect": "shrink",      "text": "The spinner's grid loses a row for wheels.chaosGridShrinkRounds rounds (inventory module)." },
-    { "id": "steal",       "label": "Sticky Fingers",  "weight": 10, "minTier": 3, "effect": "steal",       "text": "A random grid cell of the spinner is stolen by the house (inventory module)." },
-    { "id": "tierup",      "label": "Escalation",      "weight": 8,  "minTier": 3, "effect": "tierup",      "text": "Chaos rises a tier at once." },
-    { "id": "scatter",     "label": "Scatter",         "weight": 8,  "minTier": 4, "effect": "scatter",     "text": "Every living character is thrown to a random hex of their region." },
-    { "id": "apocalypse",  "label": "Apocalypse",      "weight": 6,  "minTier": 5, "effect": "apocalypse",  "text": "Everyone takes the Collector's cut, every region bleeds, and the tier is pinned at max." }
+    {
+      "id": "collector",
+      "label": "The Collector",
+      "weight": 14,
+      "minTier": 1,
+      "effect": "collector",
+      "text": "The hooded ledger-keeper takes chaos.collectorTakes Health from the spinner."
+    },
+    {
+      "id": "region",
+      "label": "Blood in the Water",
+      "weight": 14,
+      "minTier": 1,
+      "effect": "region",
+      "text": "Damage \u00d7chaos.regionMult in the spinner's region for wheels.chaosRegionRounds rounds."
+    },
+    {
+      "id": "class",
+      "label": "Marked Class",
+      "weight": 12,
+      "minTier": 1,
+      "effect": "class",
+      "text": "One class at the table takes \u00d7chaos.classMult for wheels.chaosClassRounds rounds."
+    },
+    {
+      "id": "scramble",
+      "label": "Shuffle the Cage",
+      "weight": 12,
+      "minTier": 1,
+      "effect": "scramble",
+      "text": "The spinner's grid is scrambled (inventory module)."
+    },
+    {
+      "id": "mercy",
+      "label": "Mercy",
+      "weight": 10,
+      "minTier": 1,
+      "effect": "nothing",
+      "text": "The wheel spares you. This time."
+    },
+    {
+      "id": "vote",
+      "label": "Scapegoat",
+      "weight": 12,
+      "minTier": 2,
+      "effect": "vote",
+      "text": "The table votes a victim; the Collector visits them."
+    },
+    {
+      "id": "shrink",
+      "label": "Tighten the Bars",
+      "weight": 10,
+      "minTier": 2,
+      "effect": "shrink",
+      "text": "The spinner's grid loses a row for wheels.chaosGridShrinkRounds rounds (inventory module)."
+    },
+    {
+      "id": "steal",
+      "label": "Sticky Fingers",
+      "weight": 10,
+      "minTier": 3,
+      "effect": "steal",
+      "text": "A random grid cell of the spinner is stolen by the house (inventory module)."
+    },
+    {
+      "id": "tierup",
+      "label": "Escalation",
+      "weight": 8,
+      "minTier": 3,
+      "effect": "tierup",
+      "text": "Chaos rises a tier at once."
+    },
+    {
+      "id": "scatter",
+      "label": "Scatter",
+      "weight": 8,
+      "minTier": 4,
+      "effect": "scatter",
+      "text": "Every living character is thrown to a random hex of their region."
+    },
+    {
+      "id": "apocalypse",
+      "label": "Apocalypse",
+      "weight": 6,
+      "minTier": 5,
+      "effect": "apocalypse",
+      "text": "Everyone takes the Collector's cut, every region bleeds, and the tier is pinned at max."
+    }
   ],
-  "boss": []
+  "boss": [],
+  "bugreward": [
+    {
+      "id": "rare",
+      "label": "A Rare Find",
+      "weight": 25,
+      "effect": "rare",
+      "text": "A Rare item rolled for your region, straight into the grid."
+    },
+    {
+      "id": "epic",
+      "label": "Epic Thanks",
+      "weight": 20,
+      "effect": "epic",
+      "text": "An Epic item rolled for your region, straight into the grid."
+    },
+    {
+      "id": "legendary",
+      "label": "The House Owes You",
+      "weight": 6,
+      "effect": "legendary",
+      "text": "A Legendary (an Epic if the run's Legendary has already dropped)."
+    },
+    {
+      "id": "gold",
+      "label": "Hush Money",
+      "weight": 15,
+      "effect": "gold",
+      "text": "wheels.bugGold Gold from the house."
+    },
+    {
+      "id": "potions",
+      "label": "Round of Potions",
+      "weight": 12,
+      "effect": "potions",
+      "text": "wheels.bugPotions Potions."
+    },
+    {
+      "id": "heal",
+      "label": "Patched Up",
+      "weight": 10,
+      "effect": "heal",
+      "text": "Full Health and +wheels.bugMaxHealth max Health for the run."
+    },
+    {
+      "id": "stat",
+      "label": "Sharper",
+      "weight": 8,
+      "effect": "stat",
+      "text": "+1 stat point to spend on Self."
+    },
+    {
+      "id": "egg",
+      "label": "Something Hatching",
+      "weight": 4,
+      "effect": "egg",
+      "text": "A pet egg of your region."
+    }
+  ]
 }
