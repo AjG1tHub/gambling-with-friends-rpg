@@ -75,6 +75,7 @@
     { "id": "petrevive",      "name": "Pet Revive",      "slot": "consumable", "stackable": true,  "sprite": "item/petrevive",      "text": "Stands a fainted pet back up" },
     { "id": "satchel",        "name": "Satchel",         "slot": "satchel",    "stackable": false, "sprite": "item/satchel",        "text": "Adds a column to your grid (max 10)" },
     { "id": "spyglass",       "name": "Spyglass",        "slot": "tool",       "stackable": false, "sprite": "item/spyglass",       "text": "Reveal a region's tiles on your phone" },
-    { "id": "egg",            "name": "Pet Egg",         "slot": "egg",        "stackable": false, "sprite": "item/egg",            "text": "Hatch on the Triple Pet Wheel" }
+    { "id": "egg",            "name": "Pet Egg",         "slot": "egg",        "stackable": false, "sprite": "item/egg",            "text": "Hatch on the Triple Pet Wheel" },
+    { "id": "citadel_key",    "name": "Citadel Key",     "slot": "tool",       "stackable": false, "sprite": "item/citadel_key",    "text": "Opens the Sky Citadel's gate for its bearer, whatever their level" }
   ]
 }

@@ -136,6 +136,8 @@ export function ensureShopStock(state, ctx, hexKey, regionId = null) {
   if (old && !(old.openedRound != null && state.round - old.openedRound >= S.restockRounds)) return old;
   const rng = streamRng(state, 'loot');
   const stock = STAPLES.map(s => ({ sku: s.sku, name: s.name, priceKey: s.priceKey, qty: s.qtyKey ? S[s.qtyKey] : s.qty, spec: { baseId: s.baseId, rarity: 'common' } }));
+  // Every shelf carries one Common weapon so a table never runs out of ways to fight.
+  stock.push({ sku: 'weapon', name: 'Common weapon', priceKey: 'itemCommon', qty: 1, spec: { baseId: 'loot', slot: 'weapon', rarity: 'common', region: regionId, seed: Math.floor(rng.next() * 4294967296) >>> 0 } });
   const epic = RARITIES.indexOf('epic');
   for (let i = 0; i < S.stock; i++) {
     let rarity = rollRarity(state, ctx, { regionId });
@@ -175,6 +177,8 @@ export function dropFromMonster(state, ctx, m, byId, { credited = false } = {}) 
     if (rng.chance(Math.min(1, eggChance * M.eggChanceScale))) { pushLoot(c, { baseId: 'egg', slot: 'egg', rarity: 'common', region: m.regionId, seed: Math.floor(rng.next() * 4294967296) >>> 0 }); drops.egg = true; note(state, `${m.name} leaves an egg for ${c.name}`, 'loot', ctx.now); }
     counter(c, 'monsterKills');
     if (m.boss || m.raid || m.final) { counter(c, 'bosses'); if (!credited && state.stats[c.playerId]) state.stats[c.playerId].bosses += 1; }
+    // Every region boss carries a Citadel Key: the way past the Sky Citadel's gate before level 10.
+    if (m.boss && !m.final && !m.raid && !Object.values(c.items || {}).some(it => it.baseId === 'citadel_key')) { pushLoot(c, { baseId: 'citadel_key', rarity: 'rare', region: m.regionId, seed: Math.floor(rng.next() * 4294967296) >>> 0 }); note(state, `${m.name} drops a Citadel Key for ${c.name}`, 'loot', ctx.now); }
   }
   if (killer && !receivers.includes(killer)) counter(killer, 'monsterKills');
   if (m.final) {

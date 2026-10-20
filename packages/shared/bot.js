@@ -12,6 +12,7 @@ import { group } from './balance.js';
 import { remainingMs } from './clock.js';
 import { startRound } from '../games/adapter.js';
 import { legalSteps, cardView } from './handlers/movement.js';
+import { pathTo, gateBlocks, hexAt } from './map/query.js';
 import { playMonsterTurn } from './handlers/fight.js';
 import { challengeView } from './handlers/challenge.js';
 import * as hosted from './challenge/hosted.js';
@@ -117,6 +118,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
     if (!c.usedThisTurn.attack) { const w = usable(state, c, ['attack']).sort((a, b) => (b.stake || 0) - (a.stake || 0))[0]; if (w) return act('ITEM_USE', { itemId: w.id, targetId: f.monsterId, targetKind: 'monster' }, me); }
     if (!c.usedThisTurn.spell && lowHealth(c)) { const s = usable(state, c, ['spell'])[0]; if (s) return act('ITEM_USE', { itemId: s.id, targetKind: 'self' }, me); }
     if (c.health <= 12 && hasConsumable(c, 'smokebomb')) return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'smokebomb').id }, me);
+    if (!usable(state, c, ['attack']).length && !f.calledOut && !c.usedThisTurn.fled) { c.usedThisTurn.fled = true; return act('FIGHT_FLEE', {}, me); }
     return act('TURN_END', {}, me);
   }
   if (f && !f.done && f.kind === 'solo' && f.game && !f.game.result && f.game.attackerPlayerId === pid) {
@@ -127,16 +129,22 @@ export function nextAction(state, pid, rng, now, opts = {}) {
   if (state.turnPhase === 'move') {
     const s = state.moveSession;
     if (!s || s.done || s.playerId !== pid) { if (c.usedThisTurn?.moved) return act('TURN_END', {}, me); return act('MOVE_ROLL', {}, me); }
-    if (s.atomic && s.destinations?.length) return act('MOVE_STEP', { to: s.destinations[rng.int(0, s.destinations.length - 1)] }, me);
+    if (s.atomic && s.destinations?.length) return act('MOVE_STEP', { to: pickDestination(state, c, s.destinations, rng) }, me);
     if (s.awaiting) return act('MOVE_STOP', {}, me);
     const steps = legalSteps(state, pid).filter(x => x.legal);
     if (!steps.length || s.movesLeft <= 0) return act('MOVE_STOP', {}, me);
-    const here = state.map.hexes[c.pos];
-    const want = (t) => ({ chest: 6, shop: c.gold >= 60 ? 5 : 1, inn: lowHealth(c) ? 7 : 1, wheel: 4, event: 3, encounter: c.health > 50 ? 5 : 0, bossgate: c.level >= 8 ? 6 : 0, chaos: 2, bloodbank: lowHealth(c) ? 4 : 1, arena: 2, bounty: 2, portal: 2, graveyard: 1, plain: 1, start: 0, throne: 9, courier: 2 }[t] ?? 1);
-    const canStop = s.canStopAfter != null ? s.stepsTaken >= s.canStopAfter : true;
-    if (canStop && here && want(here.type) >= 5 && s.stepsTaken > 0 && !s.mustWalk) return act('MOVE_STOP', {}, me);
+    const here = hexAt(state, c.pos);
+    const canStop = (s.canStopAfter != null ? s.stepsTaken >= s.canStopAfter : true) && !s.mustWalk;
+    const goal = chooseGoal(state, c, rng);
+    if (goal && goal.key === c.pos && canStop && s.stepsTaken > 0) return act('MOVE_STOP', {}, me);
+    if (canStop && s.stepsTaken > 0 && here && tileWant(state, c, here.type) >= 6) return act('MOVE_STOP', {}, me);
+    if (goal) {
+      const path = pathTo(state, c.pos, goal.key, c.id);
+      const next = path && path[0]; const step = next && steps.find(x => x.key === next);
+      if (step) return act('MOVE_STEP', { dir: step.dir }, me);
+    }
     const visited = new Set(s.path || []);
-    const scored = steps.map(x => ({ x, score: want(x.type) + rng.next() * 2 - (visited.has(x.key) ? 3 : 0) + (x.bridge ? 1 : 0) })).sort((a, b) => b.score - a.score);
+    const scored = steps.map(x => ({ x, score: tileWant(state, c, x.type) + rng.next() * 2 - (visited.has(x.key) ? 3 : 0) + (x.bridge ? 1 : 0) })).sort((a, b) => b.score - a.score);
     return act('MOVE_STEP', { dir: scored[0].x.dir }, me);
   }
   // 'resolve' with nothing pending (a fight that just ended, a tile hook that forgot) behaves like 'action'.
@@ -145,7 +153,12 @@ export function nextAction(state, pid, rng, now, opts = {}) {
   if (state.turnPhase === 'action' || state.turnPhase === 'resolve') {
     const here = state.map?.hexes[c.pos];
     if (lowHealth(c) && hasConsumable(c, 'potion') && !c.usedThisTurn.potion) { c.usedThisTurn.potion = true; return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'potion').id }, me); }
-    if (here?.type === 'shop' && c.gold >= group(state, 'shop').potion && !c.usedThisTurn.bought) { c.usedThisTurn.bought = true; return act('SHOP_BUY', { sku: 'potion' }, me); }
+    if (here?.type === 'shop' && !c.usedThisTurn.bought) {
+      const SH = group(state, 'shop'), shelf = state.shops?.[c.pos]?.stock || [];
+      const weaponless = !usable(state, c, ['attack']).length;
+      if (weaponless && c.gold >= SH.itemCommon && shelf.some(e => e.sku === 'weapon' && e.qty > 0)) { c.usedThisTurn.bought = true; return act('SHOP_BUY', { sku: 'weapon' }, me); }
+      if (c.gold >= SH.potion && shelf.some(e => e.sku === 'potion' && e.qty > 0) && !hasConsumable(c, 'potion')) { c.usedThisTurn.bought = true; return act('SHOP_BUY', { sku: 'potion' }, me); }
+    }
     if (here?.type === 'inn' && !c.usedThisTurn.rested) { c.usedThisTurn.rested = true; return act('INN_REST', {}, me); }
     if (here?.type === 'bloodbank' && lowHealth(c) && (c.pactIds?.length || 0) < 1 && !c.usedThisTurn.pact) { c.usedThisTurn.pact = true; return act('PACT_TAKE', { amount: 30 }, me); }
     if (state.tileLoot?.[c.pos]?.length && !c.usedThisTurn.looted) { c.usedThisTurn.looted = true; return act('TILE_TAKE_LOOT', { itemId: state.tileLoot[c.pos][0].id }, me); }
@@ -159,6 +172,45 @@ export function nextAction(state, pid, rng, now, opts = {}) {
     return act('TURN_END', {}, me);
   }
   return act('TURN_END', {}, me);
+}
+
+// ── goals ──
+function tileWant(state, c, t) {
+  const low = lowHealth(c);
+  return { chest: 6, shop: c.gold >= group(state, 'shop').potion ? 5 : 1, inn: low ? 8 : 1, wheel: 4, event: 3, encounter: c.health > 50 ? 5 : 0, bossgate: c.level >= 3 && c.health > 60 ? 6 : 0, chaos: 2, bloodbank: low ? 4 : 1, arena: 2, bounty: 2, portal: 2, graveyard: 1, plain: 1, start: 0, throne: 9, courier: 2 }[t] ?? 1;
+}
+const hasKey = (c) => Object.values(c.items || {}).some(it => it.baseId === 'citadel_key');
+function nearest(state, c, keys) {
+  let best = null;
+  for (const k of keys) { const p = pathTo(state, c.pos, k, c.id); if (p && (!best || p.length < best.dist)) best = { key: k, dist: p.length }; }
+  return best;
+}
+// Where the bot wants to go this turn: heal when low, the throne once the gate will open, else a fair monster,
+// a boss when strong, else loot. Cached per turn on the character.
+function chooseGoal(state, c, rng) {
+  if (c.__goalTurn === state.turnIdx && c.__goal) return c.__goal;
+  const M = state.map; if (!M) return null;
+  const hexes = Object.values(M.hexes);
+  let goal = null;
+  const strong = c.health >= group(state, 'health').maxAtLevel1 * 0.6 && Object.values(c.worn || {}).some(it => it && it.gameId && (it.charges ?? 1) > 0);
+  if (lowHealth(c)) goal = nearest(state, c, hexes.filter(h => h.type === 'inn').map(h => h.key));
+  const weaponless = !Object.values(c.worn || {}).some(it => it && it.gameId && it.kind !== 'spell' && (it.charges ?? 1) > 0);
+  if (!goal && weaponless && c.gold >= group(state, 'shop').itemCommon) goal = nearest(state, c, hexes.filter(h => h.type === 'shop').map(h => h.key));
+  if (!goal && (hasKey(c) || c.level >= group(state, 'map').citadelLevel) && strong) { const t = M.throne; if (t && pathTo(state, c.pos, t, c.id)) goal = { key: t, dist: 0 }; }
+  if (!goal && strong) {
+    const alive = Object.values(state.monsters).filter(m => !m.dead && m.pos && !m.final && !m.raid);
+    const fair = alive.filter(m => !m.boss && m.health <= c.health * 1.3);
+    const bosses = alive.filter(m => m.boss && c.level >= 2 && c.health >= 70);
+    goal = nearest(state, c, [...(rng.chance(0.3) ? bosses : []), ...fair].map(m => m.pos)) || nearest(state, c, bosses.map(m => m.pos));
+  }
+  if (!goal) goal = nearest(state, c, hexes.filter(h => ['chest', 'wheel', 'event', 'shop'].includes(h.type) && h.key !== c.pos && !(state.tileSeen?.[h.key])).map(h => h.key).slice(0, 40));
+  c.__goalTurn = state.turnIdx; c.__goal = goal;
+  return goal;
+}
+function pickDestination(state, c, dests, rng) {
+  const goal = chooseGoal(state, c, rng);
+  if (goal) { let best = null; for (const d of dests) { const p = pathTo(state, d, goal.key, c.id); const dist = p ? p.length : 99; if (!best || dist < best.dist) best = { d, dist }; } if (best) return best.d; }
+  return dests[rng.int(0, dests.length - 1)];
 }
 
 // What the table (the TV, or the runner acting as the TV) must do regardless of whose turn it is.

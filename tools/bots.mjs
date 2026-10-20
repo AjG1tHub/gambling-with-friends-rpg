@@ -15,7 +15,7 @@ import { writeFileSync } from 'node:fs';
 
 // Simulated time: every event advances the clock a little, a move or a fight step more, so chess clocks and
 // deadlines behave as they would at a real table (about 20 s of thinking per phone action).
-const COST_MS = { default: 4000, MOVE_STEP: 2500, ITEM_RESOLVE: 25000, CHAR_STAT_GAMBLE: 20000, MONSTER_ACT: 12000, TURN_END: 3000, PLAYER_READY: 1000, CHALLENGE_STEP: 6000, CHALLENGE_REPORT: 45000 };
+const COST_MS = { default: 4000, MOVE_STEP: 2500, ITEM_RESOLVE: 15000, CHAR_STAT_GAMBLE: 20000, MONSTER_ACT: 12000, TURN_END: 3000, PLAYER_READY: 1000, CHALLENGE_STEP: 6000, CHALLENGE_REPORT: 45000 };
 
 export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', seed = 1, maxEvents = 30000, maxSimMs = 2 * 3600 * 1000 * 2, verbose = false, aggression = 0.5 } = {}) {
   let now = 1_700_000_000_000, seq = 0;

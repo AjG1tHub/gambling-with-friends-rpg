@@ -146,7 +146,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `items.bonusRare` | 0.1 | fraction | Attacks and spells | Damage bonus of Rare items. |
 | `items.bonusEpic` | 0.25 | fraction | Attacks and spells | Damage bonus of Epic items. |
 | `items.bonusLegendary` | 0.5 | fraction | Attacks and spells | Damage bonus of Legendary items. |
-| `items.charges` | 5 | charges | Attacks and spells | Charges on a dropped weapon or spell. |
+| `items.charges` | 15 | charges | Attacks and spells | Charges on a dropped weapon or spell. Spec default 5; raised to 15 after bot runs (at 5, a Common weapon dies inside one monster fight and the table runs out of weapons). |
 | `items.attacksPerTurn` | 1 | uses | Attacks and spells | Attacks per combat turn. |
 | `items.spellsPerTurn` | 1 | uses | Attacks and spells | Spells per combat turn. |
 | `items.areaWindowSeconds` | 20 | seconds | Attacks and spells | Bet window for Area items. |
@@ -224,7 +224,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `map.regionHexesLong` | 19 | hexes | Map | Hexes per region at Long size. |
 | `map.hexesPerExtraPlayer` | 2 | hexes | Map | Region hexes added per player above the tuned minimum. |
 | `map.bridgesPerPair` | 2 | hexes | Map | Bridge hexes joining neighbouring regions. |
-| `map.monstersPerRegion` | 3 | monsters | Map | Monsters rolled per region at the tuned table. |
+| `map.monstersPerRegion` | 2 | monsters | Map | Monsters rolled per region at the tuned table. Spec 3; 2 after bot runs (plus the boss) keeps a Regular map inside two hours. |
 | `map.monstersPerExtraPlayer` | 0.5 | monsters | Map | Monsters added per player above the tuned minimum. |
 | `map.chestsPerRegion` | 2 | chests | Map | Chest tiles per region. |
 | `map.citadelLevel` | 10 | level | Map | Level needed to enter the Sky Citadel without a key. |
@@ -239,10 +239,10 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 
 | Key | Default | Unit | Spec section | What moving it does |
 | --- | --- | --- | --- | --- |
-| `monsters.healthCommon` | 60 | Health | Attacks and spells | Health of a standard region monster at tier 1. |
-| `monsters.healthBoss` | 200 | Health | RPG layer | Health of a region boss at tier 1. |
-| `monsters.healthRaid` | 320 | Health | RPG layer | Health of a raid boss at tier 1. |
-| `monsters.healthFinal` | 400 | Health | RPG layer | Health of the Dealer. |
+| `monsters.healthCommon` | 40 | Health | Attacks and spells | Health of a standard region monster at tier 1. Spec 60; 40 after bot runs so a monster dies inside two or three turns of Common hits. |
+| `monsters.healthBoss` | 140 | Health | RPG layer | Health of a region boss at tier 1. Spec 200; 140 after bot runs. |
+| `monsters.healthRaid` | 240 | Health | RPG layer | Health of a raid boss at tier 1. Spec 320; 240 after bot runs. |
+| `monsters.healthFinal` | 260 | Health | RPG layer | Health of the Dealer. Spec 400; 260 after bot runs. |
 | `monsters.tierScale` | 0.5 | fraction | Runs | Monster Health and damage rise this fraction per difficulty tier. |
 | `monsters.itemsMin` | 2 | items | Attacks and spells | Fewest items a monster carries. |
 | `monsters.itemsMax` | 3 | items | Attacks and spells | Most items a monster carries. |
@@ -476,3 +476,13 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 ## Tuned from bot runs
 
 _Filled by the lead from `npm run test:bots` output: run length by size and player count, deaths per run, Health curve, loot rarity counts. Put the notes in `data/balance-notes.md`; they are appended here verbatim._
+
+## Tuned from bot runs
+
+Bot runs (`npm run bots`, 4 and 8 bots in every mode) set these away from the spec's bracketed defaults; the
+reason is in each tunable's note above.
+
+- `items.charges` 5 → 15: at 5 a Common weapon is spent inside one monster fight and the table runs out of weapons by round 6.
+- `monsters.healthCommon` 60 → 40, `healthBoss` 200 → 140, `healthRaid` 320 → 240, `healthFinal` 400 → 260: a 10-stake Common hit lands about half the time for 10, so a 60-Health monster took a dozen weapon uses; fights now end inside two or three turns.
+- `map.monstersPerRegion` 3 → 2 (plus the region boss): with a 90-second clock a player clears one monster per turn at best; two per region plus bosses fits a Regular map in 60–90 minutes with four to six players.
+- Every Shop shelf now stocks one Common weapon (`shop.itemCommon`), and every region boss drops a Citadel Key, so the throne is reachable without level 10.
