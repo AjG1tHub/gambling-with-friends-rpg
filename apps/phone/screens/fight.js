@@ -4,6 +4,7 @@
 // snapshot to the room with ITEM_STEP; the settled result goes out as ITEM_RESOLVE (actor-authoritative). Nudge,
 // Reroll and Fork arrive as fight.game.pendingChoice and are honoured on the live round. Solo fights (a spell on
 // yourself) and pet battles use the same screen.
+import { gameById } from '../../../packages/shared/characters/generator.js';
 import { h, toast, buzz } from '../../../packages/ui/dom.js';
 import { characterOf } from '../../../packages/shared/state.js';
 import { group } from '../../../packages/shared/balance.js';
@@ -76,7 +77,7 @@ export function attackMenu(api, f, m, { inFight = true } = {}) {
     else if (!isSpell && (used.attack || 0) >= I.attacksPerTurn) reason = 'attack used this turn';
     else if (isVersus && m) reason = 'a versus item needs a player';
     else if (!isSpell && !isArea && !m) reason = 'no monster here: challenge a player from the attack panel';
-    const meta = `${gameMeta(it.gameId).icon} ${gameMeta(it.gameId).name} · ${isSpell ? (it.spellEffect || 'spell') : it.kind} · stake ${stake} · ${it.charges} charge${it.charges === 1 ? '' : 's'} · ${statLabel(it.stat)} ${c.stats?.[it.stat] ?? '?'}${it.inGrid ? ' · from the grid' : ''}`;
+    const goal = gameById(it.gameId)?.goal; const meta = `${gameMeta(it.gameId).icon} ${gameMeta(it.gameId).name}${goal ? ` — ${goal}` : ''} · ${isSpell ? (it.spellEffect || 'spell') : it.kind} · stake ${stake} · ${it.charges} charge${it.charges === 1 ? '' : 's'} · ${statLabel(it.stat)} ${c.stats?.[it.stat] ?? '?'}${it.inGrid ? ' · from the grid' : ''}`;
     box.append(itemRow({ item: it, meta, action: isSpell ? 'CAST' : isArea ? 'OPEN' : 'ATTACK', disabled: !!reason, reason, hot: !isSpell && !reason,
       onTap: () => { if (isArea) dispatch('AREA_OPEN', { itemId: it.id }); else if (isSpell) dispatch('ITEM_USE', { itemId: it.id, targetKind: 'self' }); else dispatch('ITEM_USE', { itemId: it.id, targetId: m.id, targetKind: 'monster' }); } }));
   }

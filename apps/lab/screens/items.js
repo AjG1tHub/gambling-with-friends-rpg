@@ -87,6 +87,7 @@ export function screenItems(ctx) {
   const measured = h('div', { class: 'muted' }, measuredText());
   const stats = h('div', { class: 'muted' }, statsLine(lab.marks, id));
   const facts = h('div', { class: 'panel' }, h('h3', {}, 'Payout and facts'),
+    def.howTo ? h('p', { class: 'howto' }, h('b', {}, (def.goal || '') + ' '), def.howTo) : null,
     h('p', {}, h('b', {}, 'Returns: '), returnsText(def.gameId), cf.length > 1 ? h('span', { class: 'muted' }, ` (${cf.map(r => `${r.label} ${fmtPct(r.rtp)}`).join(' · ')})`) : null), measured,
     h('div', { class: 'kv', style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 12px', fontSize: '.9rem' } }, rows.flatMap(r => [h('span', { class: 'muted' }, r.label), h('span', {}, r.value)])),
     lv ? h('p', { class: 'muted ital' }, `Lever: ${lv.text}`) : null, stats);

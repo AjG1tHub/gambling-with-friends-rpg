@@ -7,6 +7,7 @@
 //   roundView({ round, onAct, onFork, stage, now, note })   → element; call again after every act (cheap)
 //   The host decides what to do with act results: dispatch ITEM_STEP after each, ITEM_RESOLVE when `round.done`.
 //   Hidden picks (mines squares, scratch panels, the shell, bus calls) are fine here: this is the acting phone.
+import { gameById } from '../shared/characters/generator.js';
 import { h } from './dom.js';
 
 const rounds = new Map();
@@ -47,6 +48,14 @@ export function roundView({ round, onAct, onFork = null, stage = true, now = Dat
   if (stage) root.append(stageBox(round, now));
   const head = h('div', { class: 'mg-head' }, h('div', { class: 'tag' }, `${round.item?.name || round.gameId} · stake ${round.stake} ${round.cur === 'Chips' ? 'chips' : 'Health'}${round.statName ? ` · ${round.statName} ${round.statValue}` : ''}`));
   root.append(head);
+  // "How to play": the item's goal and how-to from items36.json, folded under the head; open state remembered per game.
+  const def = round.gameId ? gameById(round.gameId) : null;
+  if (def?.howTo) {
+    let open = false; try { open = localStorage.getItem(`gwfrpg:howto:${round.gameId}`) !== 'seen'; } catch { open = true; }
+    const body = h('div', { class: 'mg-howto-body', style: { display: open ? '' : 'none' } }, def.goal ? h('b', {}, def.goal + ' ') : null, def.howTo);
+    const btn = h('button', { class: 'ghost small mg-howto-btn', onClick: () => { open = !open; body.style.display = open ? '' : 'none'; btn.textContent = open ? 'ⓘ Hide how to play' : 'ⓘ How to play'; try { localStorage.setItem(`gwfrpg:howto:${round.gameId}`, open ? 'open' : 'seen'); } catch { /* ignore */ } } }, open ? 'ⓘ Hide how to play' : 'ⓘ How to play');
+    root.append(h('div', { class: 'mg-howto' }, btn, body));
+  }
   if (note) root.append(h('p', { class: 'muted ital mg-note' }, note));
   if (controls.info) root.append(h('div', { class: 'mg-info', html: String(controls.info) }));
   // Fork: two held results, pick one.

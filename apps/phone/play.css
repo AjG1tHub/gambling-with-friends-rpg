@@ -208,3 +208,4 @@
 .recap .stat { padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .recap .stat b { font-family: var(--font-display); font-size: 1.2rem; color: var(--gold-2); }
 .hero.wait .crest { font-size: 2.6rem; }
+.mg-howto { margin: 4px 0 8px; } .mg-howto-btn { font-size: .78rem; padding: 4px 8px; } .mg-howto-body { font-size: .9rem; color: var(--bone-2); line-height: 1.35; padding: 6px 8px; border-left: 2px solid var(--gold); margin-top: 4px; } .mg-howto-body b { color: var(--bone); }

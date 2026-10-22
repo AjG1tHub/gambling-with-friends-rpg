@@ -285,6 +285,8 @@ export function describeItem(item, c = null, state = null) {
   if (def) {
     lines.push({ k: 'Game', v: `${def.name}${item.kind === 'spell' ? ' (spell)' : ''}` });
     if (item.stake) lines.push({ k: 'Stake', v: `${item.stake} Health` });
+    if (def.goal) lines.push({ k: 'The game', v: def.goal });
+    if (def.howTo) lines.push({ k: 'How to play', v: def.howTo });
     if (def.lever) lines.push({ k: `${cap(def.stat)} lever`, v: `${def.lever}${c?.stats?.[def.stat] != null ? ` · yours ${c.stats[def.stat]}` : ''}` });
     if (item.charges) lines.push({ k: 'Charges', v: `${item.charges}` });
     if (item.twoHand) lines.push({ k: 'Two-handed', v: 'takes both hands' });
