@@ -18,7 +18,7 @@ import { baseOdds } from '../games/adapter.js';
 import * as G from '../games/legacy/games.js';
 import { EXTRA } from '../games/legacy/games-extra.js';
 import { group } from '../shared/balance.js';
-import { esc } from './dom.js';
+import { esc, morphHtml } from './dom.js';
 import { arcs } from './wheel.js';
 
 // ── stage CSS ────────────────────────────────────────────────────────────────────────────────────
@@ -192,7 +192,7 @@ export function mountRound({ round, stageEl, controlsEl, phone = false, powerUps
   let timer = null, settled = false, forkUi = null;
   const draw = () => {
     const t = now();
-    if (stageEl) { stageEl.className = 'gwf-stage'; stageEl.innerHTML = round.stage(t); }
+    if (stageEl) { stageEl.className = 'gwf-stage'; morphHtml(stageEl, round.stage(t)); }
     if (controlsEl) {
       let extra = null;
       if (powerUps && !round.settled) {
@@ -209,7 +209,7 @@ export function mountRound({ round, stageEl, controlsEl, phone = false, powerUps
   const settle = (force = false) => { if (settled || !round.settled) return false; if (!force && !readyToSettle(round, now())) return false; settled = true; stop(); draw(); onSettle?.(round.outcome(), round); return true; };
   const tick = () => {
     const t = now();
-    if (stageEl && (G.gameNeedsTicks(round.g, t) || !round.settled || t < round.revealAt() + 1500)) { stageEl.innerHTML = round.stage(t); }
+    if (stageEl && (G.gameNeedsTicks(round.g, t) || !round.settled || t < round.revealAt() + 1500)) { morphHtml(stageEl, round.stage(t)); }
     if (round.gameId === 'crash' && round.g.phase === 'running' && G.crashHasCrashed(round.g, t)) { round.act('cashout', {}, t); draw(); onChange?.(round); }
     if (autoSettle && round.settled && settle()) return;
     if (!round.settled || t < round.revealAt() + 1500 || G.gameNeedsTicks(round.g, t)) return;

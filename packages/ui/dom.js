@@ -49,3 +49,31 @@ export const store = {
 };
 // Keep a callback running on animation frames while `active()` is true (clocks, stages that tick).
 export function ticker(fn) { let on = true; const loop = () => { if (!on) return; fn(Date.now()); requestAnimationFrame(loop); }; requestAnimationFrame(loop); return () => { on = false; }; }
+
+// Morph a container to new HTML, keeping the nodes that did not change. Stages are redrawn every ~100 ms while a
+// round runs; replacing innerHTML wholesale re-created every card and restarted its deal animation each tick
+// (the "stuttering cards"). Nodes are matched by position and tag: unchanged subtrees are left alone, changed
+// elements have their attributes and children synced, text is updated in place.
+let morphTpl = null;
+export function morphHtml(container, html) {
+  if (container.__lastHtml === html) return;
+  container.__lastHtml = html;
+  morphTpl ||= document.createElement('template');
+  morphTpl.innerHTML = html;
+  morphChildren(container, morphTpl.content);
+}
+function morphChildren(to, from) {
+  const a = [...to.childNodes], b = [...from.childNodes];
+  const n = Math.max(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    const cur = a[i], nxt = b[i];
+    if (!nxt) { cur.remove(); continue; }
+    if (!cur) { to.append(nxt.cloneNode(true)); continue; }
+    if (cur.nodeType === 3 && nxt.nodeType === 3) { if (cur.data !== nxt.data) cur.data = nxt.data; continue; }
+    if (cur.nodeType !== 1 || nxt.nodeType !== 1 || cur.tagName !== nxt.tagName) { cur.replaceWith(nxt.cloneNode(true)); continue; }
+    if (cur.outerHTML === nxt.outerHTML) continue;
+    for (const at of [...cur.attributes]) if (!nxt.hasAttribute(at.name)) cur.removeAttribute(at.name);
+    for (const at of [...nxt.attributes]) if (cur.getAttribute(at.name) !== at.value) cur.setAttribute(at.name, at.value);
+    morphChildren(cur, nxt);
+  }
+}

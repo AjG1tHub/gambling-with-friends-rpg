@@ -9,7 +9,7 @@
 //   offScreenCardEl(state, { now })       → the corner card for an external challenge entry
 //   challengePanel(state, { now })        → the rail panel for a PvP challenge (hosted duels show hosted.tvView)
 //   areaPanel(state, { now })             → who has staked in an open Area window
-import { h, ticker, fmtTime } from './dom.js';
+import { h, ticker, fmtTime, morphHtml } from './dom.js';
 import { wheelElement, spinTo, landedFor } from './wheel.js';
 import { WHEEL_SPIN_MS } from './sound.js';
 import { stageHtml, esc, cardsHtml } from '../games/stage.js';
@@ -39,11 +39,10 @@ export function snapshotHtml(snap, now) {
 export function liveStage(snap, { now = Date.now(), until = null, className = 'tv-stage' } = {}) {
   const node = h('div', { class: className, html: snapshotHtml(snap, now) });
   const end = until ?? Math.max((snap?.view?.revealAt || 0), (snap?.startedTs || 0), now) + 3200;
-  let last = '';
   const stop = ticker((t) => {
     if (!node.isConnected && t - now > 500) { stop(); return; }
-    if (t > end) { stop(); const html = snapshotHtml(snap, t); if (html !== last) { node.innerHTML = html; last = html; } return; }
-    const html = snapshotHtml(snap, t); if (html !== last) { node.innerHTML = html; last = html; }
+    if (t > end) { stop(); morphHtml(node, snapshotHtml(snap, t)); return; }
+    morphHtml(node, snapshotHtml(snap, t));
   });
   return node;
 }

@@ -8,7 +8,7 @@
 //   The host decides what to do with act results: dispatch ITEM_STEP after each, ITEM_RESOLVE when `round.done`.
 //   Hidden picks (mines squares, scratch panels, the shell, bus calls) are fine here: this is the acting phone.
 import { gameById } from '../shared/characters/generator.js';
-import { h } from './dom.js';
+import { h, morphHtml } from './dom.js';
 
 const rounds = new Map();
 export function liveRound(key, make) {
@@ -26,7 +26,7 @@ const gridCols = (grid) => Math.max(2, Math.min(10, Number(grid.cols) || Math.ro
 // Live stage: redraws while the round is running or a timed reveal is still playing out.
 function stageBox(round, now) {
   const box = h('div', { class: 'mg-stage' });
-  const draw = (t) => { try { box.innerHTML = round.stage(t); } catch (e) { box.innerHTML = `<div class="stage-sub">${esc(e.message)}</div>`; } };
+  const draw = (t) => { try { morphHtml(box, round.stage(t)); } catch (e) { morphHtml(box, `<div class="stage-sub">${esc(e.message)}</div>`); } };
   draw(now);
   const until = () => Math.max(round.revealAt?.() || 0, round.g?.view?.revealAt || 0, round.g?.view?.endedAt || 0) + 1800;
   const loop = () => {
