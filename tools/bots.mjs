@@ -63,7 +63,7 @@ export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', se
     }
     if (acted) lastProgress = guard;
     else if (guard - lastProgress > 40) { stalls++; stallWitness = describeStall(state) + ' recent=[' + recent.join(' > ') + ']'; if (verbose) console.error('STALL', stallWitness); apply('TURN_END', {}, 'gm'); lastProgress = guard; if (stalls > 25) break; }
-    if (state.phase === 'playing' && state.turnIdx % Math.max(1, ids.length) === 0 && curve.length < state.round) curve.push({ round: state.round, simMin: Math.round((now - t0) / 60000), health: ids.map(id => characterOf(state, id)?.health ?? null), gold: ids.map(id => characterOf(state, id)?.gold ?? null) });
+    if (state.phase === 'playing' && state.turnIdx % Math.max(1, ids.length) === 0 && curve[curve.length - 1]?.round !== state.round) curve.push({ round: state.round, simMin: Math.round((now - t0) / 60000), health: ids.map(id => characterOf(state, id)?.health ?? null), gold: ids.map(id => characterOf(state, id)?.gold ?? null) });
   }
   if (state.phase !== 'ended') apply('GM_END_RUN', { reason: 'runner cap' }, 'gm');
   const chars = ids.map(id => characterOf(state, id)).filter(Boolean);

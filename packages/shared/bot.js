@@ -9,6 +9,7 @@
 // emits one ITEM_RESOLVE / CHAR_STAT_GAMBLE / PET_ATTACK carrying the finished round's multiplier.
 import { currentPlayerId, characterOf, allied } from './state.js';
 import { group } from './balance.js';
+import { hash32 } from './rng.js';
 import { remainingMs } from './clock.js';
 import { startRound } from '../games/adapter.js';
 import { legalSteps, cardView } from './handlers/movement.js';
@@ -124,7 +125,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
       if (v.hosted && ch.hostedGame && !hosted.done(ch.hostedGame)) { const a = hosted.botAction(ch.hostedGame, pid, now); if (a) return act('CHALLENGE_STEP', { action: a.action, payload: a.payload || {} }, me); }
       else if (!ch.hostedGame && v.reportButtons.length && v.myReport == null) {
         // Versus items and external entries: the bot resolves them with a seeded coin, both phones agreeing.
-        const winner = ch.botWinner || (rng.chance(0.5) ? ch.attackerId : ch.defenderId);
+        const winner = ch.botWinner || ((hash32(`${ch.id}:${ch.seed ?? ''}`) & 1) ? ch.attackerId : ch.defenderId);   // the same coin on both phones
         return act('CHALLENGE_REPORT', { winnerId: winner }, me);
       }
     }
