@@ -105,7 +105,17 @@ export function rouletteBody(g, now, x) {
 }
 export function wheelBody(g, now, x) { const o = outcome(g); return o ? `<div class="stage-big ${resultClass(o.mult)}">${x.esc(o.label)}</div>` : '<div class="stage-sub">Spinning…</div>'; }
 
-export const CLASSIC_STAGES = { crash: crashBody, mines: minesBody, roulette: rouletteBody, blackjack: blackjackBody, baccarat: baccaratBody, plinko: plinkoBody, hilo: hiloBody, dice: diceBody, slots: slotsBody, keno: kenoBody, bigwheel: wheelBody, fifty: wheelBody };
+// Red Dog (Hound Snap): the plug-in's stage says "RAISE … or CALL"; the phone's buttons say DEAL / DOUBLE. One wording.
+export function reddogBody(g, now, x) {
+  const v = g.view, mid = v.third ? '' : '<div class="pcard ghost"></div>';
+  const RANK = { A: 14, K: 13, Q: 12, J: 11 }; const rv = (c) => RANK[c.r] || Number(c.r);
+  const [lo, hi] = [...v.cards].sort((a, b) => rv(a) - rv(b));
+  const ask = g.phase === 'decide' && now >= (v.askAt || 0);
+  return `<div class="xbetween">${x.cardsHtml([lo], now)}${v.third ? x.cardsHtml([v.third], now) : `<div class="pcard-row">${mid}</div>`}${x.cardsHtml([hi], now)}</div>
+    ${ask ? `<div class="stage-sub">Gap of <b>${v.spread}</b> — a card in between pays <b>${v.pay}:1</b>. <b>DEAL</b> as it is, or <b>DOUBLE</b> the stake first.</div>` : bigResult(g, now, x.esc)}`;
+}
+const bigResult = (g, now, esc) => (g.phase === 'done' && g.result && now >= (g.view?.revealAt || 0) ? `<div class="stage-big ${g.result.mult > 1 ? 'crash-good' : g.result.mult < 1 ? 'crash-bad' : ''}">${esc(g.result.label)}</div>` : '');
+export const CLASSIC_STAGES = { reddog: reddogBody, crash: crashBody, mines: minesBody, roulette: rouletteBody, blackjack: blackjackBody, baccarat: baccaratBody, plinko: plinkoBody, hilo: hiloBody, dice: diceBody, slots: slotsBody, keno: kenoBody, bigwheel: wheelBody, fifty: wheelBody };
 // Stage HTML for any of the 36. `x` must carry `odds`; `esc` and `cardsHtml` default to the ones above.
 export function stageHtml(g, now, x = {}) {
   const xx = { esc, cardsHtml, odds: {}, ...x };

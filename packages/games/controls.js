@@ -16,6 +16,14 @@ const done = (g) => ({ info: g.result ? g.result.label : g.pending ? g.pending.l
 const pendingBox = (g) => ({ info: `Result: ${g.pending.label} → ${g.pending.mult}× stake`, buttons: [b('✅ Accept', 'accept', {}, { primary: true })] });
 
 export const CLASSIC_CONTROLS = {
+  // Red Dog (Hound Snap): the plug-in's two primary buttons read as the same thing. Spell out the choice.
+  reddog(g) {
+    if (g.phase !== 'decide') return null;
+    const RANK = { A: 14, K: 13, Q: 12, J: 11 }; const rv = (c) => RANK[c.r] || Number(c.r);
+    const v = g.view, [a, c2] = [...v.cards].sort((x, y) => rv(x) - rv(y)), lo = cardText(a), hi = cardText(c2);
+    return { info: `<b>${lo}</b> and <b>${hi}</b> — will the next card fall <b>between</b> them? Gap of ${v.spread} → pays <b>${v.pay}:1</b>.`,
+      buttons: [b('🐕 DEAL THE CARD (stake as it is)', 'call', {}, { primary: true }), b('✖2 DOUBLE THE STAKE, then deal', 'raise', {}, { danger: true })] };
+  },
   fifty: (g) => g.pending ? pendingBox(g) : { info: 'Call it.', buttons: [b('🎡 SPIN', 'spin', {}, { primary: true })] },
   bigwheel: (g, x) => g.pending ? pendingBox(g) : { info: `Segments: ${(x.odds.segments || []).map(s => s.label).join(' · ')}`, buttons: [b('🎡 SPIN THE WHEEL', 'spin', {}, { primary: true })] },
   roulette(g, x) {
@@ -87,7 +95,7 @@ export const CLASSIC_CONTROLS = {
 export function controlsFor(g, x) {
   let c;
   if (g.phase === 'done' && g.result) c = done(g);
-  else if (CLASSIC_CONTROLS[g.id]) c = CLASSIC_CONTROLS[g.id](g, x);
+  else if (CLASSIC_CONTROLS[g.id] && (c = CLASSIC_CONTROLS[g.id](g, x))) { /* an override may return null to defer to the plug-in */ }
   else if (EXTRA[g.id]) c = EXTRA[g.id].controls(g, x) || { buttons: [] };
   else c = { info: `Unknown game ${g.id}`, buttons: [] };
   const out = { info: c.info || '', buttons: (c.buttons || []).map(bt => ({ ...bt, p: bt.p || {}, hidden: bt.hidden || isHiddenPick(g.id, bt.a) || undefined })) };

@@ -9,6 +9,7 @@ import { makeRng, hash32 } from '../../../packages/shared/rng.js';
 import { B, RARITIES, stakeFor, bonusFor } from '../../../packages/shared/balance.js';
 import { mountRound, returnsText, closedFormReturns, fmtPct } from '../../../packages/ui/labkit.js';
 import { store } from '../../../packages/ui/dom.js';
+import { roundView } from '../../../packages/ui/minigame.js';
 
 const STATS = ['luck', 'nerve', 'greed', 'grit'];
 const RIG_GAMES = ['fifty', 'roulette', 'underover7', 'dragontiger', 'hilo', 'war'];
@@ -56,7 +57,8 @@ export function screenItems(ctx) {
       round = startRound(null, { item, mode: 'health', stake: stake || mStake, attacker: D, target: T, rng: makeRng(hash32(`${lab.seed}:m:${lab.state.rounds}`)), now: Date.now(), holdPending: lab.powerUps });
     } else round = newLabRound(lab.state, id, lab.mode, { rarity: lab.rarity, stake, now: Date.now(), holdPending: lab.powerUps, rig });
     result.textContent = ''; result.className = 'lab-result';
-    const handle = mountRound({ round, stageEl, controlsEl, phone, powerUps: lab.powerUps, autoSettle: lab.autoSettle, onChange: () => { if (round.text) msg(round.text); }, onSettle: (o) => {
+    drawPlayer();
+    const handle = mountRound({ round, stageEl, controlsEl, phone, powerUps: lab.powerUps, autoSettle: lab.autoSettle, onChange: () => { if (round.text) msg(round.text); drawPlayer(); }, onSettle: (o) => {
       let line;
       if (asMonster) {   // the monster's payoff: a win hurts the tester, a loss costs the monster its stake share
         line = { damage: 0, loss: 0, healed: 0, shielded: 0, chips: 0 };
@@ -75,6 +77,16 @@ export function screenItems(ctx) {
     handle.auto = () => { if (round.settled) return; round.play(makeRng(hash32(`${lab.seed}:bot:${lab.state.rounds}`)), true); handle.redraw(); handle.tick(); msg(`Bot played: ${round.text || '…'}`); };
     lab.mount = handle;
   };
+  // ── Player view: the phone's own round renderer (packages/ui/minigame.js roundView, the one apps/phone uses in a
+  // fight) in a phone-sized frame, acting on the same round, so the GM sees exactly what the player's screen shows.
+  const playerBody = h('div', { class: 'player-view-body' });
+  const playerPane = h('div', { class: 'panel player-view', style: { display: store.get('gwfrpg:lab:playerview', false) ? '' : 'none' } }, h('h3', {}, '📱 Player view'), h('p', { class: 'muted small' }, 'What the player sees on their phone for this round; taps here act on the same round.'), h('div', { class: 'phone-frame' }, playerBody));
+  const drawPlayer = () => {
+    if (playerPane.style.display === 'none' || !round) return;
+    const el = roundView({ round, stage: true, onAct: (a, p) => { const r = round.act(a, p, Date.now()); if (r?.error) ctx.toast(r.text); lab.mount?.redraw?.(); lab.mount?.tick?.(); drawPlayer(); }, onFork: (i) => { round.pickFork(i); lab.mount?.redraw?.(); drawPlayer(); } });
+    playerBody.replaceChildren(el);
+  };
+  const playerBtn = h('button', { class: 'ghost', title: 'Show the round as the player\'s phone renders it', onClick: () => { const on = playerPane.style.display === 'none'; playerPane.style.display = on ? '' : 'none'; store.set('gwfrpg:lab:playerview', on); playerBtn.textContent = on ? '📱 Hide player view' : '📱 Player view'; drawPlayer(); } }, store.get('gwfrpg:lab:playerview', false) ? '📱 Hide player view' : '📱 Player view');
   lab.quickStake = (n) => { if (lab.mode === 'chips') stakeIn.value = n === 1 ? 1 : B.creation.maxStake; else { lab.rarity = n === 1 ? 'common' : 'legendary'; stakeIn.value = stakeFor(null, lab.rarity); } lab.stake = Number(stakeIn.value); start(); };
   const again = h('button', { class: 'primary', title: 'New round', onClick: start }, '▶ Play again');
   const auto = h('button', { title: 'Auto-play with the bot (A)', onClick: () => lab.mount?.auto?.() }, '🤖 Auto-play');
@@ -91,6 +103,7 @@ export function screenItems(ctx) {
     h('p', {}, h('b', {}, 'Returns: '), returnsText(def.gameId), cf.length > 1 ? h('span', { class: 'muted' }, ` (${cf.map(r => `${r.label} ${fmtPct(r.rtp)}`).join(' · ')})`) : null), measured,
     h('div', { class: 'kv', style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 12px', fontSize: '.9rem' } }, rows.flatMap(r => [h('span', { class: 'muted' }, r.label), h('span', {}, r.value)])),
     lv ? h('p', { class: 'muted ital' }, `Lever: ${lv.text}`) : null, stats);
-  main.append(bars, h('div', { class: 'panel col' }, stageEl, controlsEl, result, h('div', { class: 'row' }, again, auto, settle, cancel), log), phone ? null : levers, facts, phone ? levers : null);
+  const roundPanel = h('div', { class: 'panel col' }, stageEl, controlsEl, result, h('div', { class: 'row' }, again, auto, settle, cancel, phone ? null : playerBtn), log);
+  main.append(bars, phone ? roundPanel : h('div', { class: 'round-row' }, roundPanel, playerPane), phone ? null : levers, facts, phone ? levers : null);
   start();
 }

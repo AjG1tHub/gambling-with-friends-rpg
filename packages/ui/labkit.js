@@ -163,7 +163,7 @@ export function ensureStageCss() {
 export function renderControls(el, controls, act, { phone = false, extra = null } = {}) {
   el.replaceChildren(); el.className = `gwf-controls${phone ? ' phone' : ''}`;
   if (!controls) return el;
-  const info = document.createElement('div'); info.className = 'info'; info.textContent = controls.info || ''; el.append(info);
+  const info = document.createElement('div'); info.className = 'info'; info.innerHTML = controls.info || ''; el.append(info);   // the games' own markup (<b>, .big-turn), never user text
   const inputs = {};
   if (controls.inputs?.length) {
     const box = document.createElement('div'); box.className = 'inputs';

@@ -184,8 +184,8 @@
       "family": "cards",
       "stat": "greed",
       "lever": "raise multiplier +0.2 a point",
-      "goal": "Will the third card fall between the first two?",
-      "howTo": "Two cards are dealt. If a third card would fall between them you may RAISE (doubling the stake) or stand; the narrower the gap, the better the payout. Consecutive cards push; a pair pays 11:1 if the third matches."
+      "goal": "Will the next card fall between the first two?",
+      "howTo": "Two cards are dealt. If a third card could fall strictly between them, choose: DEAL THE CARD with your stake as it is, or DOUBLE THE STAKE first for twice the win (and twice the loss). A tight gap pays 5:1, a wide gap 1:1. Consecutive cards push; a pair pays 11:1 if the third card matches."
     },
     {
       "gameId": "chuckaluck",
