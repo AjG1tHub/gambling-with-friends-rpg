@@ -204,7 +204,7 @@
        "Attack",
        "Cards",
        "Greed",
-       "banker commission falls 1% a point; Tie pays more"
+       "Player and Banker pay 2% more a point; Tie pays more"
       ],
       [
        "Rockslide",
@@ -228,7 +228,7 @@
        "Attack",
        "Dice",
        "Grit",
-       "the exact-call window widens by 1 per 3 points"
+       "win window −1 under Grit 3, up to +3 at 10"
       ],
       [
        "Jackpot Cannon",
@@ -268,7 +268,7 @@
        "Attack",
        "Cards",
        "Greed",
-       "Tie pays +1x a point above 3"
+       "Tie pays +1× a point; a Dragon/Tiger bet keeps 10% more on a tie per point"
       ],
       [
        "Hound Snap",
@@ -364,7 +364,7 @@
        "Spell",
        "Picks",
        "Greed",
-       "the banker's offers rise 5% a point"
+       "the banker's offers rise 8% a point"
       ],
       [
        "Dice Duel",
@@ -436,7 +436,7 @@
        "Spell",
        "Cards",
        "Grit",
-       "commission falls 1% a point; copies go to you at 6"
+       "commission falls 1.5% a point"
       ]
      ]
     }
@@ -462,7 +462,7 @@
       "**Twin Fang** (baccarat, attack) — *Player, Banker or Tie — then watch.* Pick a side before the deal: PLAYER (1:1), BANKER (0.97:1) or TIE (9:1). Two hands are dealt by the book, closest to 9 wins. Nothing to do after the bet — it's a pure read on the odds.",
       "**Rockslide** (plinko, attack) — *Drop the rock, hope it bounces wide.* Tap DROP and a chip falls through a field of pegs into one of the slots along the bottom. The edges pay huge (33×), the middle pays under 1×. Where it lands is where it lands.",
       "**Mend** (hilo, spell) — *Higher or lower, card after card.* A healing spell. One card shows. Call HIGHER or LOWER for the next; the multiplier grows with every right call (the unlikely call pays more). CASH OUT whenever you like to heal for the multiplier you have. One wrong call and the stake is gone.",
-      "**Loaded Dice** (dice, attack) — *Roll 1–100 against your own target.* Choose UNDER or OVER a number: the safer the call, the smaller the multiplier (under 95 pays 1.03×; under 25 pays 4×). Tap ROLL. If the roll is on your side of the target you hit for that multiplier; otherwise you lose the stake.",
+      "**Loaded Dice** (dice, attack) — *Roll 1–100 against your own target.* Choose UNDER or OVER a number: the safer the call, the smaller the multiplier (under 95 pays 1.03×; under 25 pays 4×). Tap ROLL. If the roll is on your side of the target you hit for that multiplier; otherwise you lose the stake. Grit moves the line: a point against you below 3, up to three points in your favour at 10.",
       "**Jackpot Cannon** (slots, attack) — *Pull the lever, match the reels.* Tap PULL. Three reels spin; matching symbols pay by the paytable, with the jackpot symbol paying the most and wilds standing in for anything. No decisions — a pure swing.",
       "**Star Shower** (keno, attack) — *Pick your stars, the sky draws ten.* Tap up to 10 numbers on the board (or Quick 5), then DRAW. Ten numbers are drawn; the more of yours that come up, the bigger the multiplier. Picking fewer numbers makes each hit worth more.",
       "**Chain Lightning** (coinstreak, attack) — *Call the coin, ride the streak.* Call HEADS or TAILS; each right call roughly doubles the multiplier and you may CASH OUT after any of them. A wrong call ends the streak and takes the stake. Two in a row is already a strong hit — greed is the whole game.",

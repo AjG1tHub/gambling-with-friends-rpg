@@ -34,7 +34,8 @@ export const returnPct = pct;
 // Concrete game numbers at neutral and at the player's stat: [{ label, base, yours, changed }]. Graded odds levers
 // are read straight off the lever's odds patch; the post, threshold and versus levers are described from their rule.
 import { baseOdds } from './adapter.js';
-import { applyLever, leverDelta } from './levers.js';
+import { applyLever, leverDelta, diceWindow, gradeMult } from './levers.js';
+import { group } from '../shared/balance.js';
 
 const P = (v) => `${Math.round(Number(v) * 100)}%`;
 const X = (v) => `${Number(Number(v).toFixed(2))}×`;
@@ -48,9 +49,9 @@ const DESCRIBE = {
   crash: (b, y) => [['House edge on the fuse', P(b.houseEdge ?? 0.04), P(y.houseEdge ?? b.houseEdge ?? 0.04)]],
   mines: (b, y) => [['Mines on the field', `${b.mines}`, `${y.mines ?? b.mines}`]],
   blackjack: (b, y) => [['Blackjack pays', X(b.blackjackPays ?? 1.5), X(y.blackjackPays ?? b.blackjackPays ?? 1.5)]],
-  baccarat: (b, y) => [['Banker pays', TO1(b.banker), TO1(y.banker ?? b.banker)], ['Tie pays', TO1(b.tie), TO1(y.tie ?? b.tie)]],
+  baccarat: (b, y) => [['Player pays', TO1(b.player ?? 1), TO1(y.player ?? b.player ?? 1)], ['Banker pays', TO1(b.banker), TO1(y.banker ?? b.banker)], ['Tie pays', TO1(b.tie), TO1(y.tie ?? b.tie)]],
   slots: (b, y) => { const W = (o) => share(o.symbols || [], s => s.id === 'seven' || s.wild || s.id === 'wild'); return [['Wild 7 on a reel', P(W(b)), P(W(y))]]; },
-  dragontiger: (b, y) => [['Tie pays', TO1(b.tie), TO1(y.tie ?? b.tie)]],
+  dragontiger: (b, y) => [['Dragon/Tiger bet kept on a tie', P(b.tieRefund ?? 0.5), P(y.tieRefund ?? b.tieRefund ?? 0.5)], ['Tie pays', TO1(b.tie), TO1(y.tie ?? b.tie)]],
   chuckaluck: (b, y) => [['A triple pays', TO1(b.pay3), TO1(y.pay3 ?? b.pay3)]],
   sicbo: (b, y) => [['Small / Big pay', TO1(b.evenPay ?? 1), TO1(y.evenPay ?? b.evenPay ?? 1)]],
   scratch: (b, y) => { const L = (o) => { const t = (o.tiers || []).reduce((s, x) => s + Number(x.weight), 0) + Number(o.loseWeight || 0); return Number(o.loseWeight || 0) / (t || 1); }; return [['Losing card', P(L(b)), P(L(y))]]; },
@@ -65,7 +66,7 @@ const DESCRIBE = {
   roulette: (b, y, d) => { const k = Math.trunc(d / 2), n = Number(b.pockets || 37); return [['Numbers covered by red/black', `18 of ${n} (${P(18 / n)})`, `${18 + k} of ${n} (${P((18 + k) / n)})`], ['Numbers covered by a single number', `1 of ${n}`, `${1 + k} of ${n}`]]; },
   plinko: (b, y, d) => [['Pegs leaning to the outer slots', 'none', d ? `${d * 3 > 0 ? '+' : ''}${d * 3}%` : 'none']],
   hilo: (b, y, d, v) => [onOff('A tie counts as a right call', 5, v.value), onOff('Peek the next card\'s colour', 7, v.value)],
-  dice: (b, y, d) => { const k = Math.trunc(d / 3); return [['Win window', 'the call as made', k ? `${k > 0 ? '+' : ''}${k} wider` : 'the call as made']]; },
+  dice: (b, y, d) => { const k = diceWindow(d); return [['Win window', 'the call as made', k > 0 ? `+${k} wider` : k < 0 ? `${k} (narrower: low Grit)` : 'the call as made']]; },
   keno: (b, y, d) => [['Free extra picks', '0', `${Math.trunc(d / 2)}`]],
   coinstreak: (b, y, d, v) => [onOff('First miss of a streak forgiven', 6, v.value)],
   war: (b, y, d, v) => [['Ties go to the higher Grit', `yours ${v.neutral}`, `yours ${v.value}`]],
@@ -92,5 +93,9 @@ export function oddsLines(gameId, statValue) {
   let patch = {}; try { patch = applyLever(gameId, v.value, table, { ...lx0 }) || {}; } catch { patch = {}; }
   const yours = { ...base, ...patch };
   const fn = DESCRIBE[gameId]; if (!fn) return [];
-  return fn(base, yours, d, v).map(r => Array.isArray(r) ? { label: r[0], base: r[1], yours: r[2], changed: r[1] !== r[2] } : r);
+  const rows = fn(base, yours, d, v).map(r => Array.isArray(r) ? { label: r[0], base: r[1], yours: r[2], changed: r[1] !== r[2] } : r);
+  // The grade every weapon shares: wins trimmed below neutral, boosted above (items.leverPenaltyPerPoint / leverBonusPerPoint).
+  const I = group(null, 'items'); const k = gradeMult(d, { penalty: I.leverPenaltyPerPoint || 0, bonus: I.leverBonusPerPoint || 0 });
+  rows.push({ label: 'Every win pays', base: '×1.00', yours: `×${k.toFixed(2)}`, changed: Math.abs(k - 1) > 1e-9 });
+  return rows;
 }

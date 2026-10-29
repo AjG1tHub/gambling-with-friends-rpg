@@ -50,7 +50,7 @@ test('leverDelta pivots on stats.neutral and clamps to the stat range; the neutr
 test('graded odds levers are symmetric around neutral: +k points bend the table as far as −k points bend it back', () => {
   const o = baseOdds('fifty'); assert.equal(applyLever('fifty', 5, o).winChance, 0.54); assert.equal(applyLever('fifty', 1, o).winChance, 0.46);
   assert.equal(applyLever('blackjack', 6, baseOdds('blackjack')).blackjackPays, 1.8); assert.equal(applyLever('blackjack', 1, baseOdds('blackjack')).blackjackPays, 1.3);
-  assert.equal(applyLever('paigow', 8, baseOdds('paigow')).commission, 0); assert.equal(applyLever('paigow', 1, baseOdds('paigow')).commission, 0.07);
+  assert.equal(applyLever('paigow', 8, baseOdds('paigow')).commission, 0); assert.equal(applyLever('paigow', 1, baseOdds('paigow')).commission, 0.08);   // 1.5% a point
   const seg = (v) => Object.fromEntries(applyLever('bigwheel', v, baseOdds('bigwheel')).segments.map(s => [s.label, s.weight]));
   assert.ok(seg(5)['LOSE'] < 18 && seg(5)['1×'] > 24); assert.ok(seg(1)['LOSE'] > 18 && seg(1)['1×'] < 24);
   assert.ok(slotsRtp(slotsSymbols({ ...baseOdds('slots'), ...applyLever('slots', 8, baseOdds('slots')) })) > slotsRtp(slotsSymbols(baseOdds('slots'))));
@@ -61,12 +61,13 @@ test('graded odds levers are symmetric around neutral: +k points bend the table 
   r.act('reveal', { idx: r.g.secret.mines.includes(0) ? 1 : 0 }); assert.equal(r.g.view.mult, minesMult(baseOdds('mines'), 1));
   const t = begin('tower', 6, 1); assert.equal(t.g.view.tiles, 4); assert.equal(t.odds().tiles, 3);
 });
-test('threshold levers trim wins below neutral by items.leverPenaltyPerPoint and never below zero profit', () => {
+test('every lever trims wins below neutral by items.leverPenaltyPerPoint (never below zero profit) and boosts them above by items.leverBonusPerPoint', () => {
   const x = { neutral: N, penalty: B.items.leverPenaltyPerPoint };
   assert.equal(postLever('coinstreak', 1, { mult: 3, label: 'w' }, { view: {} }, x).mult, 1 + 2 * (1 - 0.1));
   assert.equal(postLever('coinstreak', 3, { mult: 3, label: 'w' }, { view: {} }, x).mult, 3);
   assert.equal(postLever('coinstreak', 1, { mult: 0, label: 'l' }, { view: {} }, x).mult, 0);
-  assert.equal(postLever('fifty', 1, { mult: 2, label: 'w' }, { view: {} }, x).mult, 2, 'graded levers are not trimmed twice');
+  assert.equal(postLever('fifty', 1, { mult: 2, label: 'w' }, { view: {} }, x).mult, 1 + 1 * (1 - 0.1), 'every lever kind shares the below-neutral trim');
+  assert.equal(postLever('fifty', 10, { mult: 2, label: 'w' }, { view: {} }, { ...x, bonus: B.items.leverBonusPerPoint }).mult, 1 + 1 * (1 + 0.02 * 7), 'and the above-neutral boost (+14% at the cap)');
 });
 test('the mid-round levers: hilo ties heal at 5 and bust at 1; a first miss is forgiven at Nerve 6 (coin streak, bus)', () => {
   let healed = 0, busted = 0, ties = 0;
@@ -91,7 +92,7 @@ test('war: ties go to the higher Grit; thimbles: the hider\'s Nerve pulls agains
     const hi = startRound(null, { item: makeItem(null, { gameId: 'war', seed: i }), stake: 10, attacker: { id: 'a', stats: stats(8, 'grit') }, target: { id: 't', stats: stats(2, 'grit') }, rng: makeRng(9000 + i), now: 0 });
     const lo = startRound(null, { item: makeItem(null, { gameId: 'war', seed: i }), stake: 10, attacker: { id: 'a', stats: stats(2, 'grit') }, target: { id: 't', stats: stats(8, 'grit') }, rng: makeRng(9000 + i), now: 0 });
     const even = startRound(null, { item: makeItem(null, { gameId: 'war', seed: i }), stake: 10, attacker: { id: 'a', stats: stats(5, 'grit') }, target: { id: 't', stats: stats(5, 'grit') }, rng: makeRng(9000 + i), now: 0 });
-    if (even.phase === 'tie') { decided++; assert.ok(hi.done && hi.result.mult === 2, 'tie to the higher Grit'); assert.ok(lo.done && lo.result.mult === 0); }
+    if (even.phase === 'tie') { decided++; assert.ok(hi.done && hi.result.mult > 1, 'tie to the higher Grit (a win, boosted by Grit 8)'); assert.ok(lo.done && lo.result.mult === 0); }
   }
   assert.ok(decided > 10, `ties ${decided}`);
   const n = 3000, pick = makeRng(1); let picker = 0, hider = 0;

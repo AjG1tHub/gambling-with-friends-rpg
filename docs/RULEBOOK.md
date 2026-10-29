@@ -53,15 +53,15 @@ Kinds: Attack hits one target on your hex or an adjacent one (Long Arm reaches 2
 | Fuse Bomb | crash | Attack | Nerve | Nerve | the fuse burns 4% slower a point |
 | Minefield | mines | Attack | Nerve | Nerve | one fewer mine per 2 points |
 | Ward | blackjack | Spell | Cards | Greed | blackjack pays +0.1x a point; double on any two cards at 6 |
-| Twin Fang | baccarat | Attack | Cards | Greed | banker commission falls 1% a point; Tie pays more |
+| Twin Fang | baccarat | Attack | Cards | Greed | Player and Banker pay 2% more a point; Tie pays more |
 | Rockslide | plinko | Attack | Picks | Luck | pegs lean to the outer high slots 3% a point |
 | Mend | hilo | Spell | Cards | Grit | ties heal at 5; peek the next card's colour at 7 |
-| Loaded Dice | dice | Attack | Dice | Grit | the exact-call window widens by 1 per 3 points |
+| Loaded Dice | dice | Attack | Dice | Grit | win window −1 under Grit 3, up to +3 at 10 |
 | Jackpot Cannon | slots | Attack | Picks | Luck | wild symbols 5% more common a point |
 | Star Shower | keno | Attack | Picks | Luck | one free extra pick per 2 points |
 | Chain Lightning | coinstreak | Attack | Nerve | Nerve | the first miss of a streak is forgiven at 6 |
 | Clash | war | Versus | Cards | Grit | ties go to the higher Grit |
-| Dragon's Breath | dragontiger | Attack | Cards | Greed | Tie pays +1x a point above 3 |
+| Dragon's Breath | dragontiger | Attack | Cards | Greed | Tie pays +1× a point; a Dragon/Tiger bet keeps 10% more on a tie per point |
 | Hound Snap | reddog | Attack | Cards | Greed | raise multiplier +0.2 a point |
 | Triple Dice | chuckaluck | Attack | Dice | Grit | a triple pays 10x instead of 3x at 6 |
 | Bone Cage | sicbo | Attack | Dice | Grit | Small and Big lose less of their edge each point; triples no longer kill them at 7 |
@@ -73,7 +73,7 @@ Kinds: Attack hits one target on your hex or an adjacent one (Long Arm reaches 2
 | Siege Tower | tower | Attack | Nerve | Nerve | one extra safe tile per floor per 3 points |
 | Road Run | chicken | Attack | Nerve | Nerve | traffic 5% slower a point |
 | Pachinko Hail | pachinko | Attack | Picks | Luck | the centre pocket 4% wider a point |
-| The Briefcase | deal | Spell | Picks | Greed | the banker's offers rise 5% a point |
+| The Briefcase | deal | Spell | Picks | Greed | the banker's offers rise 8% a point |
 | Dice Duel | hilodice | Versus | Dice | Grit | your bust threshold +1 per 3 points |
 | The Bus | bus | Attack | Cards | Nerve | a wrong first call is free at 5 |
 | Shell Game | thimbles | Versus | Picks | Luck | Luck for the picker (+4% a point), Nerve for the hider (-4% a point) |
@@ -82,7 +82,7 @@ Kinds: Attack hits one target on your hex or an adjacent one (Long Arm reaches 2
 | Let It Ride | letitride | Attack | Cards | Greed | a pair pays from 9s at 5; pull back a third time at 7 |
 | Hold'em Duel | holdem | Versus | Cards | Greed | see one flop card before calling at 6 |
 | Bone Toss | craps | Attack | Dice | Grit | a come-out 12 is a push at 4; odds pay +5% a point |
-| Twin Ward | paigow | Spell | Cards | Grit | commission falls 1% a point; copies go to you at 6 |
+| Twin Ward | paigow | Spell | Cards | Grit | commission falls 1.5% a point |
 
 ## How to play each one <a id="howto"></a>
 
@@ -97,7 +97,7 @@ Every round starts the same way: the item is readied against a target, the stake
 - **Twin Fang** (baccarat, attack) — *Player, Banker or Tie — then watch.* Pick a side before the deal: PLAYER (1:1), BANKER (0.97:1) or TIE (9:1). Two hands are dealt by the book, closest to 9 wins. Nothing to do after the bet — it's a pure read on the odds.
 - **Rockslide** (plinko, attack) — *Drop the rock, hope it bounces wide.* Tap DROP and a chip falls through a field of pegs into one of the slots along the bottom. The edges pay huge (33×), the middle pays under 1×. Where it lands is where it lands.
 - **Mend** (hilo, spell) — *Higher or lower, card after card.* A healing spell. One card shows. Call HIGHER or LOWER for the next; the multiplier grows with every right call (the unlikely call pays more). CASH OUT whenever you like to heal for the multiplier you have. One wrong call and the stake is gone.
-- **Loaded Dice** (dice, attack) — *Roll 1–100 against your own target.* Choose UNDER or OVER a number: the safer the call, the smaller the multiplier (under 95 pays 1.03×; under 25 pays 4×). Tap ROLL. If the roll is on your side of the target you hit for that multiplier; otherwise you lose the stake.
+- **Loaded Dice** (dice, attack) — *Roll 1–100 against your own target.* Choose UNDER or OVER a number: the safer the call, the smaller the multiplier (under 95 pays 1.03×; under 25 pays 4×). Tap ROLL. If the roll is on your side of the target you hit for that multiplier; otherwise you lose the stake. Grit moves the line: a point against you below 3, up to three points in your favour at 10.
 - **Jackpot Cannon** (slots, attack) — *Pull the lever, match the reels.* Tap PULL. Three reels spin; matching symbols pay by the paytable, with the jackpot symbol paying the most and wilds standing in for anything. No decisions — a pure swing.
 - **Star Shower** (keno, attack) — *Pick your stars, the sky draws ten.* Tap up to 10 numbers on the board (or Quick 5), then DRAW. Ten numbers are drawn; the more of yours that come up, the bigger the multiplier. Picking fewer numbers makes each hit worth more.
 - **Chain Lightning** (coinstreak, attack) — *Call the coin, ride the streak.* Call HEADS or TAILS; each right call roughly doubles the multiplier and you may CASH OUT after any of them. A wrong call ends the streak and takes the stake. Two in a row is already a strong hit — greed is the whole game.

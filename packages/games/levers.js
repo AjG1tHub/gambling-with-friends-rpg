@@ -26,6 +26,9 @@ const x2 = (m) => `${Number(Number(m).toFixed(2))}×`;
 const TRUE_ODDS = { 4: 2, 5: 1.5, 6: 1.2, 8: 1.2, 9: 1.5, 10: 2 };
 const SEVEN = 'seven';
 const KENO_BONUS_PER_HIT = 0.25;                                   // what a drawn bonus star pays, in stakes
+// Loaded Dice: the win window by Grit delta — a point narrower below neutral, up to three wider at the top.
+//   Grit 1–2 → −1 · 3–4 → 0 · 5–6 → +1 · 7–8 → +2 · 9–10 → +3
+export const diceWindow = (d) => (d < 0 ? -1 : Math.min(3, Math.round(d * 3 / 7)));   // literal — the window's shape, not a tunable
 const forgive = (g, res, text) => { g.phase = 'running'; g.result = null; g.view.revealAt = null; Object.assign(res, { done: false, mult: undefined, text }); };
 
 export const LEVERS = {
@@ -57,8 +60,8 @@ export const LEVERS = {
     afterStart: () => ({}) },
   blackjack: { stat: 'greed', kind: 'odds', perPoint: 0.1, text: 'blackjack pays +0.1× a point; double on any two cards',
     odds: (d, o) => ({ blackjackPays: Math.max(1, round2(Number(o.blackjackPays ?? 1.5) + 0.1 * d)) }) },
-  baccarat: { stat: 'greed', kind: 'odds', perPoint: 0.01, text: 'banker commission falls 1% a point; Tie pays +0.5 a point',
-    odds: (d, o) => ({ banker: clamp(round2(Number(o.banker ?? 0.95) + 0.01 * d), 0.5, 1), tie: Math.max(1, Number(o.tie ?? 8) + 0.5 * d) }) },
+  baccarat: { stat: 'greed', kind: 'odds', perPoint: 0.02, text: 'Player and Banker pay 2% more a point (Banker\'s commission goes first); Tie pays +0.5 a point',
+    odds: (d, o) => ({ player: clamp(round2(Number(o.player ?? 1) + 0.02 * d), 0.5, 1.5), banker: clamp(round2(Number(o.banker ?? 0.95) + 0.02 * d), 0.5, 1.5), tie: Math.max(1, Number(o.tie ?? 8) + 0.5 * d) }) },
   plinko: { stat: 'luck', kind: 'post', perPoint: 0.03, text: 'pegs lean to the outer high slots 3% a point',
     result(d, r, g, x) {
       const drop = g.view.drop, mults = g.view.mults; if (!drop || !mults || !d || !x.rng.chance(0.03 * Math.abs(d))) return r;
@@ -82,9 +85,10 @@ export const LEVERS = {
         Object.assign(res, { done: true, mult: 0, text: g.result.label });
       }
     } },
-  dice: { stat: 'grit', kind: 'post', perPoint: 1 / 3, text: 'the win window widens by 1 per 3 points',
+  dice: { stat: 'grit', kind: 'post', perPoint: 3 / 7, text: 'the win window: −1 under Grit 3, then wider with Grit up to +3 at 10',
+    window: diceWindow,
     result(d, r, g) {
-      const w = Math.trunc(d / 3), b = g.view.bet, roll = g.view.roll; if (!w || !b || roll == null) return r;
+      const w = diceWindow(d), b = g.view.bet, roll = g.view.roll; if (!w || !b || roll == null) return r;
       const won = b.dir === 'under' ? roll < b.target + w : roll > b.target - w, mult = won ? b.mult : 0;
       return mult === r.mult ? r : { mult, label: `Rolled ${roll} — ${won ? 'WIN (Grit widened the window)' : 'miss (low Grit narrowed the window)'}` };
     } },
@@ -115,8 +119,8 @@ export const LEVERS = {
       const win = d > x.targetD; g.phase = 'done'; g.view.revealAt = x.now + 1200;
       g.result = { mult: win ? 2 : 0, label: win ? 'Tie — the higher Grit takes it' : 'Tie — the higher Grit was theirs' };
     } },
-  dragontiger: { stat: 'greed', kind: 'odds', perPoint: 1, text: 'Tie pays +1× a point',
-    odds: (d, o) => ({ tie: Math.max(1, Number(o.tie ?? 11) + d) }) },
+  dragontiger: { stat: 'greed', kind: 'odds', perPoint: 1, text: 'Tie pays +1× a point; on a tie a Dragon/Tiger bet keeps 10% more a point (loses it all at Greed 1)',
+    odds: (d, o) => ({ tie: Math.max(1, Number(o.tie ?? 11) + d), tieRefund: clamp(round2(Number(o.tieRefund ?? 0.5) + 0.1 * d), 0, 1) }) },
   reddog: { stat: 'greed', kind: 'post', perPoint: 0.2, text: 'raise multiplier +0.2 a point',
     result(d, r, g) {
       const v = g.view; if (!d || !v.raised || !(r.mult > 1)) return r;
@@ -173,8 +177,8 @@ export const LEVERS = {
       const avg = floor2(v.drops.reduce((s, dr) => s + v.mults[dr.slot], 0) / v.drops.length);
       return { mult: avg, label: `${v.drops.map(dr => x2(v.mults[dr.slot])).join(' + ')} → ${x2(avg)} (${d > 0 ? 'Luck' : 'low Luck'})` };
     } },
-  deal: { stat: 'greed', kind: 'odds', perPoint: 0.05, text: "the banker's offers rise 5% a point",
-    odds: (d, o) => ({ offer1: round2(Number(o.offer1) * (1 + 0.05 * d)), offer2: round2(Number(o.offer2) * (1 + 0.05 * d)), offer3: round2(Number(o.offer3) * (1 + 0.05 * d)) }) },
+  deal: { stat: 'greed', kind: 'odds', perPoint: 0.08, text: "the banker's offers rise 8% a point (and fall 8% a point below neutral)",
+    odds: (d, o) => ({ offer1: round2(Number(o.offer1) * (1 + 0.08 * d)), offer2: round2(Number(o.offer2) * (1 + 0.08 * d)), offer3: round2(Number(o.offer3) * (1 + 0.08 * d)) }) },
   hilodice: { stat: 'grit', kind: 'threshold', perPoint: 1 / 3, text: 'your bust threshold +1 per 3 points (a miss within that distance is a free re-roll); at 0 a tie busts',
     afterAct(d, g, a, p, pre, res, x) {
       if (a !== 'higher' && a !== 'lower') return; const v = g.view, w = Math.trunc(d / 3), was = v.history.at(-1), t = v.total;
@@ -219,8 +223,8 @@ export const LEVERS = {
       if (d && v.odds && /made the point/.test(r.label)) { const mult = round2(2 + v.odds * TRUE_ODDS[v.point] * (1 + 0.05 * d)); return { mult, label: `${r.label} ${d > 0 ? '+' : ''}${Math.round(5 * d)}% Grit` }; }
       return r;
     } },
-  paigow: { stat: 'grit', kind: 'odds', perPoint: 0.01, text: 'commission falls 1% a point',
-    odds: (d, o) => ({ commission: clamp(round2(Number(o.commission ?? 0.05) - 0.01 * d), 0, 0.2) }) },
+  paigow: { stat: 'grit', kind: 'odds', perPoint: 0.015, text: 'commission falls 1.5% a point (none from Grit 7; 8% at Grit 1)',
+    odds: (d, o) => ({ commission: clamp(round2(Number(o.commission ?? 0.05) - 0.015 * d), 0, 0.2) }) },
 };
 export const LEVER_IDS = Object.keys(LEVERS);
 
@@ -238,14 +242,18 @@ export function applyLever(gameId, statValue, odds, x = {}) {
 export function afterStartLever(gameId, statValue, g, base, x = {}) { const lv = L(gameId); if (!lv || !lv.afterStart) return undefined; return lv.afterStart(leverDelta(statValue, x), g, base, x); }
 export function beforeActLever(gameId, statValue, g, action, payload, x = {}) { const lv = L(gameId); if (!lv || !lv.beforeAct) return undefined; return lv.beforeAct(leverDelta(statValue, x), g, action, payload || {}, x); }
 export function afterActLever(gameId, statValue, g, action, payload, pre, res, x = {}) { const lv = L(gameId); if (!lv || !lv.afterAct) return; lv.afterAct(leverDelta(statValue, x), g, action, payload || {}, pre, res, x); }
-// Final result adjustment, plus the generic below-neutral trim for threshold levers.
+// Final result adjustment, then the grade every weapon shares on top of its own lever: below the neutral stat each
+// point trims the win payout by `penalty` (items.leverPenaltyPerPoint), above it each point adds `bonus`
+// (items.leverBonusPerPoint). A stat under 3 is a reason to find another weapon; 10 is a boon on every game.
+export const gradeMult = (d, { penalty = 0, bonus = 0 } = {}) => (d < 0 ? Math.max(0, 1 - penalty * -d) : 1 + bonus * d);
 export function postLever(gameId, statValue, result, g, x = {}) {
   const lv = L(gameId); if (!lv || !result) return result;
   const d = leverDelta(statValue, x); let r = result;
   if (lv.result && d !== 0) r = lv.result(d, r, g, x) || r;
-  if (lv.kind === 'threshold' && d < 0 && r.mult > 1 && (x.penalty || 0) > 0) {
-    const mult = round2(1 + (r.mult - 1) * Math.max(0, 1 - x.penalty * -d));
-    if (mult !== r.mult) r = { mult, label: `${r.label} (trimmed by low ${lv.stat})` };
+  if (d !== 0 && r.mult > 1) {
+    const k = gradeMult(d, { penalty: x.penalty || 0, bonus: x.bonus || 0 });
+    const mult = round2(1 + (r.mult - 1) * k);
+    if (mult !== r.mult) r = { mult, label: `${r.label} (${d < 0 ? 'trimmed by low' : 'boosted by'} ${lv.stat})` };
   }
   return r;
 }

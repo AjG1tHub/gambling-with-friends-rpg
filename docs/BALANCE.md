@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 330 tunables in 28 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 331 tunables in 28 groups.
 
 ## Changing a value
 
@@ -161,7 +161,8 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `items.legendaryPerRun` | 1 | items | Legendaries | Most Legendaries that drop in one run. |
 | `items.starterPotions` | 2 | items | Before the run | Potions in the starter kit (with Coin Blade, Loaded Dice, Mend). |
 | `items.critXpMultiplierThreshold` | 1 | fraction | Attacks and spells | A result at or above this fraction of the game's top multiplier is a crit. |
-| `items.leverPenaltyPerPoint` | 0.05 | fraction | Attacks and spells | Threshold levers ("at 5", "at 6") have no graded downside, so below the neutral stat each point instead trims win payouts by this fraction. |
+| `items.leverPenaltyPerPoint` | 0.05 | fraction | Attacks and spells | On every weapon and spell, each point of the governing stat below neutral trims win payouts by this fraction (−10% at stat 1), on top of the game's own lever. A stat under 3 is a reason to find another weapon. |
+| `items.leverBonusPerPoint` | 0.02 | fraction | Attacks and spells | On every weapon and spell, each point of the governing stat above neutral adds this fraction to win payouts (+14% at the cap of 10), on top of the game's own lever. |
 | `items.monsterStakeFraction` | 0.6 | fraction | Attacks and spells | Tuned 1.0 → 0.6 after bot runs. A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool). |
 | `items.setDropChance` | 0.15 | fraction | Blockcraft | Chance an armour drop (helmet, torso, pants, boots) is a Blockcraft set piece instead of a rolled base. |
 
@@ -499,3 +500,11 @@ reason is in each tunable's note above.
 ### How the simulated clock is charged
 
 `tools/bots.mjs` charges pessimistic phone times: 8 s per tap, 3 s per step, 25 s per minigame round, 10 s per monster action, 45 s per hosted-challenge report, and a flat 10 minutes for creation (everyone creates at once). A plain turn costs 50–80 s, a boss fight 3–5 minutes, in line with the 1:30 chess clock. The two-hour gate in CI is measured on that clock.
+
+### Stat levers (29 Oct)
+
+Every game's governing stat is a **debuff under 3 and a boon at 10** (10 is the cap): on top of each game's own
+lever, win payouts are trimmed `items.leverPenaltyPerPoint` (5%) per point below neutral and boosted
+`items.leverBonusPerPoint` (2%) per point above. `data/lever-curves.json` (`npm run levers`) holds the bot-played
+return at every stat value; at stat 1 every game now returns 3–50 points less than at neutral, at 10 every game
+returns 5–110 points more (the threshold levers — Chain Lightning, Prism Spin, Siege Tower, The Bus — jump hardest).

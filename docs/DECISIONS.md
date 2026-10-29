@@ -59,3 +59,8 @@ Calls made during the build where the spec and the build prompt left room. Newes
     console, Lab) draws segment angles proportional to the segment weights, and every `lastSpin` carries
     `weights` so clients never guess. A painted wheel face (equal wedges) is used only when the odds are equal.
     Found by the QA run on 20 Oct: the wheels showed equal slices for weighted segments.
+21. **Stats are a debuff under 3 and a boon at 10, on every weapon.** Besides each game's own lever, every win
+    payout is trimmed `items.leverPenaltyPerPoint` (5%) per point below neutral and boosted
+    `items.leverBonusPerPoint` (2%) per point above it, capped at stat 10. Loaded Dice's window is −1 under Grit 3
+    and up to +3 at 10; the flat levers (Baccarat, Dragon Tiger, Briefcase, Pai Gow) were strengthened. The point
+    is gear choice: a weapon whose stat you lack should feel wrong in the hand, and the phone's odds card says so.

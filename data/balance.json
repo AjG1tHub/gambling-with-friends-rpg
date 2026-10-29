@@ -122,7 +122,8 @@
     "legendaryPerRun": { "v": 1, "unit": "items", "spec": "Legendaries", "note": "Most Legendaries that drop in one run." },
     "starterPotions": { "v": 2, "unit": "items", "spec": "Before the run", "note": "Potions in the starter kit (with Coin Blade, Loaded Dice, Mend)." },
     "critXpMultiplierThreshold": { "v": 1.0, "unit": "fraction", "spec": "Attacks and spells", "note": "A result at or above this fraction of the game's top multiplier is a crit." },
-    "leverPenaltyPerPoint": { "v": 0.05, "unit": "fraction", "spec": "Attacks and spells", "note": "Threshold levers (\"at 5\", \"at 6\") have no graded downside, so below the neutral stat each point instead trims win payouts by this fraction." },
+    "leverPenaltyPerPoint": { "v": 0.05, "unit": "fraction", "spec": "Attacks and spells", "note": "On every weapon and spell, each point of the governing stat below neutral trims win payouts by this fraction (−10% at stat 1), on top of the game's own lever. A stat under 3 is a reason to find another weapon." },
+    "leverBonusPerPoint": { "v": 0.02, "unit": "fraction", "spec": "Attacks and spells", "note": "On every weapon and spell, each point of the governing stat above neutral adds this fraction to win payouts (+14% at the cap of 10), on top of the game's own lever." },
     "monsterStakeFraction": { "v": 0.6, "unit": "fraction", "spec": "Attacks and spells", "note": "Tuned 1.0 → 0.6 after bot runs. A monster stakes this fraction of its item's stake on its own moves (its Health is the stake pool)." },
     "setDropChance": { "v": 0.15, "unit": "fraction", "spec": "Blockcraft", "note": "Chance an armour drop (helmet, torso, pants, boots) is a Blockcraft set piece instead of a rolled base." }
   },

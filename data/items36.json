@@ -78,7 +78,7 @@
       "kind": "attack",
       "family": "cards",
       "stat": "greed",
-      "lever": "banker commission falls 1% a point; Tie pays more",
+      "lever": "Player and Banker pay 2% more a point; Tie pays more",
       "classStart": "croupier",
       "goal": "Player, Banker or Tie — then watch.",
       "howTo": "Pick a side before the deal: PLAYER (1:1), BANKER (0.97:1) or TIE (9:1). Two hands are dealt by the book, closest to 9 wins. Nothing to do after the bet — it's a pure read on the odds."
@@ -115,11 +115,11 @@
       "kind": "attack",
       "family": "dice",
       "stat": "grit",
-      "lever": "the exact-call window widens by 1 per 3 points",
+      "lever": "win window −1 under Grit 3, up to +3 at 10",
       "starter": true,
       "classStart": "enforcer",
       "goal": "Roll 1–100 against your own target.",
-      "howTo": "Choose UNDER or OVER a number: the safer the call, the smaller the multiplier (under 95 pays 1.03×; under 25 pays 4×). Tap ROLL. If the roll is on your side of the target you hit for that multiplier; otherwise you lose the stake."
+      "howTo": "Choose UNDER or OVER a number: the safer the call, the smaller the multiplier (under 95 pays 1.03×; under 25 pays 4×). Tap ROLL. If the roll is on your side of the target you hit for that multiplier; otherwise you lose the stake. Grit moves the line: a point against you below 3, up to three points in your favour at 10."
     },
     {
       "gameId": "slots",
@@ -172,7 +172,7 @@
       "kind": "attack",
       "family": "cards",
       "stat": "greed",
-      "lever": "Tie pays +1x a point above 3",
+      "lever": "Tie pays +1× a point; a Dragon/Tiger bet keeps 10% more on a tie per point",
       "goal": "Dragon or Tiger — one card each.",
       "howTo": "Bet DRAGON (1:1), TIGER (1:1) or TIE (13:1) before the deal. One card is dealt to each side; the higher card wins. A tie pays big but is rare."
     },
@@ -305,7 +305,7 @@
       "kind": "spell",
       "family": "picks",
       "stat": "greed",
-      "lever": "the banker's offers rise 5% a point",
+      "lever": "the banker's offers rise 8% a point",
       "spellEffect": "heal",
       "goal": "Keep a case, take the banker's offer or open yours.",
       "howTo": "A healing spell. Pick one of ten cases to keep. Open the others a few at a time; between rounds the banker offers a buyout — take DEAL to heal for the offer, or NO DEAL and keep going. Open all the rest and you heal for whatever your case holds."
@@ -406,7 +406,7 @@
       "kind": "spell",
       "family": "cards",
       "stat": "grit",
-      "lever": "commission falls 1% a point; copies go to you at 6",
+      "lever": "commission falls 1.5% a point",
       "spellEffect": "shield",
       "goal": "Split seven cards into a high hand and a low hand.",
       "howTo": "A healing spell. From seven cards tap two for the small hand (or tap House way), the rest make the big hand — the big hand must outrank the small. Win both against the dealer to heal (less the commission); win one and it pushes; lose both and the stake is burned."

@@ -14,3 +14,11 @@ reason is in each tunable's note above.
 ### How the simulated clock is charged
 
 `tools/bots.mjs` charges pessimistic phone times: 8 s per tap, 3 s per step, 25 s per minigame round, 10 s per monster action, 45 s per hosted-challenge report, and a flat 10 minutes for creation (everyone creates at once). A plain turn costs 50–80 s, a boss fight 3–5 minutes, in line with the 1:30 chess clock. The two-hour gate in CI is measured on that clock.
+
+### Stat levers (29 Oct)
+
+Every game's governing stat is a **debuff under 3 and a boon at 10** (10 is the cap): on top of each game's own
+lever, win payouts are trimmed `items.leverPenaltyPerPoint` (5%) per point below neutral and boosted
+`items.leverBonusPerPoint` (2%) per point above. `data/lever-curves.json` (`npm run levers`) holds the bot-played
+return at every stat value; at stat 1 every game now returns 3–50 points less than at neutral, at 10 every game
+returns 5–110 points more (the threshold levers — Chain Lightning, Prism Spin, Siege Tower, The Bus — jump hardest).

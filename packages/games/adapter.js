@@ -120,7 +120,7 @@ class Round {
     this.statValue = statValue !== undefined ? statValue : (this.attacker.stats?.[statName] ?? stats.neutral);
     const tStat = this.gameId === 'thimbles' ? 'nerve' : statName;
     const targetD = target?.stats?.[tStat] != null ? leverDelta(target.stats[tStat], { neutral: stats.neutral, min: stats.min, max: stats.max }) : null;
-    this.lx = { rng, now, neutral: stats.neutral, min: stats.min, max: stats.max, penalty: items.leverPenaltyPerPoint, targetD, base: baseOdds(this.gameId, odds), get odds() { return null; } };
+    this.lx = { rng, now, neutral: stats.neutral, min: stats.min, max: stats.max, penalty: items.leverPenaltyPerPoint, bonus: items.leverBonusPerPoint ?? 0, targetD, base: baseOdds(this.gameId, odds), get odds() { return null; } };
     this.critThreshold = items.critXpMultiplierThreshold;
     // The legacy mini state: one proxy player holding the stake in the mode's currency.
     const cur = mode === 'chips' ? 'Chips' : 'Health';
