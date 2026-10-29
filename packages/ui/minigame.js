@@ -40,7 +40,7 @@ function stageBox(round, now) {
   return box;
 }
 
-export function roundView({ round, onAct, onFork = null, stage = true, now = Date.now(), note = '', compact = false } = {}) {
+export function roundView({ round, onAct, onFork = null, stage = true, now = Date.now(), note = '', compact = false, leverStat = undefined } = {}) {
   const root = h('div', { class: `mg ${compact ? 'compact' : ''}` });
   if (!round) { root.append(h('p', { class: 'muted ital' }, 'No round open.')); return root; }
   let controls;
@@ -49,7 +49,8 @@ export function roundView({ round, onAct, onFork = null, stage = true, now = Dat
   if (stage) root.append(stageBox(round, now));
   const head = h('div', { class: 'mg-head' }, h('div', { class: 'tag' }, `${round.item?.name || round.gameId} · stake ${round.stake} ${round.cur === 'Chips' ? 'chips' : 'Health'}${round.statName ? ` · ${round.statName} ${round.statValue}` : ''}`));
   root.append(head);
-  if (round.gameId && round.statName) { const lv = leverBar({ gameId: round.gameId, statValue: round.statValue }); if (lv) root.append(lv); }
+  // leverStat: the Lab previews a stat the sliders are moving; a real phone always shows the stat the round was dealt at.
+  if (round.gameId && round.statName) { const lv = leverBar({ gameId: round.gameId, statValue: leverStat ?? round.statValue }); if (lv) root.append(lv); }
   // "How to play": the item's goal and how-to from items36.json, folded under the head; open state remembered per game.
   const def = round.gameId ? gameById(round.gameId) : null;
   if (def?.howTo) {

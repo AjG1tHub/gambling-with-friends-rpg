@@ -29,7 +29,7 @@ export function screenItems(ctx) {
   // ── levers ──
   const stakeIn = h('input', { type: 'number', min: 1, step: 1, value: lab.stake ?? (lab.mode === 'chips' ? 1 : stakeFor(null, lab.rarity)) });
   const levers = h('div', { class: 'panel levers' },
-    ...STATS.map(s => { const out = h('span', { class: 'mono' }, String(T.stats[s])); const r = h('input', { type: 'range', min: B.stats.min, max: B.stats.max, value: T.stats[s], onInput: (e) => { T.stats[s] = Number(e.target.value); out.textContent = e.target.value; } }); return h('label', {}, h('span', {}, `${s[0].toUpperCase()}${s.slice(1)} `, out, s === def.stat ? h('span', { class: 'faint' }, ' ← this item\'s stat') : null), r); }),
+    ...STATS.map(s => { const out = h('span', { class: 'mono' }, String(T.stats[s])); const r = h('input', { type: 'range', min: B.stats.min, max: B.stats.max, value: T.stats[s], onInput: (e) => { T.stats[s] = Number(e.target.value); out.textContent = e.target.value; redrawLever(); } }); return h('label', {}, h('span', {}, `${s[0].toUpperCase()}${s.slice(1)} `, out, s === def.stat ? h('span', { class: 'faint' }, ' ← this item\'s stat') : null), r); }),
     h('label', {}, 'Rarity (stake)', h('select', { onChange: (e) => { lab.rarity = e.target.value; store.set('gwfrpg:lab:rarity', lab.rarity); lab.stake = null; stakeIn.value = lab.mode === 'chips' ? 1 : stakeFor(null, lab.rarity); } }, RARITIES.map(r => h('option', { value: r, selected: r === lab.rarity }, `${r} · ${stakeFor(null, r)}`)))),
     h('label', {}, 'Mode', h('select', { onChange: (e) => { lab.mode = e.target.value; store.set('gwfrpg:lab:mode', lab.mode); lab.stake = null; stakeIn.value = lab.mode === 'chips' ? 1 : stakeFor(null, lab.rarity); drawBars(); } }, h('option', { value: 'health', selected: lab.mode === 'health' }, 'Health'), h('option', { value: 'chips', selected: lab.mode === 'chips' }, 'Chips (creation)'))),
     h('label', {}, 'Stake', stakeIn),
@@ -58,7 +58,7 @@ export function screenItems(ctx) {
       round = startRound(null, { item, mode: 'health', stake: stake || mStake, attacker: D, target: T, rng: makeRng(hash32(`${lab.seed}:m:${lab.state.rounds}`)), now: Date.now(), holdPending: lab.powerUps });
     } else round = newLabRound(lab.state, id, lab.mode, { rarity: lab.rarity, stake, now: Date.now(), holdPending: lab.powerUps, rig });
     result.textContent = ''; result.className = 'lab-result';
-    drawPlayer();
+    drawPlayer(); redrawLever();
     const handle = mountRound({ round, stageEl, controlsEl, phone, powerUps: lab.powerUps, autoSettle: lab.autoSettle, onChange: () => { if (round.text) msg(round.text); drawPlayer(); }, onSettle: (o) => {
       let line;
       if (asMonster) {   // the monster's payoff: a win hurts the tester, a loss costs the monster its stake share
@@ -84,7 +84,7 @@ export function screenItems(ctx) {
   const playerPane = h('div', { class: 'panel player-view', style: { display: store.get('gwfrpg:lab:playerview', false) ? '' : 'none' } }, h('h3', {}, '📱 Player view'), h('p', { class: 'muted small' }, 'What the player sees on their phone for this round; taps here act on the same round.'), h('div', { class: 'phone-frame' }, playerBody));
   const drawPlayer = () => {
     if (playerPane.style.display === 'none' || !round) return;
-    const el = roundView({ round, stage: true, onAct: (a, p) => { const r = round.act(a, p, Date.now()); if (r?.error) ctx.toast(r.text); lab.mount?.redraw?.(); lab.mount?.tick?.(); drawPlayer(); }, onFork: (i) => { round.pickFork(i); lab.mount?.redraw?.(); drawPlayer(); } });
+    const el = roundView({ round, stage: true, leverStat: T.stats[def.stat], onAct: (a, p) => { const r = round.act(a, p, Date.now()); if (r?.error) ctx.toast(r.text); lab.mount?.redraw?.(); lab.mount?.tick?.(); drawPlayer(); }, onFork: (i) => { round.pickFork(i); lab.mount?.redraw?.(); drawPlayer(); } });
     playerBody.replaceChildren(el);
   };
   const playerBtn = h('button', { class: 'ghost', title: 'Show the round as the player\'s phone renders it', onClick: () => { const on = playerPane.style.display === 'none'; playerPane.style.display = on ? '' : 'none'; store.set('gwfrpg:lab:playerview', on); playerBtn.textContent = on ? '📱 Hide player view' : '📱 Player view'; drawPlayer(); } }, store.get('gwfrpg:lab:playerview', false) ? '📱 Hide player view' : '📱 Player view');
@@ -99,11 +99,19 @@ export function screenItems(ctx) {
   const measuredText = () => { const e = lab.marks[id]; return e?.plays ? `measured this session: ${fmtPct(e.returned / e.staked)} over ${e.plays} round${e.plays === 1 ? '' : 's'}` : 'measured this session: not played yet'; };
   const measured = h('div', { class: 'muted' }, measuredText());
   const stats = h('div', { class: 'muted' }, statsLine(lab.marks, id));
+  // The lever card follows the stat sliders live; a running round keeps the stat it started with, so the card
+  // says so when the two differ.
+  const leverSlot = h('div', { class: 'lever-slot' });
+  const redrawLever = () => {
+    const now = T.stats[def.stat], inRound = round && !round.settled && round.statValue !== now;
+    leverSlot.replaceChildren(leverBar({ gameId: def.gameId, statValue: now }) || '', inRound ? h('p', { class: 'muted small ital' }, `This round was dealt at ${def.stat} ${round.statValue}; the slider applies from the next round.`) : '');
+    drawPlayer();
+  };
   const facts = h('div', { class: 'panel' }, h('h3', {}, 'Payout and facts'),
     def.howTo ? h('p', { class: 'howto' }, h('b', {}, (def.goal || '') + ' '), def.howTo) : null,
     h('p', {}, h('b', {}, 'Returns: '), returnsText(def.gameId), cf.length > 1 ? h('span', { class: 'muted' }, ` (${cf.map(r => `${r.label} ${fmtPct(r.rtp)}`).join(' · ')})`) : null), measured,
     h('div', { class: 'kv', style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 12px', fontSize: '.9rem' } }, rows.flatMap(r => [h('span', { class: 'muted' }, r.label), h('span', {}, r.value)])),
-    lv ? h('p', { class: 'muted ital' }, `Lever: ${lv.text}`) : null, leverBar({ gameId: def.gameId, statValue: lab.state?.tester?.stats?.[def.stat] }), stats);
+    lv ? h('p', { class: 'muted ital' }, `Lever: ${lv.text}`) : null, leverSlot, stats);
   const roundPanel = h('div', { class: 'panel col' }, stageEl, controlsEl, result, h('div', { class: 'row' }, again, auto, settle, cancel, phone ? null : playerBtn), log);
   main.append(bars, phone ? roundPanel : h('div', { class: 'round-row' }, roundPanel, playerPane), phone ? null : levers, facts, phone ? levers : null);
   start();
