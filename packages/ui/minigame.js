@@ -9,6 +9,7 @@
 //   Hidden picks (mines squares, scratch panels, the shell, bus calls) are fine here: this is the acting phone.
 import { gameById } from '../shared/characters/generator.js';
 import { h, morphHtml } from './dom.js';
+import { leverBar } from './lever.js';
 
 const rounds = new Map();
 export function liveRound(key, make) {
@@ -48,6 +49,7 @@ export function roundView({ round, onAct, onFork = null, stage = true, now = Dat
   if (stage) root.append(stageBox(round, now));
   const head = h('div', { class: 'mg-head' }, h('div', { class: 'tag' }, `${round.item?.name || round.gameId} · stake ${round.stake} ${round.cur === 'Chips' ? 'chips' : 'Health'}${round.statName ? ` · ${round.statName} ${round.statValue}` : ''}`));
   root.append(head);
+  if (round.gameId && round.statName) { const lv = leverBar({ gameId: round.gameId, statValue: round.statValue }); if (lv) root.append(lv); }
   // "How to play": the item's goal and how-to from items36.json, folded under the head; open state remembered per game.
   const def = round.gameId ? gameById(round.gameId) : null;
   if (def?.howTo) {

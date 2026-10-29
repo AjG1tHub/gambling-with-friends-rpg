@@ -209,3 +209,15 @@
 .recap .stat b { font-family: var(--font-display); font-size: 1.2rem; color: var(--gold-2); }
 .hero.wait .crest { font-size: 2.6rem; }
 .mg-howto { margin: 4px 0 8px; } .mg-howto-btn { font-size: .78rem; padding: 4px 8px; } .mg-howto-body { font-size: .9rem; color: var(--bone-2); line-height: 1.35; padding: 6px 8px; border-left: 2px solid var(--gold); margin-top: 4px; } .mg-howto-body b { color: var(--bone); }
+/* lever widget: what your stat is worth on this game */
+.lever { margin: 4px 0 6px; padding: 6px 8px; border: 1px solid var(--line-2); border-radius: 6px; background: #17110f; }
+.lever.compact { padding: 2px 0; border: 0; background: none; margin: 0; }
+.lever-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: .9rem; }
+.lever-stat { font-family: var(--font-display); color: var(--gold-2); letter-spacing: .04em; }
+.lever-delta { font-weight: 700; padding: 0 6px; border-radius: 10px; background: #2a2622; color: var(--bone-2); }
+.lever-delta.up { background: #1f3a22; color: #9fe3a8; } .lever-delta.down { background: #3f1d1d; color: #f0a0a0; }
+.lever-ret { color: var(--bone); } .lever-text { font-size: .8rem; margin-top: 3px; line-height: 1.3; }
+.lever-curve { width: 100%; height: 54px; display: block; margin-top: 4px; }
+.lever-bar { fill: #3a3230; } .lever-bar.above { fill: #4c5c47; } .lever-bar.neutral { fill: #6b5a2c; } .lever-bar.yours { fill: var(--gold); }
+.lever-tick { font-size: 9px; fill: #8a8178; font-family: var(--font-display); } .lever-tick.yours { fill: var(--gold-2); font-weight: 700; }
+.lever-even { stroke: #6b6258; stroke-dasharray: 3 3; stroke-width: 1; }

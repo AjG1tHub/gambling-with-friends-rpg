@@ -18,6 +18,7 @@ import { h, toast, buzz } from './dom.js';
 import * as G from '../shared/characters/grid.js';
 import { itemIconUrl, frameUrl, rarityColour, loadManifest, manifestNow } from './sprite.js';
 import { gameById } from '../shared/characters/generator.js';
+import { leverSummary } from '../games/lever-view.js';
 import { slotsFor, wornSlotOf } from '../shared/handlers/inventory.js';
 import { sellPriceOf } from '../shared/handlers/economy.js';
 import { group } from '../shared/balance.js';
@@ -287,7 +288,7 @@ export function describeItem(item, c = null, state = null) {
     if (item.stake) lines.push({ k: 'Stake', v: `${item.stake} Health` });
     if (def.goal) lines.push({ k: 'The game', v: def.goal });
     if (def.howTo) lines.push({ k: 'How to play', v: def.howTo });
-    if (def.lever) lines.push({ k: `${cap(def.stat)} lever`, v: `${def.lever}${c?.stats?.[def.stat] != null ? ` · yours ${c.stats[def.stat]}` : ''}` });
+    if (def.lever) lines.push({ k: `${cap(def.stat)} lever`, v: `${def.lever}${c?.stats?.[def.stat] != null ? ` · ${leverSummary(def.gameId, c.stats[def.stat])}` : ''}` });
     if (item.charges) lines.push({ k: 'Charges', v: `${item.charges}` });
     if (item.twoHand) lines.push({ k: 'Two-handed', v: 'takes both hands' });
   }

@@ -161,3 +161,5 @@ details.drawer > summary::after { content: '▸'; margin-left: auto; } details.d
 .wax.broken { opacity: .55; filter: grayscale(.4); clip-path: polygon(0 0, 100% 0, 100% 55%, 60% 70%, 100% 100%, 0 100%, 0 60%, 35% 45%); }
 .compose textarea { margin-top: 8px; } .recipients button { text-transform: none; letter-spacing: .02em; font-family: var(--font-body); font-size: .95rem; } .recipients .pill { margin-left: 6px; font-size: .62rem; }
 .intercept .letters { margin-top: 8px; }
+.stat-games summary { cursor: pointer; margin-top: 3px; } .stat-games-list { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 2px; } .stat-games-list .row { align-items: baseline; gap: 6px; }
+.stat-games-list .lever-delta { font-weight: 700; padding: 0 6px; border-radius: 10px; background: #2a2622; color: var(--bone-2); min-width: 34px; text-align: center; } .stat-games-list .lever-delta.up { background: #1f3a22; color: #9fe3a8; } .stat-games-list .lever-delta.down { background: #3f1d1d; color: #f0a0a0; }

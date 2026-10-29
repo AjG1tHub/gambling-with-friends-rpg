@@ -10,6 +10,7 @@ import { B, RARITIES, stakeFor, bonusFor } from '../../../packages/shared/balanc
 import { mountRound, returnsText, closedFormReturns, fmtPct } from '../../../packages/ui/labkit.js';
 import { store } from '../../../packages/ui/dom.js';
 import { roundView } from '../../../packages/ui/minigame.js';
+import { leverBar } from '../../../packages/ui/lever.js';
 
 const STATS = ['luck', 'nerve', 'greed', 'grit'];
 const RIG_GAMES = ['fifty', 'roulette', 'underover7', 'dragontiger', 'hilo', 'war'];
@@ -102,7 +103,7 @@ export function screenItems(ctx) {
     def.howTo ? h('p', { class: 'howto' }, h('b', {}, (def.goal || '') + ' '), def.howTo) : null,
     h('p', {}, h('b', {}, 'Returns: '), returnsText(def.gameId), cf.length > 1 ? h('span', { class: 'muted' }, ` (${cf.map(r => `${r.label} ${fmtPct(r.rtp)}`).join(' · ')})`) : null), measured,
     h('div', { class: 'kv', style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 12px', fontSize: '.9rem' } }, rows.flatMap(r => [h('span', { class: 'muted' }, r.label), h('span', {}, r.value)])),
-    lv ? h('p', { class: 'muted ital' }, `Lever: ${lv.text}`) : null, stats);
+    lv ? h('p', { class: 'muted ital' }, `Lever: ${lv.text}`) : null, leverBar({ gameId: def.gameId, statValue: lab.state?.tester?.stats?.[def.stat] }), stats);
   const roundPanel = h('div', { class: 'panel col' }, stageEl, controlsEl, result, h('div', { class: 'row' }, again, auto, settle, cancel, phone ? null : playerBtn), log);
   main.append(bars, phone ? roundPanel : h('div', { class: 'round-row' }, roundPanel, playerPane), phone ? null : levers, facts, phone ? levers : null);
   start();

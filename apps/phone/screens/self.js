@@ -7,6 +7,8 @@ import { onRerender, rerenderSoon, itemIcon } from '../../../packages/ui/grid.js
 import { characterOf, currentPlayerId } from '../../../packages/shared/state.js';
 import { group } from '../../../packages/shared/balance.js';
 import { STAT_IDS, classDef, xpToNext, effectiveStats } from '../../../packages/shared/characters/character.js';
+import { gamesForStat } from '../../../packages/games/lever-view.js';
+import { gameById } from '../../../packages/shared/characters/generator.js';
 import { openPacts } from '../../../packages/shared/handlers/economy.js';
 import { cooldownKeyFor } from '../../../packages/shared/handlers/classes.js';
 import { store, toast } from '../../../packages/ui/dom.js';
@@ -50,6 +52,8 @@ export function tabSelf(args) {
       h('div', { class: 'stat-head' }, h('span', { class: 'stat-name' }, cap(s)), h('span', { class: 'stat-val' }, eff[s], eff[s] !== c.stats[s] ? h('span', { class: 'muted small' }, ` (${c.stats[s]})`) : null)),
       h('div', { class: 'pips' }, Array.from({ length: S.max }, (_, i) => h('span', { class: `pip ${i < c.stats[s] ? 'on' : ''} ${i >= c.stats[s] && i < eff[s] ? 'bonus' : ''}` }))),
       h('div', { class: 'muted small ital' }, STAT_TEXT[s]),
+      h('details', { class: 'stat-games' }, h('summary', { class: 'muted small' }, `${gamesForStat(s, eff[s]).length} games it bends · your edge`),
+        h('div', { class: 'stat-games-list' }, gamesForStat(s, eff[s]).map(({ gameId, view }) => { const def = gameById(gameId); return h('div', { class: 'row between small' }, h('span', {}, def?.name || gameId), h('span', { class: `lever-delta ${view.deltaPts > 0 ? 'up' : view.deltaPts < 0 ? 'down' : ''}` }, `${view.deltaPts > 0 ? '+' : ''}${view.deltaPts}`), h('span', { class: 'muted' }, `${Math.round(view.yours.rtp * 100)}%`)); }))),
       pts && c.stats[s] < S.max && canSpend ? h('button', { class: 'mini primary', onClick: () => dispatch('CHAR_STAT_POINT', { stat: s }) }, `+1 ${cap(s)}`) : null))),
     pts && !canSpend ? h('p', { class: 'muted small ital' }, 'Spending points is not wired in this build yet; they are kept on the character.') : null));
 

@@ -87,3 +87,13 @@ Read with ARCHITECTURE.md and STATE.md. Everything below exists and is unit-test
   +1 stat point, a pet egg. Segments and texts: `data/wheels.json` → `bugreward`.
 - `BUG_REWARD_SEEN {}` from the phone once it has shown the wheel (`seen: true`, mirrored into `bugRewards`).
 - `spinWheelSecret(state, ctx, wheel, playerId)` in wheels.js is the generic secret spin; `segmentsFor(state, 'bugreward')` lists the segments.
+
+## Stat levers on screen (packages/games/lever-view.js, packages/ui/lever.js)
+
+- `data/lever-curves.json` (built by `npm run levers`, ~30 s, commit it when a lever or odds table changes): per game,
+  the bot-played expected return and win rate at every stat value 1–10.
+- `leverView(gameId, statValue)` → `{ stat, value, neutral, curve, base, yours, deltaPts, text, note }`;
+  `leverSummary(gameId, statValue)` → "Luck 7 · return 118% (base 102%, +16)"; `gamesForStat(stat, value)`.
+- `leverBar({ gameId, statValue, compact })` draws the 10-bar curve with the player's bar lit and the neutral bar marked.
+  It sits under the round head on every phone round, in the attack menu rows (return and delta), the Cage item sheet
+  (lever line), Self › Stats (each stat lists the games it bends with your edge), and the Lab's facts panel.

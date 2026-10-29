@@ -15,6 +15,7 @@
     "test:bots": "node tools/bots.mjs --suite",
     "serve": "node test/browser/serve.mjs 4180",
     "payout": "node tools/payout-report.mjs",
+    "levers": "node tools/build-lever-curves.mjs",
     "bots": "node tools/bots.mjs",
     "dev-server": "node tools/dev-server.mjs",
     "legacy:test": "cd legacy && node --test test/unit/*.test.mjs"
