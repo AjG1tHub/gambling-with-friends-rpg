@@ -221,3 +221,8 @@
 .lever-bar { fill: #3a3230; } .lever-bar.above { fill: #4c5c47; } .lever-bar.neutral { fill: #6b5a2c; } .lever-bar.yours { fill: var(--gold); }
 .lever-tick { font-size: 9px; fill: #8a8178; font-family: var(--font-display); } .lever-tick.yours { fill: var(--gold-2); font-weight: 700; }
 .lever-even { stroke: #6b6258; stroke-dasharray: 3 3; stroke-width: 1; }
+.lever-odds { width: 100%; border-collapse: collapse; margin: 5px 0 2px; font-size: .84rem; }
+.lever-odds th { text-align: left; font-weight: 400; color: #8a8178; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 0 4px 2px 0; }
+.lever-odds td { padding: 2px 4px 2px 0; border-top: 1px solid #2a2320; vertical-align: top; color: var(--bone-2); }
+.lever-odds td:first-child { color: #a89f93; width: 44%; }
+.lever-odds .yours { color: var(--bone); } .lever-odds tr.changed td.yours, .lever-odds th.yours { color: var(--gold-2); font-weight: 700; }

@@ -26,3 +26,14 @@ test('leverView reads the player\'s value against neutral; a stat above neutral 
   const luck = gamesForStat('luck', 7); assert.ok(luck.length >= 10); assert.ok(luck.every(x => x.view.stat === 'luck'));
   assert.ok(luck.every((x, i) => i === 0 || luck[i - 1].view.deltaPts >= x.view.deltaPts), 'best edge first');
 });
+
+test('base odds vs your odds: every game describes at least one concrete number, and a stat above neutral changes it', async () => {
+  const { oddsLines } = await import('../../packages/games/lever-view.js');
+  for (const d of ITEM_DEFS) {
+    const lines = oddsLines(d.gameId, 8);
+    assert.ok(lines.length >= 1, `${d.gameId} has odds lines`);
+    assert.ok(lines.some(l => l.changed), `${d.gameId}: a stat of 8 shows a changed line`);
+    for (const l of lines) { assert.ok(l.label && l.base != null && l.yours != null, `${d.gameId} line shape`); }
+    assert.ok(oddsLines(d.gameId, B.stats.neutral).every(l => !l.changed || /needs/.test(l.yours)), `${d.gameId}: neutral shows the base`);
+  }
+});

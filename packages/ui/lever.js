@@ -2,7 +2,7 @@
 //   leverBar({ gameId, statValue, compact })  → <div class="lever">
 // Shared by the phone (round head, attack menu, item sheet, Self), the GM proxy and the Lab.
 import { h } from './dom.js';
-import { leverView, cap, returnPct } from '../games/lever-view.js';
+import { leverView, oddsLines, cap, returnPct } from '../games/lever-view.js';
 
 const svgNS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs = {}, parent = null) => { const e = document.createElementNS(svgNS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.append(e); return e; };
@@ -31,5 +31,10 @@ export function leverBar({ gameId, statValue, compact = false } = {}) {
     h('span', { class: `lever-delta ${v.deltaPts > 0 ? 'up' : v.deltaPts < 0 ? 'down' : ''}` }, `${sign}${v.deltaPts}`),
     h('span', { class: 'lever-ret' }, `return ${returnPct(v.yours.rtp)}`, h('span', { class: 'muted' }, ` · base ${returnPct(v.base.rtp)}`)));
   if (compact) return h('div', { class: 'lever compact' }, headline);
-  return h('div', { class: 'lever' }, headline, leverCurve(v), h('div', { class: 'lever-text muted' }, `${v.text}. Wins ${Math.round(v.yours.win * 100)}% of rounds at your ${v.stat} (${Math.round(v.base.win * 100)}% at neutral).`));
+  // Base odds vs your odds: the game's own numbers at neutral and at this stat.
+  const lines = oddsLines(gameId, statValue);
+  const table = lines.length ? h('table', { class: 'lever-odds' },
+    h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, 'Base odds'), h('th', { class: 'yours' }, `Your odds (${cap(v.stat)} ${v.value})`))),
+    h('tbody', {}, lines.map(l => h('tr', { class: l.changed ? 'changed' : '' }, h('td', {}, l.label), h('td', {}, l.base), h('td', { class: 'yours' }, l.yours))))) : null;
+  return h('div', { class: 'lever' }, headline, table, leverCurve(v), h('div', { class: 'lever-text muted' }, `${v.text}. Wins ${Math.round(v.yours.win * 100)}% of rounds at your ${v.stat} (${Math.round(v.base.win * 100)}% at neutral).`));
 }

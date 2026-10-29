@@ -123,7 +123,7 @@ export const LEVERS = {
       const k = Math.max(0.2, round2(2 + 0.2 * d)), mult = round2(1 + v.pay * k);
       return { mult, label: `${r.label.split(' on a doubled bet')[0]} on a ×${k} raise` };
     } },
-  chuckaluck: { stat: 'grit', kind: 'odds', perPoint: 7 / 3, text: 'a triple pays 10× instead of 3× at 6 (graded)',
+  chuckaluck: { stat: 'grit', kind: 'odds', perPoint: 7 / 3, text: 'a triple pays 10× instead of 3× at 6 (graded)', always: true,   // the legacy table pays 10× at neutral; the spec's 3× needs the lever even at d = 0
     odds: (d) => ({ pay3: clamp(round2(3 + (7 / 3) * d), 0, 10) }) },
   sicbo: { stat: 'grit', kind: 'odds', perPoint: 0.02, text: 'Small and Big lose less of their edge each point; triples no longer kill them at 7',
     odds: (d, o) => ({ evenPay: Math.max(0.5, round2(Number(o.evenPay ?? 1) + 0.02 * d)) }),
@@ -232,7 +232,7 @@ const L = (gameId) => LEVERS[gameId] || null;
 // Odds patch for startGame. `odds` is the base table (no lever). Returns {} when the lever has no graded odds.
 export function applyLever(gameId, statValue, odds, x = {}) {
   const lv = L(gameId); if (!lv || !lv.odds) return {};
-  const d = leverDelta(statValue, x); if (d === 0) return {};
+  const d = leverDelta(statValue, x); if (d === 0 && !lv.always) return {};
   return lv.odds(d, odds, x) || {};
 }
 export function afterStartLever(gameId, statValue, g, base, x = {}) { const lv = L(gameId); if (!lv || !lv.afterStart) return undefined; return lv.afterStart(leverDelta(statValue, x), g, base, x); }

@@ -45,7 +45,7 @@ test('every one of the 36 games has a lever with a stat, a kind and a rulebook l
 });
 test('leverDelta pivots on stats.neutral and clamps to the stat range; the neutral stat leaves the odds untouched', () => {
   assert.equal(leverDelta(3), 0); assert.equal(leverDelta(8), 5); assert.equal(leverDelta(1), -2); assert.equal(leverDelta(99), 7); assert.equal(leverDelta(-5), -2); assert.equal(leverDelta(undefined), 0);
-  for (const id of GAME_IDS) assert.deepEqual(applyLever(id, N, baseOdds(id), { neutral: N }), {}, `${id} at neutral`);
+  for (const id of GAME_IDS) { if (id === 'chuckaluck') { assert.deepEqual(applyLever(id, N, baseOdds(id), { neutral: N }), { pay3: 3 }, 'Chuck-a-Luck: the legacy table pays 10× for a triple, the spec says 3× at neutral, so this lever runs at d = 0 too'); continue; } assert.deepEqual(applyLever(id, N, baseOdds(id), { neutral: N }), {}, `${id} at neutral`); }
 });
 test('graded odds levers are symmetric around neutral: +k points bend the table as far as −k points bend it back', () => {
   const o = baseOdds('fifty'); assert.equal(applyLever('fifty', 5, o).winChance, 0.54); assert.equal(applyLever('fifty', 1, o).winChance, 0.46);
