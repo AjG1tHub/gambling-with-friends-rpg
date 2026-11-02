@@ -48,7 +48,7 @@ const needsPixelate = (row, tool) => modeFor(row) === 'pixel' && tool !== 'pixel
 function runPost(job) {
   mkdirSync(PATHS.cache, { recursive: true });
   const jobPath = path.join(PATHS.cache, `job-${job.key.replace(/\//g, '__')}.json`); writeJSONFile(jobPath, job);
-  const r = spawnSync(PYTHON, ['-I', POST, 'process', jobPath], { encoding: 'utf8' });
+  const r = spawnSync(PYTHON, [POST, 'process', jobPath], { encoding: 'utf8' });
   if (r.status !== 0) throw new Error(`post.py ${job.op} ${job.key}: ${r.stderr || r.stdout}`);
   return JSON.parse(r.stdout.trim().split('\n').pop());
 }

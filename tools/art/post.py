@@ -34,7 +34,16 @@ def have(mod):
         return False
 HAVE_REMBG = have("rembg")
 HAVE_LOUDNORM = have("pyloudnorm") and have("numpy")
-HAVE_FFMPEG = shutil.which("ffmpeg") is not None
+def ffmpeg_exe():
+    exe = shutil.which("ffmpeg")
+    if exe: return exe
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
+FFMPEG = ffmpeg_exe()
+HAVE_FFMPEG = FFMPEG is not None
 
 # ── image helpers ────────────────────────────────────────────────────
 def load(p):
@@ -274,9 +283,9 @@ def read_audio(p, fmt):
         mono = [sum(vals[i:i + ch]) / ch / scale for i in range(0, len(vals), ch)]
         return mono, rate
     if HAVE_FFMPEG:
-        out = subprocess.run(["ffmpeg", "-v", "error", "-i", p, "-f", "s16le", "-ac", "1", "-ar", "48000", "-"], capture_output=True, check=True).stdout
+        out = subprocess.run([FFMPEG, "-v", "error", "-i", p, "-f", "s16le", "-ac", "1", "-ar", "48000", "-"], capture_output=True, check=True).stdout
         return [struct.unpack_from("<h", out, i * 2)[0] / 32768.0 for i in range(len(out) // 2)], 48000
-    raise SystemExit(f"cannot decode {p}: install ffmpeg")
+    raise SystemExit(f"cannot decode {p}: install ffmpeg or pip install imageio-ffmpeg")
 
 def resample(samples, src, dst):
     if src == dst: return samples

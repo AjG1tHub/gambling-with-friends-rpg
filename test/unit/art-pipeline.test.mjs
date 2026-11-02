@@ -15,7 +15,7 @@ import { STYLE_SHEET } from '../../tools/art/style-sheet.mjs';
 
 const PY = process.env.ART_PYTHON || 'python3';
 const POST = path.join(ROOT, 'tools/art/post.py');
-const havePillow = (() => { const r = spawnSync(PY, ['-I', '-c', 'import PIL'], { encoding: 'utf8' }); return r.status === 0; })();
+const havePillow = (() => { const r = spawnSync(PY, ['-c', 'import PIL'], { encoding: 'utf8' }); return r.status === 0; })();
 const KNOWN_TOOLS = new Set(['pixellab', 'fal', 'gemini', 'elevenlabs', 'midjourney', 'suno']);
 
 test('every asset group has a prompt template and every row builds a clean prompt', () => {
@@ -48,9 +48,9 @@ test('every asset group has a prompt template and every row builds a clean promp
 
 test('post.py ops produce files of the spec size without the placeholder marker', { skip: !havePillow && 'python3 with Pillow not available' }, () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'gwf-art-'));
-  const run = (job) => { const p = path.join(dir, `${job.op}-${Math.random().toString(36).slice(2)}.json`); writeFileSync(p, JSON.stringify(job)); const r = spawnSync(PY, ['-I', POST, 'process', p], { encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout.trim().split('\n').pop()); };
+  const run = (job) => { const p = path.join(dir, `${job.op}-${Math.random().toString(36).slice(2)}.json`); writeFileSync(p, JSON.stringify(job)); const r = spawnSync(PY, [POST, 'process', p], { encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout.trim().split('\n').pop()); };
   // Synthetic "model output": a chroma-green canvas with a brass figure, made by Pillow so it is a real (non-filter-0) PNG.
-  const mk = (p, w, h, { bg = '0,255,0,255', fig = true, frame = false } = {}) => { const r = spawnSync(PY, ['-I', '-c', `
+  const mk = (p, w, h, { bg = '0,255,0,255', fig = true, frame = false } = {}) => { const r = spawnSync(PY, ['-c', `
 from PIL import Image, ImageDraw; import sys
 im = Image.new('RGBA', (${w}, ${h}), (${bg})); d = ImageDraw.Draw(im)
 if ${fig ? 'True' : 'False'}: d.rectangle((${w}//4, ${h}//5, ${w}*3//4, ${h}*4//5), fill=(140,106,42,255), outline=(18,13,16,255)); d.ellipse((${w}//3, ${h}//10, ${w}*2//3, ${h}//3), fill=(232,223,200,255))
@@ -63,7 +63,7 @@ im.save(sys.argv[1])`, p], { encoding: 'utf8' }); assert.equal(r.status, 0, r.st
     const icon = run({ op: 'single', key: 'items/x', group: 'items', out: path.join(dir, 'icon.png'), size: [256, 256], genSize: [128, 128], mode: 'pixel', inputs: [mk(path.join(dir, 'in1.png'), 512, 512)], cutout: 'chroma', margin: 0.06, pixelate: [128, 128] });
     assert.deepEqual(size(icon.written), [256, 256]); clean(icon.written, 'png');
     // The green is gone: the corner pixel is transparent.
-    const r1 = spawnSync(PY, ['-I', '-c', `from PIL import Image; im=Image.open('${icon.written}'); print(im.getpixel((0,0))[3], len(im.getcolors(100000)))`], { encoding: 'utf8' }); const [alpha, colours] = r1.stdout.trim().split(' ').map(Number);
+    const r1 = spawnSync(PY, ['-c', `from PIL import Image; im=Image.open('${icon.written}'); print(im.getpixel((0,0))[3], len(im.getcolors(100000)))`], { encoding: 'utf8' }); const [alpha, colours] = r1.stdout.trim().split(' ').map(Number);
     assert.equal(alpha, 0); assert.ok(colours <= 33, `quantised to ≤32 colours (${colours})`);
     // strip: five 64×96 frames → 320×96 with feet on the baseline.
     const frames = [0, 1, 2, 3, 4].map(i => mk(path.join(dir, `f${i}.png`), 64, 96, { bg: '0,0,0,0' }));
@@ -71,10 +71,10 @@ im.save(sys.argv[1])`, p], { encoding: 'utf8' }); assert.equal(r.status, 0, r.st
     assert.deepEqual(size(strip.written), [320, 96]); clean(strip.written, 'png');
     // layer: diff against a base that already has the body → only the added hat survives.
     const base = mk(path.join(dir, 'base.png'), 64, 96, { bg: '0,0,0,0' });
-    const withHat = path.join(dir, 'hat.png'); spawnSync(PY, ['-I', '-c', `from PIL import Image, ImageDraw; im=Image.open('${base}').convert('RGBA'); d=ImageDraw.Draw(im); d.rectangle((20,2,44,12), fill=(90,26,26,255)); im.save('${withHat}')`]);
+    const withHat = path.join(dir, 'hat.png'); spawnSync(PY, ['-c', `from PIL import Image, ImageDraw; im=Image.open('${base}').convert('RGBA'); d=ImageDraw.Draw(im); d.rectangle((20,2,44,12), fill=(90,26,26,255)); im.save('${withHat}')`]);
     const layer = run({ op: 'layer', key: 'worn/x', group: 'worn', out: path.join(dir, 'layer.png'), size: [320, 96], mode: 'pixel', inputs: [withHat, withHat, withHat, withHat, withHat], bases: [base, base, base, base, base], frameW: 64, frameH: 96 });
     assert.deepEqual(size(layer.written), [320, 96]);
-    const r2 = spawnSync(PY, ['-I', '-c', `from PIL import Image; im=Image.open('${layer.written}'); print(im.getpixel((32,7))[3], im.getpixel((32,50))[3])`], { encoding: 'utf8' }); const [hatA, bodyA] = r2.stdout.trim().split(' ').map(Number);
+    const r2 = spawnSync(PY, ['-c', `from PIL import Image; im=Image.open('${layer.written}'); print(im.getpixel((32,7))[3], im.getpixel((32,50))[3])`], { encoding: 'utf8' }); const [hatA, bodyA] = r2.stdout.trim().split(' ').map(Number);
     assert.equal(hatA, 255, 'the hat pixels survive the diff'); assert.equal(bodyA, 0, 'the body pixels are removed by the diff');
     // nineslice: a 192 source → a 2×3 footprint frame of 128×192.
     const src = mk(path.join(dir, 'frame.png'), 192, 192, { bg: '0,0,0,0', fig: false, frame: true });

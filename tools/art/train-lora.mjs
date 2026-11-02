@@ -23,7 +23,7 @@ if (files.length < 10) { console.error(`${files.length} images in ${dir}; the tr
 // otherwise the trainer's default_caption (the style preamble) applies to every image.
 const tmp = mkdtempSync(path.join(tmpdir(), 'gwf-lora-')); const zip = path.join(tmp, `${kind}.zip`);
 const py = `import zipfile, sys, os\nz = zipfile.ZipFile(sys.argv[1], 'w', zipfile.ZIP_DEFLATED)\nfor f in sorted(os.listdir(sys.argv[2])):\n    if f.lower().endswith(('.png', '.jpg', '.jpeg', '.txt')): z.write(os.path.join(sys.argv[2], f), f)\nz.close()\nprint(len(z.namelist()))`;
-const r = spawnSync(process.env.ART_PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), ['-I', '-c', py, zip, dir], { encoding: 'utf8' });
+const r = spawnSync(process.env.ART_PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), ['-c', py, zip, dir], { encoding: 'utf8' });
 if (r.status !== 0) { console.error(r.stderr); process.exit(1); }
 console.log(`zipped ${r.stdout.trim()} files from ${path.relative(process.cwd(), dir)}`);
 const caption = (kind === 'icons' ? stylePreamble().pixel : stylePreamble().painted || '').replace(/\{\w+\}/g, '').replace(/\s+/g, ' ').trim().slice(0, 500);

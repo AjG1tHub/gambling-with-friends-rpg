@@ -28,17 +28,17 @@ if ($py) {
   Write-Host "  $py $(& $py --version 2>&1) ok"
   & $py -m pip install --quiet --upgrade pip | Out-Null
   Write-Host "  pip: pillow numpy pyloudnorm rembg (post.py's cut-outs and loudness)..."
-  & $py -m pip install --quiet pillow numpy pyloudnorm rembg
+  & $py -m pip install --quiet pillow numpy pyloudnorm rembg imageio-ffmpeg
   Write-Host "  pip: onnxruntime-gpu (rembg on the 4070; falls back to CPU onnxruntime)..."
   & $py -m pip install --quiet onnxruntime-gpu
   if ($LASTEXITCODE -ne 0) { & $py -m pip install --quiet onnxruntime }
-  & $py -I tools/art/post.py check
-  if ($py -ne 'python') { Write-Host "  note: set ART_PYTHON=$py in .env.local (the pipeline calls 'python' by default on Windows)" -ForegroundColor Yellow }
+  & $py tools/art/post.py check
+  if ($py -ne 'python') { Write-Host "  ART_PYTHON=$py (the pipeline calls 'python' by default on Windows)"; $envFile0 = Join-Path $root '.env.local'; if (Test-Path $envFile0) { $c = Get-Content $envFile0; if (-not ($c -match '^ART_PYTHON=')) { Add-Content -Encoding UTF8 $envFile0 "ART_PYTHON=$py" } } }
 } else { Write-Host "  Python 3 not found; install it from https://python.org (tick 'Add to PATH') and re-run" -ForegroundColor Yellow }
 
 # 3. ffmpeg (MP3/loop decoding for Suno drops)
 if (-not (Have 'ffmpeg')) { WingetInstall 'Gyan.FFmpeg' 'ffmpeg' }
-if (Have 'ffmpeg') { Write-Host "  ffmpeg ok" } else { Write-Host "  ffmpeg not on PATH yet - open a new terminal after winget finishes, or install from https://ffmpeg.org" -ForegroundColor Yellow }
+if (Have 'ffmpeg') { Write-Host "  ffmpeg ok" } else { Write-Host "  ffmpeg not on PATH; post.py falls back to the pip package imageio-ffmpeg for MP3 decoding" -ForegroundColor Yellow }
 
 # 4. npm dependencies
 if ($nodeMajor -ge 20) { Write-Host "  npm ci..."; npm ci --no-audit --no-fund | Out-Null; if ($LASTEXITCODE -eq 0) { Write-Host "  node_modules ok" } }
@@ -60,7 +60,7 @@ ART_BUDGET_USD=25
 # FAL_TRAINER_MODEL=fal-ai/flux-2-trainer
 # GEMINI_IMAGE_MODEL=gemini-2.5-flash-image
 # ART_BODY_REF=1_1
-# ART_PYTHON=python
+# ART_PYTHON=py
 "@ | Set-Content -Encoding UTF8 $envFile
   Write-Host "  wrote .env.local - paste your keys into it" -ForegroundColor Green
 } else { Write-Host "  .env.local exists" }

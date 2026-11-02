@@ -15,7 +15,7 @@ function decodeViaPillow(buf) {
   const dir = mkdtempSync(path.join(tmpdir(), 'gwf-png-'));
   try {
     const inP = path.join(dir, 'in.png'), outP = path.join(dir, 'out.rgba'); writeFileSync(inP, buf);
-    execFileSync(PYTHON, ['-I', POST, 'rgba', inP, outP], { stdio: ['ignore', 'pipe', 'pipe'] });
+    execFileSync(PYTHON, [POST, 'rgba', inP, outP], { stdio: ['ignore', 'pipe', 'pipe'] });
     const raw = readFileSync(outP); const w = raw.readUInt32LE(0), h = raw.readUInt32LE(4); const c = P.canvas(w, h); c.data.set(raw.subarray(8, 8 + w * h * 4)); return c;
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }

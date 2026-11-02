@@ -15,7 +15,7 @@ for _, r in df.iterrows():
     out[k] = { 'notes': '' if pd.isna(r['What it is (prompt notes)']) else str(r['What it is (prompt notes)']), 'tool': '' if pd.isna(r['Suggested tool']) else str(r['Suggested tool']), 'priority': str(r['Priority']) }
 print(json.dumps(out))
 `;
-const r = spawnSync(PYTHON, ['-I', '-c', py, path.join(ROOT, 'docs/ASSET-LIST.xlsx')], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+const r = spawnSync(PYTHON, ['-c', py, path.join(ROOT, 'docs/ASSET-LIST.xlsx')], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 if (r.status !== 0) { console.error(r.stderr); process.exit(1); }
 const notes = JSON.parse(r.stdout);
 writeJSONFile(PATHS.notes, notes);
