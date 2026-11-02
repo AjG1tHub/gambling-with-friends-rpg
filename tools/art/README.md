@@ -9,6 +9,10 @@ regenerate any single one on demand. Nothing here edits game code, `data/*.json`
 
 ## Setup (once, on the PC with the 4070)
 
+On Windows the whole of this section is one command from the repo root:
+`powershell -ExecutionPolicy Bypass -File tools/art/setup.ps1` (installs what is missing, runs `npm ci`, writes the
+`.env.local` template, probes the APIs once keys are in). By hand:
+
 1. `.env.local` (never committed): `PIXELLAB_API_KEY`, `FAL_KEY`, `GEMINI_API_KEY`, `ELEVENLABS_API_KEY`;
    optional `ART_BUDGET_USD` (default 25 per run), `FAL_T2I_MODEL`, `FAL_LORA_MODEL`, `FAL_TRAINER_MODEL`,
    `GEMINI_IMAGE_MODEL`, `ART_PYTHON`, `ART_BODY_REF` (the body sheet worn layers are drawn on, default `1_1`).
