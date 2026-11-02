@@ -9,3 +9,8 @@ playwright-report/
 *.log
 .DS_Store
 .netlify/
+# art pipeline: the inbox (Midjourney/Suno drops), raw model output and caches never go into git
+art/inbox/
+art/cache/
+!art/inbox/midjourney/README.txt
+!art/inbox/suno/README.txt

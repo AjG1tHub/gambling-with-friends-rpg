@@ -5,6 +5,7 @@
 //   /lab/?phone=1         the same catalog in the phone's layout with 60 px buttons (test every item from a phone)
 //   /lab/?botrun=ffa&bots=4&seed=1   runs tools/bots.mjs' loop in the browser against the deployed code and shows the report
 //   /lab/?qa=1            the QA run: every wheel three times, one spin at a time, with the calculation and a verdict per spin
+//   /lab/?art=1           the art review page: every asset placeholder vs real, Approve / Redo → art/review.json (with `npm run art:review`)
 // Deep links: /lab/#coinblade, #wheel:fortune, #duel:quickdraw, #creation:fifty, #pet:emberfox, #data:legendaries.
 // Only createLocalBackend({ namespace: 'lab' }) is ever created (identity for the report); no room is opened.
 import '../../packages/shared/index.js';
@@ -25,11 +26,13 @@ import { screenPets } from './screens/pets.js';
 import { screenData, DATA_PAGES } from './screens/data.js';
 import { screenBotrun } from './screens/botrun.js';
 import { screenQa, qaProgress } from './screens/qa.js';
+import { screenArt, ART_CSS } from './screens/art.js';
 
 const app = $('#app');
 const phone = qs('phone') === '1';
 if (phone) document.body.classList.add('lab-phone');
 ensureStageCss();
+{ const st = document.createElement('style'); st.textContent = ART_CSS; document.head.append(st); }
 const storage = (() => { try { localStorage.getItem('x'); return localStorage; } catch { return { getItem: () => null, setItem() {} }; } })();
 
 // ── the catalog: items by family, then the wheels, creation gamble, duels and pets as extra groups ─
@@ -59,8 +62,8 @@ lab.state = newLabState({ seed: lab.seed, health: LAB_HEALTH, chips: LAB_CHIPS, 
 window.__lab = lab;
 
 // ── routing ──────────────────────────────────────────────────────────────────────────────────────
-const screenFor = (id) => (id === 'botrun' ? screenBotrun : id === 'qa' ? screenQa : id?.startsWith('wheel:') ? screenWheels : id?.startsWith('creation:') ? screenCreation : id?.startsWith('duel:') ? screenChallenge : id?.startsWith('pet:') ? screenPets : id?.startsWith('data:') ? screenData : screenItems);
-const nameOf = (id) => lab.catalog.flatMap(g => g.items).find(x => x.id === id) || (id?.startsWith('data:') ? { name: DATA_PAGES.find(p => `data:${p.id}` === id)?.name || 'Data', icon: '📜' } : id === 'botrun' ? { name: 'Bot run', icon: '🤖' } : id === 'qa' ? { name: 'QA: every wheel ×3', icon: '🔍' } : { name: id, icon: '🎲' });
+const screenFor = (id) => (id === 'botrun' ? screenBotrun : id === 'qa' ? screenQa : id === 'art' ? screenArt : id?.startsWith('wheel:') ? screenWheels : id?.startsWith('creation:') ? screenCreation : id?.startsWith('duel:') ? screenChallenge : id?.startsWith('pet:') ? screenPets : id?.startsWith('data:') ? screenData : screenItems);
+const nameOf = (id) => lab.catalog.flatMap(g => g.items).find(x => x.id === id) || (id?.startsWith('data:') ? { name: DATA_PAGES.find(p => `data:${p.id}` === id)?.name || 'Data', icon: '📜' } : id === 'botrun' ? { name: 'Bot run', icon: '🤖' } : id === 'qa' ? { name: 'QA: every wheel ×3', icon: '🔍' } : id === 'art' ? { name: 'Art review', icon: '🖼' } : { name: id, icon: '🎲' });
 export function open(id, { push = true } = {}) {
   lab.current = id || null;
   if (push && id) history.replaceState(null, '', `#${id}`);
@@ -74,7 +77,7 @@ function draw() {
     h('label', {}, h('input', { type: 'checkbox', checked: lab.autoSettle, onChange: (e) => { lab.autoSettle = e.target.checked; store.set('gwfrpg:lab:auto', lab.autoSettle); } }), 'auto-settle'),
     phone ? null : h('label', { title: 'A Nudge, a Reroll and a Fork every round (chance games only)' }, h('input', { type: 'checkbox', checked: lab.powerUps, onChange: (e) => { lab.powerUps = e.target.checked; } }), 'power-ups'),
     phone ? h('a', { class: 'btn ghost', href: '/lab/' }, 'PC Lab') : h('a', { class: 'btn ghost', href: '/lab/?phone=1' }, 'Phone mode ↗'),
-    phone ? null : h('a', { class: 'btn ghost', href: '/lab/?botrun=ffa&bots=4' }, 'Bot run'), phone ? null : h('a', { class: 'btn ghost', href: '/lab/?qa=1' }, 'QA run'), phone ? null : h('a', { class: 'btn ghost', href: '/gm/' }, '← GM console'));
+    phone ? null : h('a', { class: 'btn ghost', href: '/lab/?botrun=ffa&bots=4' }, 'Bot run'), phone ? null : h('a', { class: 'btn ghost', href: '/lab/?qa=1' }, 'QA run'), phone ? null : h('a', { class: 'btn ghost', href: '/lab/?art=1' }, 'Art review'), phone ? null : h('a', { class: 'btn ghost', href: '/gm/' }, '← GM console'));
   els.nav = lenient(h('nav', { class: 'lab-nav panel', 'aria-label': 'Catalog' }));
   els.main = lenient(h('main', { class: 'lab-main' }));
   els.side = lenient(h('aside', { class: 'lab-side' }));
@@ -95,7 +98,7 @@ function drawNav() {
   nav.append(h('h4', {}, 'Reference'));
   for (const p of DATA_PAGES) nav.append(btn(`data:${p.id}`, p.icon, p.name));
   const q = lab.marks.qa || {}, qp = qaProgress(lab.marks);
-  nav.append(h('h4', {}, 'Runs'), btn('botrun', '🤖', 'Bot run in the browser'), btn('qa', '🔍', 'QA: every wheel ×3', q.status === 'ok' ? '✅' : q.status === 'bad' ? '⚠️' : qp.done ? `${qp.done}/${qp.total}` : '', q.status || ''));
+  nav.append(h('h4', {}, 'Runs'), btn('botrun', '🤖', 'Bot run in the browser'), btn('qa', '🔍', 'QA: every wheel ×3', q.status === 'ok' ? '✅' : q.status === 'bad' ? '⚠️' : qp.done ? `${qp.done}/${qp.total}` : '', q.status || ''), btn('art', '🖼', 'Art review'));
 }
 function drawMain() {
   const main = els.main; main.replaceChildren();
@@ -117,7 +120,7 @@ function drawMain() {
 function drawSide() {
   const side = els.side; if (!side) return; side.replaceChildren();
   const id = lab.current;
-  if (!id || id === 'botrun' || id === 'qa' || id.startsWith('data:')) { side.append(reportPanel()); return; }
+  if (!id || id === 'botrun' || id === 'qa' || id === 'art' || id.startsWith('data:')) { side.append(reportPanel()); return; }
   const e = lab.marks[id] || {};
   const note = h('textarea', { placeholder: 'Notes — what felt off, what to change…', rows: 4 }); note.value = e.note || '';
   note.addEventListener('input', () => { setNote(lab.marks, id, note.value); lab.save(); });
@@ -151,11 +154,12 @@ document.addEventListener('keydown', (e) => {
   e.preventDefault();
 });
 window.addEventListener('error', (e) => { toast(`⚠️ ${e.message || 'error'}`, 'bad', 6000); });
-window.addEventListener('hashchange', () => { const id = decodeURIComponent(location.hash.slice(1)); if (id && id !== lab.current && (lab.order.includes(id) || id.startsWith('data:') || id === 'botrun' || id === 'qa')) open(id, { push: false }); });
+window.addEventListener('hashchange', () => { const id = decodeURIComponent(location.hash.slice(1)); if (id && id !== lab.current && (lab.order.includes(id) || id.startsWith('data:') || id === 'botrun' || id === 'qa' || id === 'art')) open(id, { push: false }); });
 
 // ── boot ─────────────────────────────────────────────────────────────────────────────────────────
 lab.backend = createLocalBackend({ namespace: 'lab' });
 if (qs('botrun')) { lab.current = 'botrun'; draw(); }
 else if (qs('qa')) { lab.current = 'qa'; draw(); }
-else { const hash = decodeURIComponent(location.hash.slice(1)); if (hash && (lab.order.includes(hash) || hash.startsWith('data:') || hash === 'botrun' || hash === 'qa')) lab.current = hash; else if (!phone && !hash) lab.current = null; draw(); }
+else if (qs('art')) { lab.current = 'art'; draw(); }
+else { const hash = decodeURIComponent(location.hash.slice(1)); if (hash && (lab.order.includes(hash) || hash.startsWith('data:') || hash === 'botrun' || hash === 'qa' || hash === 'art')) lab.current = hash; else if (!phone && !hash) lab.current = null; draw(); }
 export { nameOf, drawSide, drawNav, CLASSES, B };

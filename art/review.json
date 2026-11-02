@@ -1,0 +1,4 @@
+{
+ "_about": "Reviewer verdicts from the Lab art page (/lab/?art=1 with `npm run art:review`). approve keeps the file; redo and redo-note make the next pipeline run regenerate the row with a new seed (attempt + 1). Edit by hand if you must; the pipeline only clears verdicts it has acted on.",
+ "entries": {}
+}

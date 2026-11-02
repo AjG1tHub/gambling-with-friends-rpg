@@ -1,0 +1,3147 @@
+{
+ "body/0_0": {
+  "notes": "Body build 0 skin 0 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P1"
+ },
+ "body/0_1": {
+  "notes": "Body build 0 skin 1 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P1"
+ },
+ "body/0_2": {
+  "notes": "Body build 0 skin 2 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P1"
+ },
+ "body/0_3": {
+  "notes": "Body build 0 skin 3 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P1"
+ },
+ "cards/back": {
+  "notes": "cards/back",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/bone": {
+  "notes": "cards/bone",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/bone_double": {
+  "notes": "cards/bone_double",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/brass": {
+  "notes": "cards/brass",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/brass_double": {
+  "notes": "cards/brass_double",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/oxblood": {
+  "notes": "cards/oxblood",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/oxblood_double": {
+  "notes": "cards/oxblood_double",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/soot": {
+  "notes": "cards/soot",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/soot_double": {
+  "notes": "cards/soot_double",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/verdigris": {
+  "notes": "cards/verdigris",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/verdigris_double": {
+  "notes": "cards/verdigris_double",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/violet": {
+  "notes": "cards/violet",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "cards/violet_double": {
+  "notes": "cards/violet_double",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "consumables/citadel_key": {
+  "notes": "consumables/citadel_key — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/egg": {
+  "notes": "consumables/egg — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/fork": {
+  "notes": "consumables/fork — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/nudge": {
+  "notes": "consumables/nudge — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/petrevive": {
+  "notes": "consumables/petrevive — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/phoenixfeather": {
+  "notes": "consumables/phoenixfeather — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/potion": {
+  "notes": "consumables/potion — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/potion_large": {
+  "notes": "consumables/potion_large — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/potion_medium": {
+  "notes": "consumables/potion_medium — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/potion_small": {
+  "notes": "consumables/potion_small — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/reroll": {
+  "notes": "consumables/reroll — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/satchel": {
+  "notes": "consumables/satchel — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/smokebomb": {
+  "notes": "consumables/smokebomb — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "consumables/spyglass": {
+  "notes": "consumables/spyglass — consumable icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "crest/beastmaster": {
+  "notes": "Beastmaster class crest (seal)",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "crest/croupier": {
+  "notes": "Croupier class crest (seal)",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "crest/cutpurse": {
+  "notes": "Cutpurse class crest (seal)",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "crest/enforcer": {
+  "notes": "Enforcer class crest (seal)",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "crest/pitboss": {
+  "notes": "Pit Boss class crest (seal)",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "crest/whale": {
+  "notes": "Whale class crest (seal)",
+  "tool": "Retro Diffusion",
+  "priority": "P1"
+ },
+ "dice/d6": {
+  "notes": "dice/d6",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P1"
+ },
+ "dice/d6_outline": {
+  "notes": "dice/d6_outline",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P1"
+ },
+ "dice/d6_roll": {
+  "notes": "dice/d6_roll",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P1"
+ },
+ "face/0": {
+  "notes": "Face 0 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "face/1": {
+  "notes": "Face 1 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "face/2": {
+  "notes": "Face 2 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "face/3": {
+  "notes": "Face 3 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "frames/common_1x1": {
+  "notes": "frames/common_1x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/common_1x3": {
+  "notes": "frames/common_1x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/common_2x1": {
+  "notes": "frames/common_2x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/common_2x2": {
+  "notes": "frames/common_2x2",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/common_2x3": {
+  "notes": "frames/common_2x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/common_2x4": {
+  "notes": "frames/common_2x4",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/epic_1x1": {
+  "notes": "frames/epic_1x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/epic_1x3": {
+  "notes": "frames/epic_1x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/epic_2x1": {
+  "notes": "frames/epic_2x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/epic_2x2": {
+  "notes": "frames/epic_2x2",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/epic_2x3": {
+  "notes": "frames/epic_2x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/epic_2x4": {
+  "notes": "frames/epic_2x4",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/legendary_1x1": {
+  "notes": "frames/legendary_1x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/legendary_1x3": {
+  "notes": "frames/legendary_1x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/legendary_2x1": {
+  "notes": "frames/legendary_2x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/legendary_2x2": {
+  "notes": "frames/legendary_2x2",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/legendary_2x3": {
+  "notes": "frames/legendary_2x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/legendary_2x4": {
+  "notes": "frames/legendary_2x4",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/rare_1x1": {
+  "notes": "frames/rare_1x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/rare_1x3": {
+  "notes": "frames/rare_1x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/rare_2x1": {
+  "notes": "frames/rare_2x1",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/rare_2x2": {
+  "notes": "frames/rare_2x2",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/rare_2x3": {
+  "notes": "frames/rare_2x3",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "frames/rare_2x4": {
+  "notes": "frames/rare_2x4",
+  "tool": "hand (9-slice)",
+  "priority": "P1"
+ },
+ "gear/bone_crown": {
+  "notes": "Bone Crown (helmet) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/brass_coil": {
+  "notes": "Brass Coil (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/brass_locket": {
+  "notes": "Brass Locket (necklace) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/brass_mask": {
+  "notes": "Brass Mask (helmet) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/card_sharps": {
+  "notes": "Card Sharp's Gloves (gloves) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/chip_chain": {
+  "notes": "Chip Chain (necklace) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/chip_hauberk": {
+  "notes": "Chip Hauberk (torso) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/cobblers_slippers": {
+  "notes": "Cobbler's Slippers (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/croupiers_heels": {
+  "notes": "Croupier's Heels (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/dealers_coat": {
+  "notes": "Dealer's Coat (torso) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/dealers_ring": {
+  "notes": "Dealer's Ring (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/die_on_a_string": {
+  "notes": "Die on a String (necklace) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/dodeca_sabatons": {
+  "notes": "Dodeca Sabatons (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/dyers_boots": {
+  "notes": "Dyer's Boots (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/felt_breeches": {
+  "notes": "Felt Breeches (pants) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/gamblers_slacks": {
+  "notes": "Gambler's Slacks (pants) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/iron_helm": {
+  "notes": "Iron Helm (helmet) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/knuckle_ring": {
+  "notes": "Knuckle Ring (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/knucklebone_greaves": {
+  "notes": "Knucklebone Greaves (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/pit_plate": {
+  "notes": "Pit Plate (torso) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/signet_ring": {
+  "notes": "Signet Ring (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "gear/velvet_gauntlets": {
+  "notes": "Velvet Gauntlets (gloves) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "hair/0": {
+  "notes": "Hair 0 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "hair/1": {
+  "notes": "Hair 1 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "hair/2": {
+  "notes": "Hair 2 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "hair/3": {
+  "notes": "Hair 3 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "hair/4": {
+  "notes": "Hair 4 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "hair/5": {
+  "notes": "Hair 5 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "items/bonecage": {
+  "notes": "Bone Cage — attack weapon built on sicbo (dice family, grit). Three dice, a board of bets. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/bonetoss": {
+  "notes": "Bone Toss — attack weapon built on craps (dice family, grit). Come-out roll, then make your point. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/briefcase": {
+  "notes": "The Briefcase — spell weapon built on deal (picks family, greed). Keep a case, take the banker's offer or open yours. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/chainlightning": {
+  "notes": "Chain Lightning — attack weapon built on coinstreak (nerve family, nerve). Call the coin, ride the streak. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/clash": {
+  "notes": "Clash — versus weapon built on war (cards family, grit). High card wins. Ties go to Grit. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/coinblade": {
+  "notes": "Coin Blade — attack weapon built on fifty (wheels family, luck). Call it, then spin. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/diceduel": {
+  "notes": "Dice Duel — versus weapon built on hilodice (dice family, grit). Higher or lower on the dice, cash out before you bust. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/dragonsbreath": {
+  "notes": "Dragon's Breath — attack weapon built on dragontiger (cards family, greed). Dragon or Tiger — one card each. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/fusebomb": {
+  "notes": "Fuse Bomb — attack weapon built on crash (nerve family, nerve). Light the fuse, cash out before it blows. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/handoffate": {
+  "notes": "Hand of Fate — attack weapon built on videopoker (cards family, greed). Hold the cards you like, draw the rest. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/holdemduel": {
+  "notes": "Hold'em Duel — versus weapon built on holdem (cards family, greed). Hole cards, a flop, call or fold. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/houndsnap": {
+  "notes": "Hound Snap — attack weapon built on reddog (cards family, greed). Will the next card fall between the first two? Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/jackpotcannon": {
+  "notes": "Jackpot Cannon — attack weapon built on slots (picks family, luck). Pull the lever, match the reels. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/letitride": {
+  "notes": "Let It Ride — attack weapon built on letitride (cards family, greed). Three bets riding — pull them back or let it ride. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/limborope": {
+  "notes": "Limbo Rope — attack weapon built on limbo (nerve family, nerve). Name a multiplier, see if the rope holds. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/loadeddice": {
+  "notes": "Loaded Dice — attack weapon built on dice (dice family, grit). Roll 1–100 against your own target. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/luckyseven": {
+  "notes": "Lucky Seven — attack weapon built on underover7 (dice family, grit). Two dice: under, over or exactly 7. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/mend": {
+  "notes": "Mend — spell weapon built on hilo (cards family, grit). Higher or lower, card after card. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/minefield": {
+  "notes": "Minefield — attack weapon built on mines (nerve family, nerve). Clear safe squares, walk away in time. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/pachinkohail": {
+  "notes": "Pachinko Hail — attack weapon built on pachinko (picks family, luck). Drop five balls, hope for the centre. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/prismspin": {
+  "notes": "Prism Spin — attack weapon built on colorwheel (wheels family, luck). Bet a colour, spin the prism. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/roadrun": {
+  "notes": "Road Run — attack weapon built on chicken (nerve family, nerve). Cross the road one lane at a time. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/rockslide": {
+  "notes": "Rockslide — attack weapon built on plinko (picks family, luck). Drop the rock, hope it bounces wide. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/roulettestorm": {
+  "notes": "Roulette Storm — area weapon built on roulette (wheels family, luck). Pick a bet, spin, cover the room. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/scratchcharm": {
+  "notes": "Scratch Charm — spell weapon built on scratch (picks family, luck). Scratch panels, match three. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/shellgame": {
+  "notes": "Shell Game — versus weapon built on thimbles (picks family, luck). Find the pea under one of three cups. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/siegetower": {
+  "notes": "Siege Tower — attack weapon built on tower (nerve family, nerve). Climb floor by floor, one door is safe. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/stampede": {
+  "notes": "Stampede — area weapon built on race (picks family, luck). Back a runner, watch the stampede. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/starshower": {
+  "notes": "Star Shower — attack weapon built on keno (picks family, luck). Pick your stars, the sky draws ten. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/thebus": {
+  "notes": "The Bus — attack weapon built on bus (cards family, nerve). Ride the bus: four calls in a row. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/trident": {
+  "notes": "Trident — attack weapon built on threecard (cards family, greed). Three cards: play or fold. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/tripledice": {
+  "notes": "Triple Dice — attack weapon built on chuckaluck (dice family, grit). Pick a number, three dice roll. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/twinfang": {
+  "notes": "Twin Fang — attack weapon built on baccarat (cards family, greed). Player, Banker or Tie — then watch. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/twinward": {
+  "notes": "Twin Ward — spell weapon built on paigow (cards family, grit). Split seven cards into a high hand and a low hand. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/ward": {
+  "notes": "Ward — spell weapon built on blackjack (cards family, greed). Beat the dealer without going over 21. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "items/wheelofruin": {
+  "notes": "Wheel of Ruin — attack weapon built on bigwheel (wheels family, luck). One spin, seven segments. Grid footprint 1x3.",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P1"
+ },
+ "lantern/dead": {
+  "notes": "Health lantern tell: dead (the only Health readout anyone sees)",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "lantern/full": {
+  "notes": "Health lantern tell: full (the only Health readout anyone sees)",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "lantern/guttering": {
+  "notes": "Health lantern tell: guttering (the only Health readout anyone sees)",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "lantern/out": {
+  "notes": "Health lantern tell: out (the only Health readout anyone sees)",
+  "tool": "PixelLab (layer)",
+  "priority": "P1"
+ },
+ "map/cartouche_blackwood": {
+  "notes": "Blackwood cartouche",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/cartouche_caldera": {
+  "notes": "The Caldera cartouche",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/cartouche_citadel": {
+  "notes": "Sky Citadel cartouche",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/cartouche_docks": {
+  "notes": "The Docks cartouche",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/cartouche_strip": {
+  "notes": "Casino Strip cartouche",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/courier_marker": {
+  "notes": "map/courier_marker",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/parchment_frame": {
+  "notes": "map/parchment_frame",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/path_brush": {
+  "notes": "map/path_brush",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "map/reach_ring": {
+  "notes": "map/reach_ring",
+  "tool": "Midjourney (parchment, cartouches)",
+  "priority": "P1"
+ },
+ "monsters/ash_croupier": {
+  "notes": "Ash Croupier — common of caldera region. What is left of a dealer after the furnace door opened on them. Holds its shape by habit alone. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/ash_croupier_token": {
+  "notes": "Ash Croupier — common of caldera region. What is left of a dealer after the furnace door opened on them. Holds its shape by habit alone. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/blackwood_owl": {
+  "notes": "Blackwood Owl — common of blackwood region. Watches every hand in the forest and remembers all of them. Its eyes are two face-down cards. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/blackwood_owl_token": {
+  "notes": "Blackwood Owl — common of blackwood region. Watches every hand in the forest and remembers all of them. Its eyes are two face-down cards. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/boss_strip": {
+  "notes": "Lady Neon, the Last Lit Sign — boss of strip region. The one sign still burning on the Strip, and the thing that lives inside it. She has watched every run begin. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/boss_strip_token": {
+  "notes": "Lady Neon, the Last Lit Sign — boss of strip region. The one sign still burning on the Strip, and the thing that lives inside it. She has watched every run begin. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/card_shark": {
+  "notes": "Card Shark — common of strip region. A literal shark in a waistcoat. It has never lost a hand it dealt itself and does not intend to start with yours. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/card_shark_token": {
+  "notes": "Card Shark — common of strip region. A literal shark in a waistcoat. It has never lost a hand it dealt itself and does not intend to start with yours. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/cloud_usher": {
+  "notes": "Cloud Usher — common of citadel region. Shows you to your seat. The seat is the edge of the tower and the view is the drop. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/cloud_usher_token": {
+  "notes": "Cloud Usher — common of citadel region. Shows you to your seat. The seat is the edge of the tower and the view is the drop. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/drowned_dealer": {
+  "notes": "Drowned Dealer — common of docks region. Went into the black water with the night's take and came back without it. It wants a word about the shortfall. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/drowned_dealer_token": {
+  "notes": "Drowned Dealer — common of docks region. Went into the black water with the night's take and came back without it. It wants a word about the shortfall. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/drunk_revenant": {
+  "notes": "Drunk Croupier Revenant — common of strip region. Still dealing. Still drinking. Still dead. The first thing every run meets, swaying under the one lit sign. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/drunk_revenant_token": {
+  "notes": "Drunk Croupier Revenant — common of strip region. Still dealing. Still drinking. Still dead. The first thing every run meets, swaying under the one lit sign. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/fog_lamplighter": {
+  "notes": "Fog Lamplighter — common of docks region. Lights the lanterns that lead you off the pier. The fog is its, and so is everyone in it. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/fog_lamplighter_token": {
+  "notes": "Fog Lamplighter — common of docks region. Lights the lanterns that lead you off the pier. The fog is its, and so is everyone in it. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/hanged_dice_wraith": {
+  "notes": "Hanged-Dice Wraith — common of blackwood region. The knucklebones on the ropes are its teeth. It rattles them when the wind is right and when it is not. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/hanged_dice_wraith_token": {
+  "notes": "Hanged-Dice Wraith — common of blackwood region. The knucklebones on the ropes are its teeth. It rattles them when the wind is right and when it is not. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/molten_chip_golem": {
+  "notes": "Molten Chip Golem — common of caldera region. A stack of chips that never cooled. Every one of them was somebody's last. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/molten_chip_golem_token": {
+  "notes": "Molten Chip Golem — common of caldera region. A stack of chips that never cooled. Every one of them was somebody's last. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/roulette_wraith": {
+  "notes": "Roulette Wraith — common of strip region. A breaking wheel with a face in the hub. It spins when it screams and it screams when it spins. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/roulette_wraith_token": {
+  "notes": "Roulette Wraith — common of strip region. A breaking wheel with a face in the hub. It spins when it screams and it screams when it spins. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/the_grey": {
+  "notes": "The Grey — common of citadel region. Small, grey, large-eyed, and never alone: it mind-links with another monster on the map and shares its Health, and on its turn it can take your active pet for one attack. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "monsters/the_grey_token": {
+  "notes": "The Grey — common of citadel region. Small, grey, large-eyed, and never alone: it mind-links with another monster on the map and shares its Health, and on its turn it can take your active pet for one attack. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P1"
+ },
+ "outfit/beastmaster": {
+  "notes": "Beastmaster class outfit — layer, 5 poses. ",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "outfit/croupier": {
+  "notes": "Croupier class outfit — layer, 5 poses. ",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "outfit/cutpurse": {
+  "notes": "Cutpurse class outfit — layer, 5 poses. ",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "outfit/enforcer": {
+  "notes": "Enforcer class outfit — layer, 5 poses. ",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "outfit/pitboss": {
+  "notes": "Pit Boss class outfit — layer, 5 poses. ",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "outfit/whale": {
+  "notes": "Whale class outfit — layer, 5 poses. ",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "pets/egg_emberfox": {
+  "notes": "Egg of Cinderfox (Oxblood) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/egg_sprigbun": {
+  "notes": "Egg of Mossbun (Verdigris) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/egg_tidepup": {
+  "notes": "Egg of Brinepup (Violet) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/egg_zapmouse": {
+  "notes": "Egg of Sparkrat (Brass) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/emberfox_1": {
+  "notes": "Cinderfox — stage 1 of Cinderfox (Oxblood element, common pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/emberfox_2": {
+  "notes": "Pyrewolf — stage 2 of Cinderfox (Oxblood element, common pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/emberfox_3": {
+  "notes": "Ashen Kitsune — stage 3 of Cinderfox (Oxblood element, common pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/sprigbun_1": {
+  "notes": "Mossbun — stage 1 of Mossbun (Verdigris element, common pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/sprigbun_2": {
+  "notes": "Thornhare — stage 2 of Mossbun (Verdigris element, common pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/sprigbun_3": {
+  "notes": "Elderstag — stage 3 of Mossbun (Verdigris element, common pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/tidepup_1": {
+  "notes": "Brinepup — stage 1 of Brinepup (Violet element, common pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/tidepup_2": {
+  "notes": "Wharfseal — stage 2 of Brinepup (Violet element, common pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/tidepup_3": {
+  "notes": "Drowned Leviathan — stage 3 of Brinepup (Violet element, common pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/zapmouse_1": {
+  "notes": "Sparkrat — stage 1 of Sparkrat (Brass element, common pool, strip region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/zapmouse_2": {
+  "notes": "Voltrat — stage 2 of Sparkrat (Brass element, common pool, strip region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "pets/zapmouse_3": {
+  "notes": "Neon Lynx — stage 3 of Sparkrat (Brass element, common pool, strip region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P1"
+ },
+ "sound/boss_roar": {
+  "notes": "Cue: boss_roar",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/buzz": {
+  "notes": "Cue: buzz",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/card_draw": {
+  "notes": "Cue: card_draw",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/chaos_stinger": {
+  "notes": "Cue: chaos_stinger",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/clock_warning": {
+  "notes": "Cue: clock_warning",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/crit": {
+  "notes": "Cue: crit",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/death_bell": {
+  "notes": "Cue: death_bell",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/dice": {
+  "notes": "Cue: dice",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_cards_flip": {
+  "notes": "Cue: game_cards_flip",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_cards_shuffle": {
+  "notes": "Cue: game_cards_shuffle",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_dice_land": {
+  "notes": "Cue: game_dice_land",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_dice_roll": {
+  "notes": "Cue: game_dice_roll",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_nerve_boom": {
+  "notes": "Cue: game_nerve_boom",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_nerve_cashout": {
+  "notes": "Cue: game_nerve_cashout",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_nerve_tick": {
+  "notes": "Cue: game_nerve_tick",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_picks_drop": {
+  "notes": "Cue: game_picks_drop",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_picks_hit": {
+  "notes": "Cue: game_picks_hit",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_picks_peg": {
+  "notes": "Cue: game_picks_peg",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_wheels_land": {
+  "notes": "Cue: game_wheels_land",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/game_wheels_spin": {
+  "notes": "Cue: game_wheels_spin",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/hex_step": {
+  "notes": "Cue: hex_step",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/hit": {
+  "notes": "Cue: hit",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/lantern_gutter": {
+  "notes": "Cue: lantern_gutter",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/letter_intercepted": {
+  "notes": "Cue: letter_intercepted",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/letter_sent": {
+  "notes": "Cue: letter_sent",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/loot_common": {
+  "notes": "Cue: loot_common",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/loot_epic": {
+  "notes": "Cue: loot_epic",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/loot_legendary": {
+  "notes": "Cue: loot_legendary",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/loot_rare": {
+  "notes": "Cue: loot_rare",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/miss": {
+  "notes": "Cue: miss",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/music_fight": {
+  "notes": "Music loop: fight",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/music_lobby": {
+  "notes": "Music loop: lobby",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/music_strip": {
+  "notes": "Music loop: strip",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/turn_start": {
+  "notes": "Cue: turn_start",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/ui_tap_1": {
+  "notes": "Cue: ui_tap_1",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/ui_tap_2": {
+  "notes": "Cue: ui_tap_2",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/ui_tap_3": {
+  "notes": "Cue: ui_tap_3",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/ui_tap_4": {
+  "notes": "Cue: ui_tap_4",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/ui_tap_5": {
+  "notes": "Cue: ui_tap_5",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/ui_tap_6": {
+  "notes": "Cue: ui_tap_6",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/wheel_land": {
+  "notes": "Cue: wheel_land",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "sound/wheel_ratchet": {
+  "notes": "Cue: wheel_ratchet",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P1"
+ },
+ "stages/cardback": {
+  "notes": "Backdrop for -family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/cards": {
+  "notes": "Backdrop for cards-family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/chips": {
+  "notes": "Backdrop for -family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/dice": {
+  "notes": "Backdrop for dice-family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/felt": {
+  "notes": "Backdrop for -family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/nerve": {
+  "notes": "Backdrop for nerve-family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/picks": {
+  "notes": "Backdrop for picks-family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "stages/wheels": {
+  "notes": "Backdrop for wheels-family minigames on the TV",
+  "tool": "Midjourney (1920×1080 backdrop)",
+  "priority": "P1"
+ },
+ "tiles/arena": {
+  "notes": "Hex tile glyph: arena glyph — Challenge a player to a Challenge Wheel fight or a pet battle with a Gold wager and a crowd bonus.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/blocker": {
+  "notes": "Hex tile glyph: blocker glyph — A destructible heap that blocks the hex and drops Gold when broken.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/bloodbank": {
+  "notes": "Hex tile glyph: bloodbank glyph — Take or repay a Blood Pact.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/bossgate": {
+  "notes": "Hex tile glyph: bossgate glyph — Fight the region boss if level or key allows, else bounce back three tiles.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/bounty": {
+  "notes": "Hex tile glyph: bounty glyph — Place or claim a bounty; take a public quest.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/bridge": {
+  "notes": "Hex tile glyph: tiles/bridge",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/bridge_gated": {
+  "notes": "Hex tile glyph: tiles/bridge_gated",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/chaos": {
+  "notes": "Hex tile glyph: chaos glyph — Spin the Chaos Wheel; tiers escalate as the run goes on.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/chest": {
+  "notes": "Hex tile glyph: chest glyph — Spin the Loot Wheel for an item (rarity by region), Gold or an egg.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/courier": {
+  "notes": "Hex tile glyph: courier glyph — The crow's roost. Letters in transit pass through here; whoever stands on it reads them first.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/encounter": {
+  "notes": "Hex tile glyph: encounter glyph — A monster from the region's table appears with its own Health and two moves. Fight it with your items; it drops Gold, an item or an egg when it dies.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/event": {
+  "notes": "Hex tile glyph: event glyph — Spin the Fate Wheel.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/fog": {
+  "notes": "Hex tile glyph: tiles/fog",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/graveyard": {
+  "notes": "Hex tile glyph: graveyard glyph — Dead players wake here after their missed turns; what they dropped stays where they fell.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/ground_blackwood": {
+  "notes": "Blackwood ground: ground texture for the region (tiled, 512 px)",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/ground_caldera": {
+  "notes": "The Caldera ground: ground texture for the region (tiled, 512 px)",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/ground_citadel": {
+  "notes": "Sky Citadel ground: ground texture for the region (tiled, 512 px)",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/ground_docks": {
+  "notes": "The Docks ground: ground texture for the region (tiled, 512 px)",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/ground_strip": {
+  "notes": "Casino Strip ground: ground texture for the region (tiled, 512 px)",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/inn": {
+  "notes": "Hex tile glyph: inn glyph — Safe tile: heal once per visit, buy potions, the Collector skips you this round.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/plain": {
+  "notes": "Hex tile glyph: plain glyph — Nothing here but the rain. A place to stand.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/portal": {
+  "notes": "Hex tile glyph: portal glyph — Pick a destination region and step through.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/shop": {
+  "notes": "Hex tile glyph: shop glyph — Buy items, potions and trinkets with Gold; sell back at half price.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/start": {
+  "notes": "Hex tile glyph: start glyph — Where the run begins, under the one sign still lit. A safe tile.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/throne": {
+  "notes": "Hex tile glyph: throne glyph — The Dealer's chair. Sit on it once the Dealer is dead and the run is won.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/void_blackwood": {
+  "notes": "Blackwood void (wall): void/chasm texture for the region",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/void_caldera": {
+  "notes": "The Caldera void (chasm): void/chasm texture for the region",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/void_citadel": {
+  "notes": "Sky Citadel void (chasm): void/chasm texture for the region",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/void_docks": {
+  "notes": "The Docks void (water): void/chasm texture for the region",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/void_strip": {
+  "notes": "Casino Strip void (wall): void/chasm texture for the region",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tiles/wheel": {
+  "notes": "Hex tile glyph: wheel glyph — Spin the Fortune Wheel for Health, Gold or an item.",
+  "tool": "Midjourney (ground/void textures) / Retro Diffusion (tile glyphs)",
+  "priority": "P1"
+ },
+ "tv/chaos_banner_1": {
+  "notes": "tv/chaos_banner_1",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/chaos_banner_2": {
+  "notes": "tv/chaos_banner_2",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/chaos_banner_3": {
+  "notes": "tv/chaos_banner_3",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/chaos_banner_4": {
+  "notes": "tv/chaos_banner_4",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/chaos_banner_5": {
+  "notes": "tv/chaos_banner_5",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/clock_face": {
+  "notes": "tv/clock_face",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/fight_panel": {
+  "notes": "tv/fight_panel",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/header": {
+  "notes": "tv/header",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/offscreen_card": {
+  "notes": "tv/offscreen_card",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/panel_frame": {
+  "notes": "tv/panel_frame",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/panel_frame_wide": {
+  "notes": "tv/panel_frame_wide",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/recap_card": {
+  "notes": "tv/recap_card",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/recap_frame": {
+  "notes": "tv/recap_frame",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "tv/ticker": {
+  "notes": "tv/ticker",
+  "tool": "hand SVG",
+  "priority": "P1"
+ },
+ "ui/active_beastmaster": {
+  "notes": "Beastmaster active icon",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/active_croupier": {
+  "notes": "Croupier active icon",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/active_cutpurse": {
+  "notes": "Cutpurse active icon",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/active_enforcer": {
+  "notes": "Enforcer active icon",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/active_pitboss": {
+  "notes": "Pit Boss active icon",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/active_whale": {
+  "notes": "Whale active icon",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/btn_disabled": {
+  "notes": "ui/btn_disabled",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/btn_idle": {
+  "notes": "ui/btn_idle",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/btn_pressed": {
+  "notes": "ui/btn_pressed",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/cage_cell": {
+  "notes": "ui/cage_cell",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/doll_stand": {
+  "notes": "ui/doll_stand",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/hexbtn_disabled": {
+  "notes": "ui/hexbtn_disabled",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/hexbtn_idle": {
+  "notes": "ui/hexbtn_idle",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/hexbtn_pressed": {
+  "notes": "ui/hexbtn_pressed",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/panel_alert": {
+  "notes": "ui/panel_alert",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/panel_ornate": {
+  "notes": "ui/panel_ornate",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/panel_plain": {
+  "notes": "ui/panel_plain",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_boots": {
+  "notes": "ui/slot_boots",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_cape": {
+  "notes": "ui/slot_cape",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_gloves": {
+  "notes": "ui/slot_gloves",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_helmet": {
+  "notes": "ui/slot_helmet",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_mainhand": {
+  "notes": "ui/slot_mainhand",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_necklace": {
+  "notes": "ui/slot_necklace",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_offhand": {
+  "notes": "ui/slot_offhand",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_pants": {
+  "notes": "ui/slot_pants",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_ring1": {
+  "notes": "ui/slot_ring1",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_ring2": {
+  "notes": "ui/slot_ring2",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_ring3": {
+  "notes": "ui/slot_ring3",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_ring4": {
+  "notes": "ui/slot_ring4",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_spell1": {
+  "notes": "ui/slot_spell1",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_spell2": {
+  "notes": "ui/slot_spell2",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/slot_torso": {
+  "notes": "ui/slot_torso",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/stop_hub": {
+  "notes": "ui/stop_hub",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/tab_cage": {
+  "notes": "ui/tab_cage",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/tab_letters": {
+  "notes": "ui/tab_letters",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/tab_map": {
+  "notes": "ui/tab_map",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/tab_pets": {
+  "notes": "ui/tab_pets",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/tab_play": {
+  "notes": "ui/tab_play",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "ui/tab_self": {
+  "notes": "ui/tab_self",
+  "tool": "Retro Diffusion / hand",
+  "priority": "P1"
+ },
+ "wheels/buyin": {
+  "notes": "Buy-in Wheel face — 8 segments: 80, 90, 100, 110, 120, 130, 140, 150. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P1"
+ },
+ "wheels/chaos": {
+  "notes": "Chaos Wheel face — 11 segments: The Collector, Blood in the Water, Marked Class, Shuffle the Cage, Mercy, Scapegoat, Tighten the Bars, Sticky Fingers, Escalation, Scatter, Apocalypse. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P1"
+ },
+ "wheels/hub": {
+  "notes": "wheels/hub face — 0 segments: . Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P1"
+ },
+ "wheels/loot": {
+  "notes": "Loot Wheel face — 3 segments: Item, Gold, Egg. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P1"
+ },
+ "wheels/movement": {
+  "notes": "Movement Wheel face — 10 segments: 1, 2, 3, 4, 5, 6, Sprint, Stumble, Teleport, Swap. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P1"
+ },
+ "wheels/pointer": {
+  "notes": "wheels/pointer face — 0 segments: . Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P1"
+ },
+ "worn/bone_crown": {
+  "notes": "Bone Crown (helmet) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/bonetoss": {
+  "notes": "Bone Toss held in the main hand — dice family weapon (craps). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/brass_coil": {
+  "notes": "Brass Coil (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/brass_locket": {
+  "notes": "Brass Locket (necklace) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/brass_mask": {
+  "notes": "Brass Mask (helmet) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/briefcase": {
+  "notes": "The Briefcase held in the spell hand — picks family weapon (deal). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/card_sharps": {
+  "notes": "Card Sharp's Gloves (gloves) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/chainlightning": {
+  "notes": "Chain Lightning held in the main hand — nerve family weapon (coinstreak). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/chip_chain": {
+  "notes": "Chip Chain (necklace) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/chip_hauberk": {
+  "notes": "Chip Hauberk (torso) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/cobblers_slippers": {
+  "notes": "Cobbler's Slippers (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/coinblade": {
+  "notes": "Coin Blade held in the main hand — wheels family weapon (fifty). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/croupiers_heels": {
+  "notes": "Croupier's Heels (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/dealers_coat": {
+  "notes": "Dealer's Coat (torso) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/dealers_ring": {
+  "notes": "Dealer's Ring (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/die_on_a_string": {
+  "notes": "Die on a String (necklace) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/dodeca_sabatons": {
+  "notes": "Dodeca Sabatons (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/dragonsbreath": {
+  "notes": "Dragon's Breath held in the main hand — cards family weapon (dragontiger). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/dyers_boots": {
+  "notes": "Dyer's Boots (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/felt_breeches": {
+  "notes": "Felt Breeches (pants) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/gamblers_slacks": {
+  "notes": "Gambler's Slacks (pants) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/handoffate": {
+  "notes": "Hand of Fate held in the main hand — cards family weapon (videopoker). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/iron_helm": {
+  "notes": "Iron Helm (helmet) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/jackpotcannon": {
+  "notes": "Jackpot Cannon held in the main hand — picks family weapon (slots). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/knuckle_ring": {
+  "notes": "Knuckle Ring (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/knucklebone_greaves": {
+  "notes": "Knucklebone Greaves (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/letitride": {
+  "notes": "Let It Ride held in the main hand — cards family weapon (letitride). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/luckyseven": {
+  "notes": "Lucky Seven held in the main hand — dice family weapon (underover7). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/mend": {
+  "notes": "Mend held in the spell hand — cards family weapon (hilo). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/minefield": {
+  "notes": "Minefield held in the main hand — nerve family weapon (mines). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/pit_plate": {
+  "notes": "Pit Plate (torso) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/roadrun": {
+  "notes": "Road Run held in the main hand — nerve family weapon (chicken). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/roulettestorm": {
+  "notes": "Roulette Storm held in the main hand — wheels family weapon (roulette). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/scratchcharm": {
+  "notes": "Scratch Charm held in the spell hand — picks family weapon (scratch). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/signet_ring": {
+  "notes": "Signet Ring (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/stampede": {
+  "notes": "Stampede held in the main hand — picks family weapon (race). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/thebus": {
+  "notes": "The Bus held in the main hand — cards family weapon (bus). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/tripledice": {
+  "notes": "Triple Dice held in the main hand — dice family weapon (chuckaluck). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/twinfang": {
+  "notes": "Twin Fang held in the main hand — cards family weapon (baccarat). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "worn/velvet_gauntlets": {
+  "notes": "Velvet Gauntlets (gloves) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P1"
+ },
+ "body/1_0": {
+  "notes": "Body build 1 skin 0 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/1_1": {
+  "notes": "Body build 1 skin 1 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/1_2": {
+  "notes": "Body build 1 skin 2 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/1_3": {
+  "notes": "Body build 1 skin 3 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/2_0": {
+  "notes": "Body build 2 skin 0 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/2_1": {
+  "notes": "Body build 2 skin 1 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/2_2": {
+  "notes": "Body build 2 skin 2 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "body/2_3": {
+  "notes": "Body build 2 skin 3 — 22-frame sheet: idle 4, attack 6, hit 2, death 6, step 4",
+  "tool": "PixelLab (sprite sheet, 22 frames 64×96)",
+  "priority": "P2"
+ },
+ "dice/d10": {
+  "notes": "dice/d10",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d10_outline": {
+  "notes": "dice/d10_outline",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d10_roll": {
+  "notes": "dice/d10_roll",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d12": {
+  "notes": "dice/d12",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d12_outline": {
+  "notes": "dice/d12_outline",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d12_roll": {
+  "notes": "dice/d12_roll",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d20": {
+  "notes": "dice/d20",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d20_outline": {
+  "notes": "dice/d20_outline",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d20_roll": {
+  "notes": "dice/d20_roll",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d4": {
+  "notes": "dice/d4",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d4_outline": {
+  "notes": "dice/d4_outline",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d4_roll": {
+  "notes": "dice/d4_roll",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d8": {
+  "notes": "dice/d8",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d8_outline": {
+  "notes": "dice/d8_outline",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "dice/d8_roll": {
+  "notes": "dice/d8_roll",
+  "tool": "Retro Diffusion / hand SVG",
+  "priority": "P2"
+ },
+ "face/4": {
+  "notes": "Face 4 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "face/5": {
+  "notes": "Face 5 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "face/6": {
+  "notes": "Face 6 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "face/7": {
+  "notes": "Face 7 — layer over the body",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "gear/bone_loop": {
+  "notes": "Bone Loop (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/bone_mitts": {
+  "notes": "Bone Mitts (gloves) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/brass_greaves": {
+  "notes": "Brass Greaves (pants) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/breaking_wheel_boots": {
+  "notes": "Breaking-Wheel Boots (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/candle_amulet": {
+  "notes": "Candle Amulet (necklace) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/candle_robe": {
+  "notes": "Candle Robe (torso) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/chip_band": {
+  "notes": "Chip Band (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/croupier_visor": {
+  "notes": "Croupier's Visor (helmet) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/decahedron_striders": {
+  "notes": "Decahedron Striders (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/fateful_treads": {
+  "notes": "Fateful Treads (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/garnet_ring": {
+  "notes": "Garnet Ring (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/knuckle_wraps": {
+  "notes": "Knuckle Wraps (gloves) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/loaded_boots": {
+  "notes": "Loaded Boots (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/oathring": {
+  "notes": "Oathring (ring) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/oxblood_jerkin": {
+  "notes": "Oxblood Jerkin (torso) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/painted_soles": {
+  "notes": "Painted Soles (boots) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/sootcloth_legs": {
+  "notes": "Sootcloth Legs (pants) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/tooth_pendant": {
+  "notes": "Tooth Pendant (necklace) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "gear/velvet_hood": {
+  "notes": "Velvet Hood (helmet) — grid icon",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "hair/10": {
+  "notes": "Hair 10 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "hair/11": {
+  "notes": "Hair 11 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "hair/6": {
+  "notes": "Hair 6 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "hair/7": {
+  "notes": "Hair 7 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "hair/8": {
+  "notes": "Hair 8 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "hair/9": {
+  "notes": "Hair 9 — layer over the face",
+  "tool": "PixelLab (layer)",
+  "priority": "P2"
+ },
+ "items/twohand_cards": {
+  "notes": "items/twohand_cards",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "items/twohand_dealer": {
+  "notes": "items/twohand_dealer",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "items/twohand_dice": {
+  "notes": "items/twohand_dice",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "items/twohand_nerve": {
+  "notes": "items/twohand_nerve",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "items/twohand_picks": {
+  "notes": "items/twohand_picks",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "items/twohand_wheels": {
+  "notes": "items/twohand_wheels",
+  "tool": "Retro Diffusion (icon, alpha)",
+  "priority": "P2"
+ },
+ "legendary/amuletofpotency": {
+  "notes": "Amulet of Potency (Legendary necklace, nods to Old School RuneScape): +6% damage on every hit and +1 to all four stats. The plainest Legendary and the one everyone wants. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/bigfancygun": {
+  "notes": "Big Fancy Gun (Legendary weapon, nods to Doom): Stake 50; hits every player and monster on your hex and all six neighbours. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/blockbreaker": {
+  "notes": "Blockbreaker Pick (Legendary offhand, nods to Minecraft): Walk through one void hex per turn; it is dug and stays open for everyone. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/broadside": {
+  "notes": "Corvette Broadside (Legendary weapon, nods to Elite Dangerous): Fires a line: every player and monster in 3 hexes straight ahead takes the hit. Stake 50; so heavy you move 1 hex less while it is wielded. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/bustercleaver": {
+  "notes": "Oversized Buster Cleaver (Legendary weapon, nods to Final Fantasy VII): Stake 50, +50% damage, swings last in the turn because of the weight. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/cameraobscura": {
+  "notes": "Camera Obscura (Legendary offhand, nods to Fatal Frame): Three shots per run. A photo of a player reveals their exact Health and worn items to you; a photo of a revenant or wraith deals 15 and pins it for a turn. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/carapace": {
+  "notes": "Spiny Blue Carapace (Legendary consumable, nods to Mario Kart DS): Throw it: the player currently leading on score takes 30 wherever they are. Cannot be dodged; a Fork can split it. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/chickendinner": {
+  "notes": "Chicken Dinner Platter (Legendary consumable, nods to PUBG): Only usable by the last player standing in Royale: heals to full and vaults an extra item. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/croupierscoat": {
+  "notes": "The Croupier's Coat (Legendary torso, nods to The affix table's own example): Opponents must stake at least 20 against you. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/deepseasuit": {
+  "notes": "Deep-Sea Suit (Legendary torso, nods to Animal Crossing: New Leaf): Water void hexes are passable for you; once per run you surface from one with a random Rare item. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/emberflask": {
+  "notes": "Ember Flask (Legendary consumable, nods to Dark Souls): Heals 30; refills to 3 charges at every Inn. Resting resets the region's monsters. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/fairyjar": {
+  "notes": "Fairy in a Jar (Legendary consumable, nods to Zelda): Sits in the grid. When you would die the jar breaks and you stand back up at 50% on the spot, no turns missed, no drops. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/gravitygauntlet": {
+  "notes": "Gravity Gauntlet (Legendary gloves, nods to Half-Life): Once per run, pull any player within 3 hexes onto your hex. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/impostorsvisor": {
+  "notes": "Impostor's Visor (Legendary helmet, nods to Among Us): Your letters cannot be intercepted, and for 2 turns the TV shows you as another player's sprite. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/infernalmantle": {
+  "notes": "Infernal Mantle (Legendary cape, nods to Old School RuneScape): Never dropped: awarded for clearing the deepest tier without dying. +3 Grit, immune to the Caldera's damage doubling, and the sprite burns. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/ocarina": {
+  "notes": "Clay Ocarina (Legendary spell, nods to Zelda): Three songs, each once per run: return to the last Inn you visited; skip the next Chaos turn; call a fainted pet back at 1 Power. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/octanetreads": {
+  "notes": "Octane Treads (Legendary boots, nods to Rocket League): The movement wheel loses Stumble and gains two Boost 8 segments; ending your move next to a player bumps them 1 hex. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/pedestalblade": {
+  "notes": "Pedestal Blade (Legendary weapon, nods to Zelda): Cannot be drawn under level 10. At full Health, reach 3 instead of 1. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/pendant": {
+  "notes": "Weighted Companion Pendant (Legendary necklace, nods to Portal): When you would die, the pendant is destroyed instead and you stay at 1 Health. It never says goodbye. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/pipbuoy": {
+  "notes": "Pip-Buoy (Legendary ring, nods to Fallout): Shows the exact Health of every player within 2 hexes, breaking the thirds tell. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/poolladder": {
+  "notes": "Pool Ladder (Legendary offhand, nods to The Sims): Place it on any hex to make it a pool; take the ladder away and whoever is in the pool cannot leave for 2 turns and loses 5 Health a turn. Put it back to let them out. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/raillance": {
+  "notes": "Rail Lance (Legendary weapon, nods to Killing Floor 2): Lock on: name a target within 3 hexes; the next hit cannot miss (a loss becomes a push). Stake 35, one lock per fight. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/resetcartridge": {
+  "notes": "Reset Cartridge (Legendary consumable, nods to The Sims (resetsim)): Resets your character to a clean state: clears every curse, pool, Blood Pact interest and Chaos effect on you and stands you on the last safe hex you visited. Also a GM console command for a stuck player. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/skatesofthesixth": {
+  "notes": "Skates of the Sixth (Legendary boots, nods to Pokemon X and Y): Roll 2d6, but you cannot stop early and you slide one extra hex in your last direction. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/tamersnare": {
+  "notes": "Tamer's Snare (Legendary consumable, nods to Pokemon): Throw at a monster under 25% Health to catch it as a pet instead of killing it. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/thejoker": {
+  "notes": "The Joker (Legendary weapon, nods to Balatro): Jokers count wild in your Video Poker hand; a five-of-a-kind is a double crit. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/theshout": {
+  "notes": "The Shout (Legendary spell, nods to Skyrim): Push every adjacent player and monster 2 hexes away; stake 20. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "legendary/toadstool": {
+  "notes": "Green-Cap Toadstool (Legendary consumable, nods to Mario): Eat it to bank an extra life: your next death costs no items and no turns. — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "letters/broken": {
+  "notes": "letters/broken",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/crow": {
+  "notes": "letters/crow",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/delivered": {
+  "notes": "letters/delivered",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/forged": {
+  "notes": "letters/forged",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/seal_beastmaster": {
+  "notes": "Beastmaster wax seal",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/seal_croupier": {
+  "notes": "Croupier wax seal",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/seal_cutpurse": {
+  "notes": "Cutpurse wax seal",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/seal_enforcer": {
+  "notes": "Enforcer wax seal",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/seal_pitboss": {
+  "notes": "Pit Boss wax seal",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/seal_whale": {
+  "notes": "Whale wax seal",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "letters/sealed": {
+  "notes": "letters/sealed",
+  "tool": "Retro Diffusion",
+  "priority": "P2"
+ },
+ "monsters/barnacle_bouncer": {
+  "notes": "Barnacle Bouncer — common of docks region. Door staff for a door that sank years ago. Still checks names. Yours is not on the list. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/barnacle_bouncer_token": {
+  "notes": "Barnacle Bouncer — common of docks region. Door staff for a door that sank years ago. Still checks names. Yours is not on the list. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_blackwood": {
+  "notes": "The Gallowmother — boss of blackwood region. The tree the whole forest grew from, and the hangwoman who planted it. Every die on every rope was a stake she collected. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_blackwood_token": {
+  "notes": "The Gallowmother — boss of blackwood region. The tree the whole forest grew from, and the hangwoman who planted it. Every die on every rope was a stake she collected. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_caldera": {
+  "notes": "The Furnace Dealer — boss of caldera region. The Boss Gate is a furnace door and this is what opens it from the inside. It deals in molten chips and takes its cut in skin. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_caldera_token": {
+  "notes": "The Furnace Dealer — boss of caldera region. The Boss Gate is a furnace door and this is what opens it from the inside. It deals in molten chips and takes its cut in skin. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_citadel": {
+  "notes": "The Comp, Archangel of the House — boss of citadel region. The highest roller in the highest room. Its halo is a roulette wheel and its wings are the ledgers of everyone it ever comped. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_citadel_token": {
+  "notes": "The Comp, Archangel of the House — boss of citadel region. The highest roller in the highest room. Its halo is a roulette wheel and its wings are the ledgers of everyone it ever comped. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_docks": {
+  "notes": "The Loan Shark — boss of docks region. The loan shark is a shark. Twenty feet of grey muscle in a pinstripe, and every Blood Pact on the pier is signed in its blood. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/boss_docks_token": {
+  "notes": "The Loan Shark — boss of docks region. The loan shark is a shark. Twenty feet of grey muscle in a pinstripe, and every Blood Pact on the pier is signed in its blood. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/croupier_revenant": {
+  "notes": "Croupier Revenant — common of strip region. Sober, which is worse. Its gloves are stitched to its hands and the house edge is stitched to its smile. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/croupier_revenant_token": {
+  "notes": "Croupier Revenant — common of strip region. Sober, which is worse. Its gloves are stitched to its hands and the house edge is stitched to its smile. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/dice_rope_hangman": {
+  "notes": "Dice-Rope Hangman — common of blackwood region. Ties the knots. Measures the drop by the stake. Has never once been wrong about a weight. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/dice_rope_hangman_token": {
+  "notes": "Dice-Rope Hangman — common of blackwood region. Ties the knots. Measures the drop by the stake. Has never once been wrong about a weight. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/forge_imp": {
+  "notes": "Forge Imp — common of caldera region. Stokes the pit and steals the ash. Laughs at the exact pitch of a fuse burning down. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/forge_imp_token": {
+  "notes": "Forge Imp — common of caldera region. Stokes the pit and steals the ash. Laughs at the exact pitch of a fuse burning down. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/gallows_spirit": {
+  "notes": "Gallows Spirit — common of blackwood region. Hangs from the dice-rope and deals from the drop. Every card it turns is the one it was holding when it fell. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/gallows_spirit_token": {
+  "notes": "Gallows Spirit — common of blackwood region. Hangs from the dice-rope and deals from the drop. Every card it turns is the one it was holding when it fell. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/goldleaf_knight": {
+  "notes": "Gold-Leaf Knight — common of citadel region. Armour of pressed gold over a body of pressed debt. Guards the lifts to the high floors. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/goldleaf_knight_token": {
+  "notes": "Gold-Leaf Knight — common of citadel region. Armour of pressed gold over a body of pressed debt. Guards the lifts to the high floors. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/high_table": {
+  "notes": "The High Table — raid of citadel region. A card table that seats the dead rich of the Citadel. Every player at it stakes every round. Needs monsters.raidMinPlayers on the tile; the reward is split. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/high_table_token": {
+  "notes": "The High Table — raid of citadel region. A card table that seats the dead rich of the Citadel. Every player at it stakes every round. Needs monsters.raidMinPlayers on the tile; the reward is split. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/highroller_angel": {
+  "notes": "Gilded High-Roller Angel — common of citadel region. Comped forever. Its wings are gold leaf over bone and it tips in other people's Health. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/highroller_angel_token": {
+  "notes": "Gilded High-Roller Angel — common of citadel region. Comped forever. Its wings are gold leaf over bone and it tips in other people's Health. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/loan_shark_eel": {
+  "notes": "Loan-Shark Eel — common of docks region. Slides out from under the pier with a ledger in its teeth. Interest is compounding while you read this. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/loan_shark_eel_token": {
+  "notes": "Loan-Shark Eel — common of docks region. Slides out from under the pier with a ledger in its teeth. Interest is compounding while you read this. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/salamander_dealer": {
+  "notes": "Salamander Dealer — common of caldera region. Deals from a shoe of molten chips with bare hands. The burns are the tell: it has none. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/salamander_dealer_token": {
+  "notes": "Salamander Dealer — common of caldera region. Deals from a shoe of molten chips with bare hands. The burns are the tell: it has none. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/slot_golem": {
+  "notes": "Slot Golem — common of strip region. A reliquary on legs, lit from inside by whatever is left of the saints. Pull the arm and pray. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/slot_golem_token": {
+  "notes": "Slot Golem — common of strip region. A reliquary on legs, lit from inside by whatever is left of the saints. Pull the arm and pray. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/the_dealer": {
+  "notes": "The Dealer — final of citadel region. A faceless Dealer on a throne that is a dealer's chair. The House is a dead god and this is the hand that still deals for it. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/the_dealer_token": {
+  "notes": "The Dealer — final of citadel region. A faceless Dealer on a throne that is a dealer's chair. The House is a dead god and this is the hand that still deals for it. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/the_litter": {
+  "notes": "The Litter — raid of blackwood region. Five cats in a circus of their own making. Each one is killed only by its own family of game, and the whole litter shares one purse. Needs monsters.raidMinPlayers on the tile; the reward is split. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "monsters/the_litter_token": {
+  "notes": "The Litter — raid of blackwood region. Five cats in a circus of their own making. Each one is killed only by its own family of game, and the whole litter shares one purse. Needs monsters.raidMinPlayers on the tile; the reward is split. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P2"
+ },
+ "pets/attack_element": {
+  "notes": "Pet attack icon: element",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/attack_guard": {
+  "notes": "Pet attack icon: guard",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/attack_mend": {
+  "notes": "Pet attack icon: mend",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/attack_strike": {
+  "notes": "Pet attack icon: strike",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/boulderox_1": {
+  "notes": "Boulderox — stage 1 of Boulderox (Verdigris element, region pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/boulderox_2": {
+  "notes": "Granitebull — stage 2 of Boulderox (Verdigris element, region pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/boulderox_3": {
+  "notes": "Quarry Titan — stage 3 of Boulderox (Verdigris element, region pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/dawnowl_1": {
+  "notes": "Candleowl — stage 1 of Candleowl (Bone element, region pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/dawnowl_2": {
+  "notes": "Vigil Owl — stage 2 of Candleowl (Bone element, region pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/dawnowl_3": {
+  "notes": "Seraph of Wax — stage 3 of Candleowl (Bone element, region pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_boulderox": {
+  "notes": "Egg of Boulderox (Verdigris) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_dawnowl": {
+  "notes": "Egg of Candleowl (Bone) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_gloomcat": {
+  "notes": "Egg of Gloomcat (Soot) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_goldengoose": {
+  "notes": "Egg of Gilded Goose (Bone) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_grazingmaw": {
+  "notes": "Egg of The Grazing Maw (Verdigris) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_lavatoad": {
+  "notes": "Egg of Cindertoad (Oxblood) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_mucklings": {
+  "notes": "Egg of Mucklings (Soot) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_notoriousmoon": {
+  "notes": "Egg of Notorious Moon (Soot) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_stormhawk": {
+  "notes": "Egg of Gallowhawk (Brass) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_sundrake": {
+  "notes": "Egg of Pyredrake (Oxblood) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/egg_voidling": {
+  "notes": "Egg of Voidling (Soot) ",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/gloomcat_1": {
+  "notes": "Gloomcat — stage 1 of Gloomcat (Soot element, region pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/gloomcat_2": {
+  "notes": "Shadeprowler — stage 2 of Gloomcat (Soot element, region pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/gloomcat_3": {
+  "notes": "Umbral Tiger — stage 3 of Gloomcat (Soot element, region pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/goldengoose_1": {
+  "notes": "Gilded Goose — stage 1 of Gilded Goose (Bone element, rare pool, strip region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/goldengoose_2": {
+  "notes": "Tarnished Swan — stage 2 of Gilded Goose (Bone element, rare pool, strip region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/goldengoose_3": {
+  "notes": "Aurum Phoenix — stage 3 of Gilded Goose (Bone element, rare pool, strip region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/grazingmaw_1": {
+  "notes": "Grazing Sprout — stage 1 of The Grazing Maw (Verdigris element, region pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/grazingmaw_2": {
+  "notes": "Grazing Maw — stage 2 of The Grazing Maw (Verdigris element, region pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/grazingmaw_3": {
+  "notes": "Uddered Maw — stage 3 of The Grazing Maw (Verdigris element, region pool, blackwood region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/lavatoad_1": {
+  "notes": "Cindertoad — stage 1 of Cindertoad (Oxblood element, region pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/lavatoad_2": {
+  "notes": "Magmander — stage 2 of Cindertoad (Oxblood element, region pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/lavatoad_3": {
+  "notes": "Calderasaur — stage 3 of Cindertoad (Oxblood element, region pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/mucklings_1": {
+  "notes": "Mucklings — stage 1 of Mucklings (Soot element, common pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/mucklings_2": {
+  "notes": "Muckheap — stage 2 of Mucklings (Soot element, common pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/mucklings_3": {
+  "notes": "The Great Heap — stage 3 of Mucklings (Soot element, common pool, docks region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/notoriousmoon_1": {
+  "notes": "Notorious Moon — stage 1 of Notorious Moon (Soot element, rare pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/notoriousmoon_2": {
+  "notes": "Gibbous Grin — stage 2 of Notorious Moon (Soot element, rare pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/notoriousmoon_3": {
+  "notes": "Full Notoriety — stage 3 of Notorious Moon (Soot element, rare pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/stormhawk_1": {
+  "notes": "Gallowhawk — stage 1 of Gallowhawk (Brass element, region pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/stormhawk_2": {
+  "notes": "Squallwing — stage 2 of Gallowhawk (Brass element, region pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/stormhawk_3": {
+  "notes": "Thunder Roc — stage 3 of Gallowhawk (Brass element, region pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/sundrake_1": {
+  "notes": "Pyredrake — stage 1 of Pyredrake (Oxblood element, rare pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/sundrake_2": {
+  "notes": "Furnace Wyrm — stage 2 of Pyredrake (Oxblood element, rare pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/sundrake_3": {
+  "notes": "Ash Sovereign — stage 3 of Pyredrake (Oxblood element, rare pool, caldera region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/voidling_1": {
+  "notes": "Voidling — stage 1 of Voidling (Soot element, rare pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/voidling_2": {
+  "notes": "Riftstalker — stage 2 of Voidling (Soot element, rare pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "pets/voidling_3": {
+  "notes": "Null Sovereign — stage 3 of Voidling (Soot element, rare pool, citadel region)",
+  "tool": "PixelLab (3 stages) / Retro Diffusion (eggs, attack icons)",
+  "priority": "P2"
+ },
+ "sound/music_blackwood": {
+  "notes": "Music loop: blackwood",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P2"
+ },
+ "sound/music_boss": {
+  "notes": "Music loop: boss",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P2"
+ },
+ "sound/music_caldera": {
+  "notes": "Music loop: caldera",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P2"
+ },
+ "sound/music_citadel": {
+  "notes": "Music loop: citadel",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P2"
+ },
+ "sound/music_docks": {
+  "notes": "Music loop: docks",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P2"
+ },
+ "sound/music_recap": {
+  "notes": "Music loop: recap",
+  "tool": "Suno (music) / legacy synth (cues)",
+  "priority": "P2"
+ },
+ "wheels/boss": {
+  "notes": "Boss Wheel face — 4 segments: Calm, Hungry, Furious, Cunning. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/bugreward": {
+  "notes": "bugreward face — 8 segments: A Rare Find, Epic Thanks, The House Owes You, Hush Money, Round of Potions, Patched Up, Sharper, Something Hatching. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/challenge": {
+  "notes": "Challenge Wheel face — 10 segments: Clash, Dice Duel, Shell Game, Hold'em, Quick-Draw, Speed Math, Memory, Trivia, High Card, Table. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/fate": {
+  "notes": "Fate Wheel face — 6 segments: Windfall, Trapdoor, Switcheroo, Found Property, Blackout, Wanted. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/fortune": {
+  "notes": "Fortune Wheel face — 4 segments: Second Wind, Payday, A Gift, Nothing But Vibes. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/pet_common": {
+  "notes": "Pet Wheel (common) face — 6 segments: Emberfox, Tidepup, Sprigbun, Zapmouse, Gloomcat, Dawnowl. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/pet_rare": {
+  "notes": "Pet Wheel (rare) face — 8 segments: Stormhawk, Dud, Voidling, Dud, Sundrake, Dud, Golden Goose, Dud. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "wheels/pet_region": {
+  "notes": "Pet Wheel (region) face — 6 segments: Region, Region, Common, Region, Rare, Common. Slices must stay equal-weight friendly: the renderer draws weighted wedges itself; a painted face is only used when the odds are equal.",
+  "tool": "hand SVG (segments must stay data-driven)",
+  "priority": "P2"
+ },
+ "worn/bone_loop": {
+  "notes": "Bone Loop (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/bone_mitts": {
+  "notes": "Bone Mitts (gloves) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/bonecage": {
+  "notes": "Bone Cage held in the main hand — dice family weapon (sicbo). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/brass_greaves": {
+  "notes": "Brass Greaves (pants) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/breaking_wheel_boots": {
+  "notes": "Breaking-Wheel Boots (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/candle_amulet": {
+  "notes": "Candle Amulet (necklace) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/candle_robe": {
+  "notes": "Candle Robe (torso) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/chip_band": {
+  "notes": "Chip Band (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/clash": {
+  "notes": "Clash held in the main hand — cards family weapon (war). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/croupier_visor": {
+  "notes": "Croupier's Visor (helmet) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/decahedron_striders": {
+  "notes": "Decahedron Striders (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/diceduel": {
+  "notes": "Dice Duel held in the main hand — dice family weapon (hilodice). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/fateful_treads": {
+  "notes": "Fateful Treads (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/fusebomb": {
+  "notes": "Fuse Bomb held in the main hand — nerve family weapon (crash). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/garnet_ring": {
+  "notes": "Garnet Ring (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/holdemduel": {
+  "notes": "Hold'em Duel held in the main hand — cards family weapon (holdem). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/houndsnap": {
+  "notes": "Hound Snap held in the main hand — cards family weapon (reddog). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/knuckle_wraps": {
+  "notes": "Knuckle Wraps (gloves) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/limborope": {
+  "notes": "Limbo Rope held in the main hand — nerve family weapon (limbo). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/loaded_boots": {
+  "notes": "Loaded Boots (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/loadeddice": {
+  "notes": "Loaded Dice held in the main hand — dice family weapon (dice). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/oathring": {
+  "notes": "Oathring (ring) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/oxblood_jerkin": {
+  "notes": "Oxblood Jerkin (torso) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/pachinkohail": {
+  "notes": "Pachinko Hail held in the main hand — picks family weapon (pachinko). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/painted_soles": {
+  "notes": "Painted Soles (boots) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/prismspin": {
+  "notes": "Prism Spin held in the main hand — wheels family weapon (colorwheel). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/rockslide": {
+  "notes": "Rockslide held in the main hand — picks family weapon (plinko). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/shellgame": {
+  "notes": "Shell Game held in the main hand — picks family weapon (thimbles). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/siegetower": {
+  "notes": "Siege Tower held in the main hand — nerve family weapon (tower). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/sootcloth_legs": {
+  "notes": "Sootcloth Legs (pants) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/starshower": {
+  "notes": "Star Shower held in the main hand — picks family weapon (keno). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/tooth_pendant": {
+  "notes": "Tooth Pendant (necklace) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/trident": {
+  "notes": "Trident held in the main hand — cards family weapon (threecard). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twinward": {
+  "notes": "Twin Ward held in the spell hand — cards family weapon (paigow). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twohand_cards": {
+  "notes": "worn/twohand_cards",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twohand_dealer": {
+  "notes": "worn/twohand_dealer",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twohand_dice": {
+  "notes": "worn/twohand_dice",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twohand_nerve": {
+  "notes": "worn/twohand_nerve",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twohand_picks": {
+  "notes": "worn/twohand_picks",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/twohand_wheels": {
+  "notes": "worn/twohand_wheels",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/velvet_hood": {
+  "notes": "Velvet Hood (helmet) — worn layer, 5 poses",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/ward": {
+  "notes": "Ward held in the spell hand — cards family weapon (blackjack). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "worn/wheelofruin": {
+  "notes": "Wheel of Ruin held in the main hand — wheels family weapon (bigwheel). 5 poses, drawn over the body.",
+  "tool": "PixelLab (layer, 5 poses)",
+  "priority": "P2"
+ },
+ "badges/beast_friend": {
+  "notes": "badges/beast_friend",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/bounty_hunter": {
+  "notes": "badges/bounty_hunter",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/collector_paid": {
+  "notes": "badges/collector_paid",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/courier": {
+  "notes": "badges/courier",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/deep_diver": {
+  "notes": "badges/deep_diver",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/dragon_slayer": {
+  "notes": "badges/dragon_slayer",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/first_blood": {
+  "notes": "badges/first_blood",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/flawless": {
+  "notes": "badges/flawless",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/full_team": {
+  "notes": "badges/full_team",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/glass_cannon": {
+  "notes": "badges/glass_cannon",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/hall_of_fame": {
+  "notes": "badges/hall_of_fame",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/high_roller": {
+  "notes": "badges/high_roller",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/pit_fiend": {
+  "notes": "badges/pit_fiend",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/spymaster": {
+  "notes": "badges/spymaster",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/survivor": {
+  "notes": "badges/survivor",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/tamer": {
+  "notes": "badges/tamer",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/thief": {
+  "notes": "badges/thief",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/throne": {
+  "notes": "badges/throne",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/undying": {
+  "notes": "badges/undying",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "badges/veteran": {
+  "notes": "badges/veteran",
+  "tool": "Retro Diffusion",
+  "priority": "P3"
+ },
+ "monsters/dungheap": {
+  "notes": "Dungheap — blocker of None region. A destructible heap that blocks the hex. Break it and it drops Gold; nobody asks where the Gold was. (1024 px portrait with alpha)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P3"
+ },
+ "monsters/dungheap_token": {
+  "notes": "Dungheap — blocker of None region. A destructible heap that blocks the hex. Break it and it drops Gold; nobody asks where the Gold was. (256 px head token for the hex)",
+  "tool": "Midjourney (portrait) + Retro Diffusion (256 token)",
+  "priority": "P3"
+ }
+}

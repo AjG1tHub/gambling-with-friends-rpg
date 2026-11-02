@@ -128,3 +128,40 @@ What to note for the next pass
   its balance numbers resolved, a before → after diff of the test character (Health, Gold, items added, position,
   Chaos tier, moods, steps…), the log lines produced and ✓/✗ arithmetic checks; ✅ Works / ❌ Problem + note per
   spin, resumable, with a copyable report at the end. Both flows are in the browser gates.
+
+## Art and sound pipeline — tooling (1 Nov 2026, cloud session)
+
+Built from `docs/ART-PIPELINE-PROMPT.md` up to approval gate 1. Nothing is generated yet: generation needs the API
+keys and the 4070 on the PC, and the first thing that may run is the style sheet.
+
+- **`tools/art/`**: `pipeline.mjs` (driver: `--group --priority --only --force --dry-run --import --redo --probe
+  --tool --verbose`), `lib.mjs` (rows, prompt slots from `data/*.json`, templates, ledger, review, routing),
+  `prompts/<group>.md` × 25 + `_style.md`, adapters (`pixellab`, `fal` + `train-lora.mjs`, `gemini`, `elevenlabs`,
+  `manual` for Midjourney/Suno), `post.py` (cut-out, trim, pad, nearest/Lanczos, ≤32-colour quantise, sprite
+  strips, layer diff, 9-slice, wheel SVG, SVG wrap, audio to 48 kHz −16 LUFS), `review-server.mjs`, `report.mjs`,
+  `style-sheet.mjs`, `notes.mjs`, `README.md`.
+- **Lab › Art review** (`/lab/?art=1`, button in the Lab bar and under Runs): every asset as a card, placeholder
+  left / real right at true size and TV ×3 / phone ×2, paper-doll layers composited on `body/1_1` across the five
+  poses, pets at three stages, lanterns flickering at 24/48/96 px, wheels spinning on hover, the prompt that made
+  it, Approve / Redo (new seed) / Redo with note → `art/review.json` through `npm run art:review`; read-only with
+  "Download review.json" on the deployed site. Checked in Chromium: 629 cards, 25 groups, verdicts persist.
+- **Records**: `art/ledger.json` (empty), `art/review.json` (empty), `art/notes.json` (629 rows from
+  `docs/ASSET-LIST.xlsx`), `art/midjourney/queue.md` with the **12 style-sheet prompts**, `art/style/README.md`;
+  `art/inbox/` and `art/cache/` gitignored. npm scripts: `art`, `art:style`, `art:lora`, `art:review`,
+  `art:report`, `art:import`, `art:notes`, `art:probe`.
+- **Tests**: `test/unit/art-pipeline.test.mjs` — every group has a template, all 629 prompts build with no empty
+  slots, routing matches the tool table, and post.py's seven ops produce files of exactly the spec size with no
+  placeholder marker (synthetic Pillow inputs; skipped where Pillow is missing). 369 unit tests green; a dry run of
+  all 629 rows: 557 would generate, 72 would queue. Exercised end to end with a fake Midjourney drop: import →
+  1024×1024 cut-out → manifest `placeholder: false` → review redo → re-queued with the note; then reverted.
+- **Decisions 22–31** in `docs/DECISIONS.md` (48 kHz, chroma keys, layer diffs, Gemini edits, wheel SVGs,
+  9-slice frames, SVG wraps, manual queues, API probe, cost estimates).
+- **Still placeholder**: all 629 assets. **Spend**: $0.
+
+### Next on the PC (in order)
+1. `.env.local` with the four keys; `pip install pillow rembg onnxruntime-gpu pyloudnorm`; ffmpeg on PATH.
+2. `npm run art:probe` — fix any field the live schemas reject (adapters' field tables) before spending.
+3. Run the 12 style-sheet prompts from `art/midjourney/queue.md`; drop them in `art/inbox/midjourney/`;
+   `npm run art:style -- --import`; `npm run art:review`; approve with `npm run art:style -- --approve … --sref …`.
+4. `npm run art:lora -- --kind icons` (and `portraits` once ~25 portraits exist), then the first ten of each P1
+   group (`--only items/coinblade*` etc.), review, `--redo`, then `--priority P1`, P2, P3.

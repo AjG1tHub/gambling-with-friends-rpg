@@ -1,0 +1,4 @@
+{
+ "_about": "One entry per asset key: which tool and model produced the file at its path, the prompt hash and seed so it can be regenerated, what it cost, the licence, and the reviewer verdict from art/review.json. Written by tools/art/pipeline.mjs; never edit by hand.",
+ "entries": {}
+}

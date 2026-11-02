@@ -64,3 +64,46 @@ Calls made during the build where the spec and the build prompt left room. Newes
     `items.leverBonusPerPoint` (2%) per point above it, capped at stat 10. Loaded Dice's window is −1 under Grit 3
     and up to +3 at 10; the flat levers (Baccarat, Dragon Tiger, Briefcase, Pai Gow) were strengthened. The point
     is gear choice: a weapon whose stat you lack should feel wrong in the hand, and the phone's odds card says so.
+
+## Art and sound pipeline (1 Nov 2026)
+
+22. **Sound stays at 48 kHz.** The pipeline prompt asks for 44.1 kHz cues; the spec's asset table, the legacy
+    sound engine and `tools/build-manifest.mjs` (which computes `seconds` from `SAMPLE_RATE = 48000`) all assume
+    48 kHz. post.py resamples every cue and loop to 48 kHz 16-bit mono at −16 LUFS, so the manifest's durations
+    stay right. Changing the game to 44.1 would have meant editing game code, which the pipeline may not do.
+23. **Pixel-set backgrounds are chroma-keyed, not model-segmented.** Every FLUX.2 icon prompt asks for a flat
+    pure green (#00FF00) background and post.py keys it out deterministically; rembg (BiRefNet) is used only for
+    the painted groups (monster portraits, map dressing) and falls back to a corner flood fill when it is not
+    installed. Segmentation models soften pixel edges; a keyed background keeps them hard.
+24. **Paper-doll layers are diffs against the body they were drawn on.** For faces, hair, outfits, worn items and
+    Legendaries the adapter sends PixelLab the reference body frame for each pose (`ART_BODY_REF`, default
+    `body/1_1`, the Enforcer build) as `init_image` and asks for the figure wearing the item; post.py keeps only
+    the pixels that differ from that exact frame (SPEC.md › sprites, "diffing against the base"). The layer
+    therefore rides the body's hand-drawn frames through the renderer's per-pose offsets, as the spec intends.
+25. **Pet stages 2 and 3 and monster tokens are Gemini edits of their parent.** Stage 1 and eggs come from
+    PixelLab; the later stages are image-to-image edits of the previous stage so a line stays one creature. A
+    token is an edit of the portrait (head-and-shoulders bust). The pipeline orders rows so parents land first
+    and refuses a child whose parent is still a placeholder.
+26. **Wheel faces are rim textures wrapped in SVG by post.py.** FLUX.2 paints the rim and face texture with no
+    divisions; post.py writes the SVG with `<g id="segments">` holding one unstyled `<path>` per label and
+    `<g id="labels">` with one `<text>` each, so `packages/ui/wheel.js` can restyle and relabel them and only
+    inlines the face when the odds are equal (decision 20). Odds are never baked into art.
+27. **Rarity frames are one 9-slice source per rarity.** Four FLUX.2 generations (192 px, 36 px border) are
+    sliced by post.py into the six footprints each, so the 24 frame files share one hand per rarity.
+28. **SVG UI and TV chrome are generated rasters wrapped in SVG.** The spec's "real SVG or Recraft" for UI is not
+    in the prompt's tool table; the rows are SVG files, so post.py wraps a FLUX.2 raster in an SVG of the spec
+    size (pixelated for UI, smooth for TV). A hand-drawn vector pass can replace any of them by filename later.
+29. **Manual tools queue, never block.** Midjourney and Suno rows append a line to `art/midjourney/queue.md` or
+    `art/suno/queue.md` and record `queued` in the ledger; `npm run art:import` picks the results up from
+    `art/inbox/<tool>/<key>.png|wav` by filename. A redo re-queues the row (old line marked REDO, new seed, the
+    reviewer's note appended) and ignores an inbox file older than the asset it replaced.
+30. **API drift is a probe, not a guess.** The adapters follow the public API documents as read on 1 Nov 2026
+    (PixelLab v2 `create-image-pixflux` / `animate-with-text-v3` / `background-jobs`, fal queue REST with
+    `fal-ai/flux-2-pro`, `fal-ai/flux-2-trainer`, Gemini `generateContent` with inline image parts, ElevenLabs
+    `/v1/sound-generation`). `npm run art:probe` fetches each live schema and lists any field an adapter sends
+    that the schema lacks; the model ids are `.env.local` overrides. The fal LoRA inference endpoint id in
+    particular (`FAL_LORA_MODEL`, default `fal-ai/flux-2/klein/9b/lora`) must be confirmed by the probe before
+    the first LoRA batch.
+31. **Costs are estimates for the spend cap.** The services bill in credits or per megapixel; the adapters charge
+    round USD figures per call (overridable in `.env.local`) so `ART_BUDGET_USD` can stop a run. The ledger's
+    `cost` is that estimate, not an invoice.
