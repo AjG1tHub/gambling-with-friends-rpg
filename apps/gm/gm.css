@@ -31,7 +31,7 @@ textarea.json { min-height: 240px; font-family: var(--font-mono); font-size: .78
 .gm-main details > summary { cursor: pointer; padding: 6px 0; }
 #gmPhoneDock .tag { font-size: .64rem; }
 .gm-main label.row input[type=checkbox], .gm-main .row > input[type=checkbox], .boot label.row input[type=checkbox] { width: 20px; height: 20px; min-height: 0; flex: 0 0 auto; }
-.boot label.row { display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer; }
+.boot label.row { display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; text-align: left; cursor: pointer; }
 .gm-main .row > input:not([type=checkbox]), .gm-main .row > select { width: auto; flex: 1 1 160px; }
 
 /* Bugs & rewards panel (appended): the nav badge, the GM's own report line, the small reward wheels */
