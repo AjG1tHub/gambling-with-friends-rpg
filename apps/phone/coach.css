@@ -44,3 +44,15 @@
 
 /* The tutorial opening's teaser line (play.js action phase, the Cage and Letters while locked). */
 .ramp-line { margin: 10px 0 4px; font-size: .9rem; color: var(--amber); }
+
+/* Short screens (a 360×640 phone, or Safari with its bars up): the card was ~25–35% of the height and pushed the move
+   rosette and the mini-map half off the screen (QA run, 2 Nov). Put Got it on the title row and tighten the text. */
+@media (max-height: 700px) {
+  .coach-slot { padding-top: 6px; gap: 6px; }
+  .coach { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; padding: 6px 10px; margin-bottom: 6px; }
+  .coach .coach-title { grid-column: 1; grid-row: 1; font-size: .72rem; }
+  .coach .coach-row { grid-column: 2; grid-row: 1; margin: 0; }
+  .coach .coach-ok { min-height: 44px; padding: 0 14px; }
+  .coach .coach-text { grid-column: 1 / -1; grid-row: 2; margin: 0; font-size: .86rem; line-height: 1.28; }
+  .coach .coach-goal, .coach .coach-done { grid-column: 1 / -1; }
+}

@@ -4,6 +4,7 @@
 //     the grid to ~390px and clip the coach card and the Letters tab)
 //   · nothing ever requests /worn/<id>.png (item icons used to 404 there)
 //   · the tab bar is not covered by anything on the play screen
+//   · the coach card leaves the move screen room on a short phone (≤ 22% of the height)
 //   · the GM is asked before a Teams run starts with nobody on a team
 // Screenshots: test/shots/small-NN-*.png. `node test/browser/small-phone.mjs`.
 import { chromium } from 'playwright';
@@ -82,10 +83,13 @@ try {
       await ph.locator('.tabs button', { hasText: label }).first().click({ force: true }); await sleep(250);
       const m = await ph.evaluate(() => { const d = document.documentElement; const top = document.querySelector('.top')?.getBoundingClientRect(); return { sw: d.scrollWidth, cw: d.clientWidth, topRight: top ? Math.round(top.right) : 0 }; });
       ok(m.sw <= m.cw && m.topRight <= m.cw, `${chars[i]} · ${label}: page ${m.sw}px in a ${m.cw}px screen, header ends at ${m.topRight}`);
-      if (i === 0) await shot(ph, `${label.toLowerCase()}`);
+      if (i === 0) { await ph.evaluate(() => window.scrollTo(0, 0)); await shot(ph, `${label.toLowerCase()}`); }
     }
     await ph.locator('.tabs button', { hasText: 'Play' }).first().click({ force: true });
   }
+  const coachH = [];
+  for (const ph of phones) { await ph.locator('.tabs button', { hasText: 'Play' }).first().click({ force: true }); await sleep(200); coachH.push(await ph.evaluate(() => { const c = document.querySelector('.coach-slot'); return c ? { h: Math.round(c.getBoundingClientRect().height), vh: innerHeight, title: document.querySelector('.coach .coach-title')?.textContent || null } : null; })); }
+  for (const c of coachH.filter(Boolean)) ok(c.h <= Math.round(c.vh * 0.22), `the coach card ("${c.title}") takes ${c.h}px of a ${c.vh}px screen (≤ 22%; it was 159px = 25% before the short-screen layout)`);
   // The tab bar must be tappable on a plain play screen (the mover's phone may be mid-prompt; check the one that is not).
   const mover = await tv.evaluate(() => window.__gwf.session.state.moverId);
   for (const ph of phones) {
