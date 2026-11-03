@@ -52,3 +52,19 @@ test('roster: at run end a survivor vaults 3, the dead vault 1, veterans are sav
   // the whole thing survives a reload
   assert.deepEqual(clone(r2.state), JSON.parse(JSON.stringify(r2.state)));
 });
+
+test('vault: what the phone picker lists (worn + grid items minus vaulted) never includes an item that was just banked', async () => {
+  // QA, 2 Nov: a screenshot seemed to show a banked item still in the picker. The state side holds: this is the picker's own list expression.
+  const { gridItems } = await import('../../apps/phone/screens/prompts.js');
+  const r = playingRoom(); const st = r.state; const pa = st.seats[0]; const a = charOf(r, pa);
+  const ring = give(r, pa, gen.makeGear(st, 'ring', { rarity: 'epic', seed: 11 })); const neck = give(r, pa, gen.makeGear(st, 'necklace', { seed: 12 })); const torso = give(r, pa, gen.makeGear(st, 'torso', { seed: 13 }));
+  r.append('GRID_EQUIP', { itemId: torso.id }, pa); r.append('GM_END_RUN', { reason: 'test' });
+  const picker = (c) => [...Object.values(c.worn || {}).filter(Boolean), ...gridItems(c)].filter((it, i, arr) => arr.findIndex(x => x.id === it.id) === i && !(c.vaulted || []).some(v => v.id === it.id)).map(it => it.id);
+  assert.ok([ring.id, neck.id, torso.id].every(id => picker(a).includes(id)), 'before banking all three are offered');
+  r.append('VAULT_BANK', { playerId: pa, itemIds: [ring.id, torso.id] }, pa);
+  const after = picker(a);
+  assert.ok(!after.includes(ring.id) && !after.includes(torso.id), `banked items are gone from the picker (${after.join(',')})`);
+  assert.ok(after.includes(neck.id), 'unbanked items stay');
+  assert.deepEqual(a.vaulted.map(v => v.id).sort(), [ring.id, torso.id].sort());
+  assert.ok(!(a.grid.cells || []).some(c => c.itemId === ring.id), 'and the grid has no cell left for the banked ring');
+});

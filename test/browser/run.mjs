@@ -482,6 +482,8 @@ try {
     ok(vc.vaulted[0].name === itemName && !vc.items[vc.vaulted[0].id], `${itemName} left the character for the vault`);
     ok(!(st2.lastError && st2.lastError.type === 'VAULT_BANK'), 'no VAULT_BANK refusal');
     ok(/pick items to vault/i.test(await vault.locator('button.primary.big').innerText()), 'the vault picker reset after banking');
+    const stillListed = await vault.locator('button.item-row .nm', { hasText: itemName }).count();
+    ok(stillListed === 0, `${itemName} is no longer offered in the vault picker after banking (${stillListed} rows)`);
     ok(st2.phase === 'ended', 'state.phase === ended');
     await shot(ph, '72-vault');
   });

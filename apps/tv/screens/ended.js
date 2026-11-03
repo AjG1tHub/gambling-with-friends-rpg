@@ -40,6 +40,9 @@ export function renderEnded({ state, stage, rail, clockEls }) {
   if (state.runRecord?.longestLived) wrap.append(h('div', { class: 'small muted ital' }, `Longest-lived: ${state.runRecord.longestLived.characterName}, ${state.runRecord.longestLived.turns} turns.${state.seasonEnded ? ' The season ends tonight: levels and quests reset, pets and titles carry over.' : ''}`));
   stage.append(wrap);
   fitRecap(wrap);
+  // Fonts and the window can settle after first paint (and a TV gets resized): measure again from scratch.
+  const refit = () => { if (wrap.isConnected) fitRecap(wrap); };
+  document.fonts?.ready?.then(refit); setTimeout(refit, 600); window.addEventListener('resize', refit);
   // Rail.
   const vaulted = rows.filter(r => characterOf(state, r.pid)?.vaulted).length;
   rail.append(h('div', { class: 'panel gold vault-panel' }, h('div', { class: 'tag' }, 'THE VAULT'), h('div', { class: 'display vault-title' }, 'The vault is open on your phones'), h('p', { class: 'small muted' }, 'Survivors bank up to three items, the dead bank one; survivors may save their character as a veteran.'), h('p', { class: 'small' }, `${vaulted} of ${rows.length} have banked.`)));
@@ -53,6 +56,7 @@ export function fitRecap(wrap, { min = 0.5 } = {}) {
   const have = wrap.parentElement?.clientHeight || wrap.clientHeight;
   if (!(have > 0)) return 1;
   let k = 1;
+  for (const p of ['width', 'height', 'transform', 'transformOrigin']) wrap.style[p] = '';   // measure from the unscaled layout every time
   // Charts are width-driven (their height follows their width), so a wider box makes taller charts: settle in a few passes.
   for (let i = 0; i < 6; i++) {
     const need = wrap.scrollHeight * k;   // content height in screen pixels at the current scale
