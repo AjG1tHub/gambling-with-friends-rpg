@@ -120,3 +120,8 @@ Calls made during the build where the spec and the build prompt left room. Newes
     pushes any card to every phone as a `📖` `GM_BROADCAST` (the TV rail shows it for 30 s). (3) The phones have
     a context-sensitive Coach, a `?` help sheet, and a solo practice run on the local backend with two bots.
     Nothing here changes the engine or persists in the room.
+35. **The map unfolds.** With fog on, the TV draws only the regions someone has walked into and fits the view to
+    them: one section at the start, zooming out (1.1 s ease) as the table pushes into a new region. Unrevealed
+    regions are not drawn at all (no "undried ink" silhouette), bridges dangle off the edge as the hint. A region
+    holding a living character is always drawn, and GM_TELEPORT reveals its destination, so no token is ever off
+    the map. Fog off = the whole map, as before.

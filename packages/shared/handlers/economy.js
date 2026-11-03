@@ -21,6 +21,7 @@
 //   state.bounties [ { id, targetId, byId, gold, placedAt } ].
 import { register, refuse, requireGm, requirePhase, requireActor, requirePlayer } from '../reducer.js';
 import { characterOf, currentPlayerId, note } from '../state.js';
+import { reveal } from '../map/query.js';
 import { health, gold, bankGold, canPay } from '../health.js';
 import { RARITIES, rarityKey } from '../balance.js';
 import { hooks as runHooks } from './run.js';
@@ -271,6 +272,7 @@ register({
     requireGm(ctx); const c = resolveCharacter(state, ctx.payload.playerId || ctx.payload.charId); if (!c) refuse('no such character');
     const h = state.map?.hexes?.[ctx.payload.hex]; if (!isLandable(h)) refuse('not a hex anyone can stand on', 'hex');
     c.prevPos = c.pos; c.pos = h.key; c.region = h.regionId; note(state, `GM moves ${c.name} to ${h.key}`, 'gm', ctx.now);
+    if (reveal(state, h.regionId)) note(state, `${c.name} enters ${state.map.regions[h.regionId].name}`, 'map', ctx.now);   // a hidden region would hide the token
   },
   GM_MONSTER_MOVE(state, ev, ctx) {
     requireGm(ctx); const m = state.monsters[ctx.payload.monsterId]; if (!m || m.dead) refuse('no such monster', 'monster');

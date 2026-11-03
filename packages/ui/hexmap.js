@@ -53,6 +53,37 @@ function layout(map, size) {
   const pad = size * 1.6, top = size * 2.4, bottom = size * 1.9;
   return { px, keep, viewBox: `${minX - pad} ${minY - top} ${maxX - minX + pad * 2} ${maxY - minY + top + bottom}`, minX, minY, maxX, maxY, pad, top, bottom };
 }
+// The view box of the revealed part of the map (the whole map with fog off): the kept hexes of every revealed
+// region plus the padding layout() uses. Animated from the previous box so a new region unfolds rather than snaps.
+const FIT_MS = 1100;   // literal
+function revealedBox(rec, map, fogOn) {
+  const { L, size } = rec; let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, any = false;
+  for (const h of Object.values(map.hexes)) {
+    if (!L.keep.has(h.key)) continue;
+    if (fogOn && !rec.fogState[h.regionId]) continue;
+    const p = L.px[h.key]; any = true; minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+  }
+  if (!any) return L.viewBox.split(' ').map(Number);
+  // Never tighter than a few hexes across, so a one-region start still reads as a map, not a close-up.
+  const minW = size * 14, w0 = maxX - minX, h0 = maxY - minY;
+  if (w0 < minW) { const d = (minW - w0) / 2; minX -= d; maxX += d; }
+  return [minX - L.pad, minY - L.top, maxX - minX + L.pad * 2, h0 + L.top + L.bottom];
+}
+function fitView(svg, rec, map, fogOn) {
+  const target = revealedBox(rec, map, fogOn);
+  const from = rec.viewBox || null; rec.viewBox = target;
+  if (!from || typeof requestAnimationFrame !== 'function') { svg.setAttribute('viewBox', target.join(' ')); return; }
+  if (from.every((v, i) => Math.abs(v - target[i]) < 0.5)) return;
+  if (rec.fitAnim) cancelAnimationFrame(rec.fitAnim);
+  const t0 = performance.now();
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const step = (now) => {
+    const t = Math.min(1, (now - t0) / FIT_MS), k = ease(t);
+    svg.setAttribute('viewBox', from.map((v, i) => v + (target[i] - v) * k).join(' '));
+    if (t < 1) rec.fitAnim = requestAnimationFrame(step); else rec.fitAnim = null;
+  };
+  rec.fitAnim = requestAnimationFrame(step);
+}
 // Where a region's name goes: a corner of the cluster's bounding box that covers the fewest land hexes of other
 // regions (the clusters touch at the bridges, so a fixed corner would sit on a neighbour); the centre as a last resort.
 function regionCentre(map, r, px, size) {
@@ -146,7 +177,7 @@ function build(svg, state, size, manifest, onHexClick) {
     cartouches[r.id] = { g, t, sub };
   }
   // Courier post marker (the crow's roost) and the legend.
-  if (map.courier && L.px[map.courier]) { const p = L.px[map.courier]; const g = el('g', { class: 'hm-courier', transform: `translate(${p.x},${p.y - size * 0.55})` }, layers.marks); el('path', { d: crowPath(size * 0.45), fill: '#1a1618', stroke: '#8a7a62', 'stroke-width': 0.8 }, g); el('text', { y: size * 0.95, 'text-anchor': 'middle', 'font-size': size * 0.25, fill: '#8a7a62', 'letter-spacing': '.5', text: 'COURIER' }, g); }
+  if (map.courier && L.px[map.courier]) { const p = L.px[map.courier]; const g = el('g', { class: 'hm-courier', transform: `translate(${p.x},${p.y - size * 0.55})` }, (regionGroups[map.hexes[map.courier]?.regionId] || {}).marks || layers.marks); el('path', { d: crowPath(size * 0.45), fill: '#1a1618', stroke: '#8a7a62', 'stroke-width': 0.8 }, g); el('text', { y: size * 0.95, 'text-anchor': 'middle', 'font-size': size * 0.25, fill: '#8a7a62', 'letter-spacing': '.5', text: 'COURIER' }, g); }
   el('text', { x: L.minX - L.pad + size * 0.4, y: L.maxY + L.bottom - size * 0.35, 'font-family': "'IM Fell English', serif", 'font-size': size * 0.36, fill: '#8a7a62', text: 'E Encounter · C Chest · X Chaos · I Inn · B Blood Bank · $ Shop · G Graveyard · W Wheel · A Arena · F Event · % Bounty · dashed hex = gated bridge · void = impassable' }, layers.legend);
   const rec = { sig: mapSig(map), size, L, layers, regionGroups, hexEls, cartouches, tokens: new Map(), monsters: new Map(), crows: new Map(), emotes: new Map(), pathEls: null, ringEls: new Map(), lootEls: new Map(), fogState: {} };
   builds.set(svg, rec);
@@ -163,17 +194,21 @@ export function renderHexMap(svg, state, { size = 26, onHexClick = null, highlig
   if (!rec || rec.sig !== mapSig(map) || rec.size !== size) rec = build(svg, state, size, manifest, onHexClick);
   const { L, layers, hexEls } = rec;
   const H = group(state, 'health');
-  // Fog: an unrevealed region is undried ink while fogOfWar is on.
+  // Fog: with fogOfWar on, the map is only the regions someone has walked into. The rest is not drawn at all, and
+  // the view fits the revealed clusters, zooming out as the table pushes into a new region (one section to start).
   const fogOn = state.gm?.fogOfWar !== false;
+  let fogChanged = false;
+  // A region with a living character in it is never hidden, whatever the reveal flags say (no token off the map).
+  const occupied = new Set(Object.values(state.characters || {}).filter(c => c.pos && !c.dead).map(c => map.hexes[c.pos]?.regionId));
   for (const r of Object.values(map.regions)) {
-    const revealed = !fogOn || !!(map.revealed?.[r.id] || r.revealed);
-    if (rec.fogState[r.id] === revealed) continue; rec.fogState[r.id] = revealed;
+    const revealed = !fogOn || !!(map.revealed?.[r.id] || r.revealed) || occupied.has(r.id);
+    if (rec.fogState[r.id] === revealed) continue; rec.fogState[r.id] = revealed; fogChanged = true;
     const g = rec.regionGroups[r.id]; if (!g) continue;
     g.ground.classList.toggle('fog', !revealed); g.marks.classList.toggle('fog', !revealed);
-    setAttrs(g.ground, { filter: revealed ? null : 'url(#hm-ink)', opacity: revealed ? null : 0.62 });
-    setAttrs(g.marks, { opacity: revealed ? null : 0.22 });
-    const c = rec.cartouches[r.id]; if (c) { setAttrs(c.t, { opacity: revealed ? 1 : 0.55 }); setAttrs(c.sub, { display: revealed ? 'none' : null }); }
+    setAttrs(g.ground, { display: revealed ? null : 'none' }); setAttrs(g.marks, { display: revealed ? null : 'none' });
+    const c = rec.cartouches[r.id]; if (c) { setAttrs(c.t, { display: revealed ? null : 'none' }); setAttrs(c.sub, { display: 'none' }); }
   }
+  if (fogChanged) fitView(svg, rec, map, fogOn);
   // Tile loot left on the ground (shown so anyone may take it).
   const lootKeys = new Set(Object.entries(state.tileLoot || {}).filter(([, v]) => v && v.length).map(([k]) => k));
   for (const k of lootKeys) if (!rec.lootEls.has(k) && hexEls[k]) { const p = L.px[k]; rec.lootEls.set(k, el('text', { x: p.x + size * 0.55, y: p.y - size * 0.45, 'font-size': size * 0.32, fill: '#e0c07a', class: 'hm-loot', text: '✦' }, layers.marks)); }
