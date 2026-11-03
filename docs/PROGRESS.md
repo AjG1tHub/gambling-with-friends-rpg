@@ -165,3 +165,29 @@ keys and the 4070 on the PC, and the first thing that may run is the style sheet
    `npm run art:style -- --import`; `npm run art:review`; approve with `npm run art:style -- --approve … --sref …`.
 4. `npm run art:lora -- --kind icons` (and `portraits` once ~25 portraits exist), then the first ten of each P1
    group (`--only items/coinblade*` etc.), review, `--redo`, then `--priority P1`, P2, P3.
+
+## Demo night 1 (2 Nov 2026, room ZJGG) — what broke and what changed
+
+Three humans (Milkiee the Pit Boss, Jam the Beastmaster, Ajax the Whale), Free-for-all, short, fog on, the
+"Discord" challenge list. 83 events; nothing refused server-side (refusals are never stored, so the phones' own
+glitches are AJ's account). Replay: `node scratchpad/replay.mjs zjgg.json` against the current engine.
+
+Seen in the log and fixed (`afcbda7`):
+- Both Shell Game duels were settled by the **defender** tapping their own name (seq 62, 72) — hosted entries
+  accepted any party's report and the defender's phone showed "Who won?". Now only the attacker's phone reports a
+  Versus item (DECISIONS 32); the defender sees "watch the TV".
+- Tetris 1v1 was a **best-of-three** (`players: "team"`), so the two phones had to agree twice (seq 76–80).
+  Tetris and skribbl are `1v1` now (DECISIONS 33).
+- One phone toggled **Ready 19 times in six seconds**; the button now locks for 1.2 s after a tap.
+
+Seen in the log and answered by the tutorial (this commit): nobody gambled a stat (all three locked a plain
+allocation), nobody pressed End turn (every turn ended in a duel call, which ends the attacker's turn and skips
+the defender's next slot — the owed-turn machinery then made the order look random), and nobody tapped 🐞.
+- TV: "How to play" cards cycle in the lobby and creation (`packages/ui/tutorial.js`); the seat order with
+  held / owed / dead reasons sits under To Move during the run.
+- GM: Table › **Teach** pushes a rule card to every phone and the TV rail.
+- Phone: the Coach (one contextual card at a time, dismissible, remembered per device), `?` help sheet with
+  the current screen's buttons and a glossary, and **Learn to play**: a solo practice run against two bots on
+  the local backend from the join screen.
+
+Still open from the night: AJ's own list of what the phones did wrong (ask him — no 🐞 reports were filed).

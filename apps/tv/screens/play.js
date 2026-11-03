@@ -12,6 +12,7 @@ import { spinOverlay, spinningTs, landedFor } from '../../../packages/ui/wheel.j
 import { fightPanel, stageOverlay, spotlightGrid, offScreenCardEl, challengePanel, areaPanel, tellLine } from '../../../packages/ui/stage.js';
 import { manifestNow } from '../../../packages/ui/sprite.js';
 import { className } from '../../../packages/ui/recap.js';
+import { orderLine } from '../../../packages/ui/tutorial.js';
 const roman = (n) => ['', 'I', 'II', 'III', 'IV', 'V'][n] || n;
 
 // The SVG lives across renders so the map is built once and patched (hexmap.js keeps the element map on it).
@@ -28,7 +29,7 @@ export function renderPlay({ state, session, stage, rail, clockEls, rerender = n
   const big = h('div', { class: 'clock-big' }, fmtTime(remainingMs(state, pid, now)));
   const warn = group(state, 'clock').warningSeconds * 1000;
   big.update = (t) => { const ms = remainingMs(state, pid, t); big.textContent = fmtTime(ms); big.classList.toggle('warn', ms > 0 && ms < warn); };
-  clockEls.main = big;
+  clockEls.main = big; delete clockEls.howto;
   const others = activeSeats(state).filter(id => id !== pid);
   const banked = h('span', {}, others.map(id => `${state.players[id].name} ${fmtTime(remainingMs(state, id, now))}`).join(' · '));
   banked.update = (t) => { banked.textContent = others.map(id => `${state.players[id].name} ${fmtTime(remainingMs(state, id, t))}`).join(' · '); };
@@ -40,8 +41,10 @@ export function renderPlay({ state, session, stage, rail, clockEls, rerender = n
     h('div', { class: 'tomove-name' }, h('span', { class: 'display' }, c?.name || p?.name || '—'), ' ', h('span', { class: 'ital gold' }, c ? `the ${className(c.classId)}` : '')),
     h('div', { class: 'row between tomove-row' }, big, h('div', { class: 'clock-small right' }, h('div', {}, 'banked'), banked)),
     h('div', { class: 'small muted tomove-status' }, status, c?.titles?.length ? ` · ${c.titles.slice(-2).join(', ')}` : ''),
-    c ? h('div', { class: 'small ital muted' }, tellLine(state, c)) : null));
+    c ? h('div', { class: 'small ital muted' }, tellLine(state, c)) : null,
+    orderPanel(state)));
   // ── situation panels ──
+  const taught = teachPanel(state, now); if (taught) rail.append(taught);
   rail.append(fightPanel(state, { now }));
   rail.append(challengePanel(state, { now }));
   rail.append(areaPanel(state, { now }));
@@ -86,4 +89,20 @@ function votePanel(state, now) {
   const t = h('div', { class: 'clock-big small' }, v.deadline ? fmtTime(v.deadline - now) : '');
   t.update = (x) => { if (v.deadline) t.textContent = fmtTime(v.deadline - x); };
   return h('div', { class: 'panel blood vote-panel' }, h('div', { class: 'tag' }, 'SECRET VOTE'), h('div', { class: 'display fight-name' }, v.question), h('div', { class: 'small muted' }, `${cast} of ${of} have voted`), t);
+}
+
+// Whose turn is next and why: the seat ring from the mover, with held / dead marks, and the reason the table is
+// where it is (held seats, owed turns, a borrowed slot). The demo night's "whose turn is it?" lives here.
+function orderPanel(state) {
+  const o = orderLine(state); if (!o.text) return null;
+  return h('div', { class: 'order-line' }, h('div', { class: 'small order-ring' }, o.text), o.why ? h('div', { class: 'small muted ital order-why' }, o.why) : null);
+}
+
+// A rule card the GM pushed from the console (a 📖 broadcast) stays on the rail for half a minute.
+const TEACH_MS = 30000;   // literal
+function teachPanel(state, now) {
+  const t = [...(state.toasts || [])].reverse().find(x => x.to == null && typeof x.text === 'string' && x.text.startsWith('📖') && now - x.ts < TEACH_MS);
+  if (!t) return null;
+  const m = /^📖\s*([^:]+):\s*(.*)$/s.exec(t.text);
+  return h('div', { class: 'panel howto' }, h('div', { class: 'tag' }, 'THE GM EXPLAINS'), h('div', { class: 'howto-title' }, m ? m[1] : 'Rule'), h('p', { class: 'small howto-text' }, m ? m[2] : t.text.slice(2)));
 }

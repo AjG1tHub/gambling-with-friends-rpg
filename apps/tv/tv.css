@@ -196,3 +196,12 @@ body.tv { overflow: hidden; font-size: clamp(13px, 1.05vw, 20px); }
   .recap-charts { grid-template-columns: 1.4fr 1fr; } .recap-chart { max-height: 30vh; } .hof-row { gap: .3vw 1.4vw; }
 }
 @media (prefers-reduced-motion: reduce) { .hexmap .flame, .hexmap .hm-crow, .offscreen-logo { animation: none; } }
+
+/* How to play (lobby) and the seat order (play) */
+.howto { border-color: #4a3a1a; background: #15110c; }
+.howto-title { font-family: var(--font-display); font-size: 1.25em; color: var(--bone); letter-spacing: .04em; margin: .15em 0 .2em; }
+.howto-text { line-height: 1.4; min-height: 4.2em; }
+.howto-dots { display: flex; gap: .35em; margin-top: .4em; } .howto-dots span { width: .5em; height: .5em; border-radius: 50%; background: #4a3a2a; } .howto-dots span.on { background: var(--gold, #c9a24a); }
+.order-line { margin-top: .45em; border-top: 1px solid rgba(255,255,255,.08); padding-top: .35em; }
+.order-ring { color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.order-why { margin-top: .1em; }

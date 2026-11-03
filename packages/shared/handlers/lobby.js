@@ -8,6 +8,8 @@ import { rig } from '../rng.js';
 const MAX_NAME = 18;
 export const cleanName = (s) => String(s || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim().slice(0, MAX_NAME);
 
+const BROADCAST_MAX = 480;   // literal — a rule card from the Teach row is ~350 characters
+
 register({
   ROOM_CREATED(state, ev, ctx) {
     // The reducer hands a placeholder for the first event; we replace every field.
@@ -80,7 +82,7 @@ register({
   },
   GM_PAUSE(state, ev, ctx) { requireGm(ctx); if (state.gm.paused) return; state.gm.paused = true; state.gm.pausedAt = ctx.now; pauseAll(state, ctx.now); note(state, 'Paused', 'gm', ctx.now); },
   GM_RESUME(state, ev, ctx) { requireGm(ctx); if (!state.gm.paused) return; state.gm.paused = false; state.gm.pausedAt = null; resumeAll(state, ctx.now); note(state, 'Resumed', 'gm', ctx.now); },
-  GM_BROADCAST(state, ev, ctx) { requireGm(ctx); state.toasts.push({ id: ev.id, to: null, text: String(ctx.payload.text || '').slice(0, 280), ts: ctx.now }); state.toasts = state.toasts.slice(-40); if (ctx.payload.banner) state.banner = String(ctx.payload.text || '').slice(0, 120); },
+  GM_BROADCAST(state, ev, ctx) { requireGm(ctx); state.toasts.push({ id: ev.id, to: null, text: String(ctx.payload.text || '').slice(0, BROADCAST_MAX), ts: ctx.now }); state.toasts = state.toasts.slice(-40); if (ctx.payload.banner) state.banner = String(ctx.payload.text || '').slice(0, 120); },
   GM_WHISPER(state, ev, ctx) { requireGm(ctx); requirePlayer(state, ctx.payload.playerId); state.toasts.push({ id: ev.id, to: ctx.payload.playerId, text: String(ctx.payload.text || '').slice(0, 280), ts: ctx.now }); state.toasts = state.toasts.slice(-40); },
   GM_SPOTLIGHT(state, ev, ctx) { requireGm(ctx); const ids = (ctx.payload.playerIds || []).filter(id => state.players[id]).slice(0, 4); state.gm.spotlight = ids; },
   GM_CONFIG(state, ev, ctx) {

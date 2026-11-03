@@ -107,3 +107,16 @@ Calls made during the build where the spec and the build prompt left room. Newes
 31. **Costs are estimates for the spend cap.** The services bill in credits or per megapixel; the adapters charge
     round USD figures per call (overridable in `.env.local`) so `ART_BUDGET_USD` can stop a run. The ledger's
     `cost` is that estimate, not an invoice.
+32. **A Versus item is the attacker's round.** Clash, Dice Duel, Shell Game and Hold'em Duel are played with the
+    items adapter on the attacker's phone; that phone (or the GM) reports and the report settles. The defender's
+    phone shows "watch the TV" and no buttons, and a defender's `CHALLENGE_REPORT` is refused. Demo night 1 (room
+    ZJGG, 2 Nov) had both Shell Game rounds "won" by the defender tapping their own name before anyone played.
+33. **`players: "team"` means a best-of-three series, nothing else.** Tetris 1v1 and skribbl.io were flagged
+    `team` and needed two rounds of agreeing reports; they are `1v1` now. Use `team` only for entries whose
+    rules say "best of three".
+34. **The tutorial is three layers, no new events.** (1) The TV cycles the rule cards (`packages/ui/tutorial.js
+    ruleCards(state)`, numbers from the room's balance) in the lobby and during creation, and prints the seat
+    order with held / owed / dead reasons under To Move all run long. (2) The GM console's Table › Teach row
+    pushes any card to every phone as a `📖` `GM_BROADCAST` (the TV rail shows it for 30 s). (3) The phones have
+    a context-sensitive Coach, a `?` help sheet, and a solo practice run on the local backend with two bots.
+    Nothing here changes the engine or persists in the room.

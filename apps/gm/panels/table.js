@@ -2,6 +2,7 @@
 import { fmtTime } from '../../../packages/ui/dom.js';
 import { remainingMs } from '../../../packages/shared/clock.js';
 import { currentPlayerId, characterOf } from '../../../packages/shared/state.js';
+import { ruleCards } from '../../../packages/ui/tutorial.js';
 
 export function panelTable({ state, session, h, gm, main }) {
   const seats = state.seats.map(id => state.players[id]).filter(Boolean);
@@ -32,7 +33,8 @@ export function panelTable({ state, session, h, gm, main }) {
     h('div', { class: 'panel' }, h('table', { class: 'gm' }, h('thead', {}, h('tr', {}, h('th', {}, 'Seat'), h('th', {}, 'Phone'), h('th', {}, 'Clock'), h('th', {}, 'Team'), h('th', {}, ''))), h('tbody', {}, rows.length ? rows : h('tr', {}, h('td', { colspan: 5, class: 'muted' }, 'Nobody yet — phones join at /phone with the code.')))),
       specs.length ? h('p', { class: 'muted' }, `Watching: ${specs.map(s => s.name).join(', ')}`) : null),
     state.mode === 'teams' && state.phase !== 'playing' ? teamsEditor({ state, seats, h, gm }) : null,
-    h('div', { class: 'panel' }, h('h3', {}, 'Broadcast'), broadcast({ h, gm })));
+    h('div', { class: 'panel' }, h('h3', {}, 'Broadcast'), broadcast({ h, gm })),
+    h('div', { class: 'panel' }, h('h3', {}, 'Teach'), h('p', { class: 'muted small' }, 'One tap sends a rule card to every phone and the TV rail: the same cards the TV cycles in the lobby. Use them the moment the table looks lost.'), teachRow({ state, h, gm })));
 }
 function confirmStart(seats, gm) {
   const notReady = seats.filter(p => !p.ready && !p.kicked).map(p => p.name);
@@ -42,6 +44,9 @@ function confirmStart(seats, gm) {
 function broadcast({ h, gm }) {
   const input = h('input', { placeholder: 'Message to every phone' });
   return h('div', { class: 'row' }, input, h('button', { onClick: () => { if (input.value.trim()) { gm('GM_BROADCAST', { text: input.value.trim() }); input.value = ''; } } }, 'Send'), h('button', { onClick: () => { if (input.value.trim()) { gm('GM_BROADCAST', { text: input.value.trim(), banner: true }); input.value = ''; } } }, 'Banner on TV'));
+}
+function teachRow({ state, h, gm }) {
+  return h('div', { class: 'gm-bar wrap' }, ruleCards(state).map(c => h('button', { title: c.text, onClick: () => gm('GM_BROADCAST', { text: `📖 ${c.title}: ${c.text}` }) }, c.title)));
 }
 function teamsEditor({ state, seats, h, gm }) {
   const teams = structuredClone(state.gm.teams || {});

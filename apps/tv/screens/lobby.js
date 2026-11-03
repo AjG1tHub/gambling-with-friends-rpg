@@ -7,6 +7,7 @@ import { spinOverlay } from '../../../packages/ui/wheel.js';
 import { spotlightGrid } from '../../../packages/ui/stage.js';
 import { className } from '../../../packages/ui/recap.js';
 import { gameMeta } from '../../../packages/games/adapter.js';
+import { ruleCards } from '../../../packages/ui/tutorial.js';
 
 const STATS = ['luck', 'nerve', 'greed', 'grit'];
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -48,7 +49,22 @@ export function renderLobby({ state, session, stage, rail, clockEls, rerender = 
   }
   const spun = seats.filter(r => characterOf(state, r.playerId)?.buyinSpun).length;
   if (creating) rail.append(h('div', { class: 'panel' }, h('div', { class: 'tag' }, 'BUY-IN WHEEL'), h('p', { class: 'small muted' }, spun ? `${spun} of ${seats.length} starting Health set.` : 'The GM spins each player\'s starting Health before the run.')));
+  const howto = howToPlayPanel(state, creating, now); if (howto) { rail.append(howto); clockEls.howto = howto; } else delete clockEls.howto;
   // Overlays: Buy-in Wheel / Pet Wheel spins, the Spotlight of creation gambles.
   spinOverlay(stage, state.lastSpin, { now, onDismiss: rerender, spinnerName: state.lastSpin ? (characterOf(state, state.lastSpin.playerId)?.name || state.players[state.lastSpin.playerId]?.name || null) : null });
   spotlightGrid(stage, state, { now });
+}
+
+// The rules, one card at a time, cycling while people join: the room reads them off the TV before the first turn.
+// Card n is a function of the clock so every TV in the room shows the same card and a re-render never restarts it.
+const CARD_SECONDS = 14;   // literal
+function howToPlayPanel(state, creating, now) {
+  const cards = ruleCards(state).filter(c => c.phase === 'any' || c.phase === (creating ? 'creation' : 'lobby'));
+  if (!cards.length) return null;
+  const i = Math.floor(now / (CARD_SECONDS * 1000)) % cards.length, card = cards[i];
+  const dots = h('div', { class: 'howto-dots' }, cards.map((c, k) => h('span', { class: k === i ? 'on' : '' })));
+  const el = h('div', { class: 'panel howto' }, h('div', { class: 'tag' }, `HOW TO PLAY · ${i + 1}/${cards.length}`), h('div', { class: 'howto-title' }, card.title), h('p', { class: 'small howto-text' }, card.text), dots);
+  // The TV's clock ticker calls update(now) on rail elements that have one; swap the card when the slot changes.
+  el.update = (t) => { const j = Math.floor(t / (CARD_SECONDS * 1000)) % cards.length; if (j === i) return; const c = cards[j]; el.querySelector('.tag').textContent = `HOW TO PLAY · ${j + 1}/${cards.length}`; el.querySelector('.howto-title').textContent = c.title; el.querySelector('.howto-text').textContent = c.text; [...dots.children].forEach((d, k) => d.classList.toggle('on', k === j)); };
+  return el;
 }
