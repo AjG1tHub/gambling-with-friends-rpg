@@ -84,8 +84,10 @@ export function fightPanel(state, { now = Date.now() } = {}) {
     panel.append(h('div', { class: 'row between small' }, h('span', { class: 'muted' }, `${who} plays`), h('span', {}, `${iname} · stake ${g.stake}`)));
     const callText = g.lastText || g.legacy?.view?.lastText || '';
     if (callText) panel.append(h('div', { class: 'row between small' }, h('span', { class: 'muted' }, 'Call'), h('span', { class: 'ellip' }, callText)));
-    const r = g.result ? resultLine(g.result) : null;
+    const holding = roundWheelHolding(state, now) != null;
+    const r = g.result && !holding ? resultLine(g.result) : null;
     if (r) panel.append(h('div', { class: `result ${r.cls}` }, r.text));
+    else if (holding) panel.append(h('div', { class: 'result pending' }, 'THE WHEEL TURNS…'));
     else if (f.turn === 'monster' && !f.game) panel.append(h('div', { class: 'result pending' }, 'THE MONSTER MOVES…'));
     else panel.append(h('div', { class: 'result pending' }, g.pendingChoice ? `${g.pendingChoice.kind.toUpperCase()}?` : 'PLAYING…'));
   } else if (f.turn === 'monster') panel.append(h('div', { class: 'result pending' }, 'THE MONSTER MOVES…'));
@@ -98,12 +100,23 @@ export function fightPanel(state, { now = Date.now() } = {}) {
 // ── the big stage over the map ──────────────────────────────────────
 // Shown while a round is in play and for a few seconds after it lands; one entry per round (itemId + startedTs).
 const shown = new Map();   // roundKey → { firstSeen, doneSeen }
+const roundRec = (g, now) => { const key = `${g.itemId}:${g.startedTs}:${g.attackerId}`; let rec = shown.get(key); if (!rec) { rec = { firstSeen: now, doneSeen: null }; shown.set(key, rec); if (shown.size > 50) shown.delete(shown.keys().next().value); } return rec; };
+// A wheel-game round whose result is already in the state but whose wheel has not landed on the TV yet. Returns the
+// round's start timestamp (log lines newer than it would spoil the spin) or null. QA run, 2 Nov: the rail's fight
+// panel and the log printed "MISS · 6 LOST" while the wheel was still turning. Gives up after the spin plus 4 s.
+export function roundWheelHolding(state, now = Date.now()) {
+  const f = state.fight; const g = f && (f.game?.result ? f.game : f.lastGame); if (!g || !g.result) return null;
+  const sp = g.legacy?.spin; if (!(sp && Array.isArray(sp.outcomes) && sp.index != null)) return null;
+  const rec = roundRec(g, now);
+  if (rec.landed || now - rec.firstSeen > WHEEL_SPIN_MS + 4000) return null;
+  return g.startedTs ?? 0;
+}
 export function stageOverlay(stage, state, { now = Date.now(), onDismiss = null } = {}) {
   const f = state.fight; if (!f) return null;
   const live = f.game && !f.game.result ? f.game : null;
   const g = live || f.lastGame; if (!g) return null;
   const key = `${g.itemId}:${g.startedTs}:${g.attackerId}`;
-  let rec = shown.get(key); if (!rec) { rec = { firstSeen: now, doneSeen: null }; shown.set(key, rec); if (shown.size > 50) shown.delete(shown.keys().next().value); }
+  const rec = roundRec(g, now);
   if (g.result && !rec.doneSeen) rec.doneSeen = now;
   const snap = g.legacy;
   const revealAt = snap?.view?.revealAt || 0;

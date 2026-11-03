@@ -36,5 +36,5 @@ export function leverBar({ gameId, statValue, compact = false } = {}) {
   const table = lines.length ? h('table', { class: 'lever-odds' },
     h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, 'Base odds'), h('th', { class: 'yours' }, `Your odds (${cap(v.stat)} ${v.value})`))),
     h('tbody', {}, lines.map(l => h('tr', { class: l.changed ? 'changed' : '' }, h('td', {}, l.label), h('td', {}, l.base), h('td', { class: 'yours' }, l.yours))))) : null;
-  return h('div', { class: 'lever' }, headline, table, leverCurve(v), h('div', { class: 'lever-text muted' }, `${v.text}. Wins ${Math.round(v.yours.win * 100)}% of rounds at your ${v.stat} (${Math.round(v.base.win * 100)}% at neutral).`));
+  return h('div', { class: 'lever' }, headline, table, leverCurve(v), h('div', { class: 'lever-text muted' }, `${v.text}. Wins ${Math.round((v.yours.winChance ?? v.yours.win) * 100)}% of rounds at your ${v.stat} (${Math.round((v.base.winChance ?? v.base.win) * 100)}% at neutral).`));   // same figure as the table above (QA run: 51% under a 50% row)
 }

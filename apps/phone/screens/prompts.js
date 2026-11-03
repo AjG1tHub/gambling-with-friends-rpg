@@ -11,6 +11,7 @@ import { speciesDef } from '../../../packages/shared/handlers/pets.js';
 import { gameMeta } from '../../../packages/games/adapter.js';
 import { wheelStrip } from '../../../packages/ui/dice.js';
 import { turnOrderLine } from '../coach.js';
+import { itemIconUrl } from '../../../packages/ui/sprite.js';
 
 // ── shared widgets ──────────────────────────────────────────────────────────────────────────────
 // play.js registers its tab renderer here so sub-screens can redraw the Play tab from local UI state without
@@ -51,7 +52,9 @@ export function amountPicker({ value, min = 1, max = 99, step = 1, label = '', s
   el.value = () => v;
   return el;
 }
-export const iconUrl = (item) => item?.sprite ? `/${String(item.sprite).replace(/^assets\//, '')}.png` : item?.slot === 'consumable' || item?.slot === 'egg' ? `/consumables/${item.baseId || item.id}.png` : `/items/${item?.baseId || item?.id}.png`;
+// item.sprite is the paper-doll layer key (worn/<id>, a 5-pose sheet), not an icon: ask the manifest lookup first,
+// then fall back to the conventional path. (QA run, 2 Nov: /worn/coinblade.png 404'd and the fight rows had blank icons.)
+export const iconUrl = (item) => itemIconUrl(item) || (item?.slot === 'consumable' || item?.slot === 'egg' ? `/consumables/${item.baseId || item.id}.png` : `/items/${item?.baseId || item?.gameId || item?.id}.png`);
 // A tappable item row: icon, name, meta, an action label; disabled with a reason underneath.
 export function itemRow({ item, meta = '', action = '', onTap, disabled = false, reason = '', hot = false }) {
   return h('button', { class: `item-row ${hot ? 'hot' : ''} ${disabled ? 'off' : ''}`, disabled, title: reason, onClick: () => !disabled && onTap?.() },

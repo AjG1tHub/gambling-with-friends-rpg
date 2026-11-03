@@ -1,7 +1,8 @@
 /* The controller: portrait, dark, 60 px targets, one thumb. */
 body.phone { font-size: 17px; overscroll-behavior: none; }
 .boot { display: grid; place-items: center; min-height: 100vh; text-align: center; padding: 24px; gap: 10px; }
-.shell { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; min-height: 100dvh; }
+.shell { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; min-height: 100vh; min-height: 100dvh; }
+.shell > * { min-width: 0; }   /* a long name in the header must not stretch the page past a 360px screen (QA run, 2 Nov) */
 .top { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; background: var(--velvet-2); position: sticky; top: 0; z-index: 5; }
 .top .who { flex: 1; min-width: 0; } .top .who .name { font-family: var(--font-display); letter-spacing: .08em; color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top .clock { font-family: var(--font-display); font-size: 1.4rem; color: var(--amber); }

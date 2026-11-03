@@ -11,7 +11,7 @@ export function panelTable({ state, session, h, gm, main }) {
   const cur = currentPlayerId(state);
   const bar = h('div', { class: 'gm-bar' },
     state.phase === 'lobby' ? h('button', { class: 'primary', onClick: () => gm('CREATION_OPEN', {}) }, 'Open character creation') : null,
-    (state.phase === 'lobby' || state.phase === 'creation') ? h('button', { class: 'primary', onClick: () => confirmStart(seats, gm) }, 'Start the run') : null,
+    (state.phase === 'lobby' || state.phase === 'creation') ? h('button', { class: 'primary', onClick: () => confirmStart(seats, gm, state) }, 'Start the run') : null,
     state.phase === 'playing' ? h('button', { class: state.gm.paused ? 'primary' : '', onClick: () => gm(state.gm.paused ? 'GM_RESUME' : 'GM_PAUSE', {}) }, state.gm.paused ? '▶ Resume' : '⏸ Pause') : null,
     state.phase === 'playing' ? h('button', { onClick: () => gm('TURN_END', {}) }, 'End current turn') : null,
     state.gm.ramp?.on ? h('button', { title: 'Ends the tutorial opening for the whole table: everything unlocks at once', onClick: () => { if (confirm('Skip the tutorial opening for everyone?')) gm('GM_RAMP_SKIP', {}); } }, 'Skip ramp for everyone') : null,
@@ -40,9 +40,14 @@ export function panelTable({ state, session, h, gm, main }) {
     h('div', { class: 'panel' }, h('h3', {}, 'Broadcast'), broadcast({ h, gm })),
     h('div', { class: 'panel' }, h('h3', {}, 'Teach'), h('p', { class: 'muted small' }, 'One tap sends a rule card to every phone and the TV rail: the same cards the TV cycles in the lobby. Use them the moment the table looks lost.'), teachRow({ state, h, gm })));
 }
-function confirmStart(seats, gm) {
+function confirmStart(seats, gm, state) {
   const notReady = seats.filter(p => !p.ready && !p.kicked).map(p => p.name);
   if (notReady.length && !confirm(`Not ready: ${notReady.join(', ')}. Start anyway?`)) return;
+  // Teams mode with nobody on a team starts a run no one can win as a team (QA run, 2 Nov): ask first.
+  if (state?.mode === 'teams') {
+    const loose = seats.filter(p => !p.teamId && !p.kicked).map(p => p.name);
+    if (loose.length && !confirm(`Teams mode, but ${loose.join(', ')} ${loose.length === 1 ? 'is' : 'are'} on no team. Set teams in the Teams box first, or start anyway?`)) return;
+  }
   gm('RUN_START', {});
 }
 function broadcast({ h, gm }) {
