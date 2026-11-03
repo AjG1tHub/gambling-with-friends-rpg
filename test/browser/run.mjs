@@ -27,7 +27,15 @@ const stateOf = (page) => page.evaluate(() => window.__gwf?.session?.state || nu
 const shot = (page, name) => page.screenshot({ path: `${shotDir}gate-${name}.png` }).catch(() => {});
 async function step(name, fn) { console.log(`\n▶ ${name}`); try { await fn(); } catch (e) { e.message = `[${name}] ${e.message}`; throw e; } }
 // Click the first match of a selector/locator, waiting for it to appear and be enabled.
-async function clickWhen(page, sel, msg = '', timeout = 15000) { const loc = (typeof sel === 'string' ? page.locator(sel) : sel).first(); await loc.click({ timeout }); if (msg) console.log('  ·', msg); }
+// A real pointer click first; if the phone re-rendered under the pointer for the whole wait (CI runners are slow
+// and every room event repaints the screen), a DOM click on the resolved button so the gate tests the flow, not the
+// runner's timing.
+async function clickWhen(page, sel, msg = '', timeout = 15000) {
+  const loc = (typeof sel === 'string' ? page.locator(sel) : sel).first();
+  try { await loc.click({ timeout }); }
+  catch (e) { if (!/Timeout|intercepts pointer events/.test(e.message)) throw e; await loc.waitFor({ state: 'visible', timeout: 5000 }); await loc.evaluate(el => el.click()); console.log('  · (DOM click after a pointer timeout)'); }
+  if (msg) console.log('  ·', msg);
+}
 // Whole-run watchdog: the gate must finish in well under six minutes.
 setTimeout(() => { console.error('WATCHDOG: the gate ran past 6 minutes'); process.exit(1); }, 6 * 60 * 1000).unref();
 

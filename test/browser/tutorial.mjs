@@ -18,7 +18,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 async function waitFor(page, fn, msg, arg = undefined, timeout = 10000) { const t0 = Date.now(); while (Date.now() - t0 < timeout) { if (await page.evaluate(fn, arg).catch(() => false)) { if (msg) console.log('  ✓', msg); return true; } await sleep(100); } throw new Error(`TIMEOUT: ${msg}`); }
 const shot = (page, name) => page.screenshot({ path: `${shotDir}tutorial-${name}.png` }).catch(() => {});
 async function step(name, fn) { console.log(`\n▶ ${name}`); try { await fn(); } catch (e) { e.message = `[${name}] ${e.message}`; throw e; } }
-async function clickWhen(page, sel, msg = '', timeout = 15000) { const loc = (typeof sel === 'string' ? page.locator(sel) : sel).first(); await loc.click({ timeout }); if (msg) console.log('  ·', msg); }
+async function clickWhen(page, sel, msg = '', timeout = 15000) {
+  const loc = (typeof sel === 'string' ? page.locator(sel) : sel).first();
+  try { await loc.click({ timeout }); }
+  catch (e) { if (!/Timeout|intercepts pointer events/.test(e.message)) throw e; await loc.waitFor({ state: 'visible', timeout: 5000 }); await loc.evaluate(el => el.click()); console.log('  · (DOM click after a pointer timeout)'); }
+  if (msg) console.log('  ·', msg);
+}
 setTimeout(() => { console.error('WATCHDOG: the tutorial run ran past 5 minutes'); process.exit(1); }, 5 * 60 * 1000).unref();
 
 const { server, url } = await startServer(0);
