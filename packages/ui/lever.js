@@ -23,6 +23,13 @@ export function leverCurve(v, { width = 220, height = 54 } = {}) {
   return svg;
 }
 
+// 'Wins N% of rounds at your Luck (M% at neutral).' Quote the odds table's own Win chance row when it has one: the
+// curve's win is a simulated rate (51% at neutral for the 50/50 wheel) and printed 51% under a 50% row (QA run, 2 Nov).
+function winLine(v, lines) {
+  const row = (lines || []).find(l => /^win chance$/i.test(l.label));
+  const yours = row ? row.yours : `${Math.round(v.yours.win * 100)}%`, base = row ? row.base : `${Math.round(v.base.win * 100)}%`;
+  return `${v.text}. Wins ${yours} of rounds at your ${v.stat} (${base} at neutral).`;
+}
 export function leverBar({ gameId, statValue, compact = false } = {}) {
   const v = leverView(gameId, statValue); if (!v) return null;
   const sign = v.deltaPts > 0 ? '+' : '';
@@ -36,5 +43,5 @@ export function leverBar({ gameId, statValue, compact = false } = {}) {
   const table = lines.length ? h('table', { class: 'lever-odds' },
     h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, 'Base odds'), h('th', { class: 'yours' }, `Your odds (${cap(v.stat)} ${v.value})`))),
     h('tbody', {}, lines.map(l => h('tr', { class: l.changed ? 'changed' : '' }, h('td', {}, l.label), h('td', {}, l.base), h('td', { class: 'yours' }, l.yours))))) : null;
-  return h('div', { class: 'lever' }, headline, table, leverCurve(v), h('div', { class: 'lever-text muted' }, `${v.text}. Wins ${Math.round((v.yours.winChance ?? v.yours.win) * 100)}% of rounds at your ${v.stat} (${Math.round((v.base.winChance ?? v.base.win) * 100)}% at neutral).`));   // same figure as the table above (QA run: 51% under a 50% row)
+  return h('div', { class: 'lever' }, headline, table, leverCurve(v), h('div', { class: 'lever-text muted' }, winLine(v, lines)));
 }
