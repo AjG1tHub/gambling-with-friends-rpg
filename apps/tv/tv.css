@@ -175,6 +175,11 @@ body.tv { overflow: hidden; font-size: clamp(13px, 1.05vw, 20px); }
 .recap-id { align-items: center; gap: .6vw; } .recap-id .crest { font-size: 2em; line-height: 1; } .recap-name { color: var(--bone); text-transform: none; letter-spacing: .05em; font-size: 1.15em; }
 .tally { display: flex; gap: .6vw 1vw; flex-wrap: wrap; } .tally-item { text-align: center; } .tally-v { font-size: 1.3em; color: var(--amber); } .tally-l { font-size: .7em; letter-spacing: .15em; text-transform: uppercase; color: var(--bone-dim); }
 .titles { display: flex; gap: .4em; flex-wrap: wrap; } .titles .pill { font-size: .72em; }
+/* 5–8 players: four cards a row, the five tallies on one line, so two rows of cards leave room for the charts (a TV has no scroll wheel) */
+.recap-cards.dense { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6vw; }
+.recap-cards.dense .recap-card { padding: .6vw .8vw; gap: .25em; }
+.recap-cards.dense .tally { flex-wrap: nowrap; justify-content: space-between; gap: .3vw; } .recap-cards.dense .tally-v { font-size: 1.1em; } .recap-cards.dense .tally-l { font-size: .62em; letter-spacing: .08em; }
+.recap-cards.dense .recap-name { font-size: 1.05em; }
 .recap-charts { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1vw; align-items: stretch; } .recap-chart { width: 100%; height: auto; background: rgba(0,0,0,.25); border: 1px solid var(--line); border-radius: var(--radius); }
 .hof { border-top: 1px solid var(--line-2); padding-top: .8vw; } .hof-row { display: flex; flex-wrap: wrap; gap: .5vw 2vw; margin-top: .3em; } .hof-cell b { font-family: var(--font-display); color: var(--bone); }
 .vault-title { color: var(--bone); text-transform: none; letter-spacing: .05em; font-size: 1.1em; }

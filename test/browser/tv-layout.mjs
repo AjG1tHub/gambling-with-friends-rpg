@@ -41,6 +41,19 @@ try {
       ok(m.ticks.length === 8 && m.ticks.every(t => t.in), `${label}: all ${m.ticks.length} standings visible in the footer${m.ticks.filter(t => !t.in).length ? ' — clipped: ' + m.ticks.filter(t => !t.in).map(t => t.name).join(', ') : ''}`);
     }
     await page.screenshot({ path: `${shotDir}tv-layout-${w}x${h}.png` });
+    // The recap after the GM ends the run: eight seats used to push both charts below the fold (a TV has no scroll wheel).
+    await page.evaluate(() => window.__gwf.session.dispatch('GM_END_RUN', { reason: 'the GM called it' }, 'gm'));
+    await waitFor(page, () => window.__gwf.session.state.phase === 'ended' && !!document.querySelector('.recap-chart'), 'the recap is up', 20000);
+    await sleep(800);
+    const r = await page.evaluate(() => {
+      const vh = innerHeight, main = document.querySelector('.recap')?.parentElement.getBoundingClientRect();
+      const boxes = [...document.querySelectorAll('.recap-chart, .hof, .recap-cards')].map(e => { const b = e.getBoundingClientRect(); return { cls: e.getAttribute('class').split(' ')[0], bottom: Math.round(b.bottom), right: Math.round(b.right) }; });
+      return { vh, mainBottom: Math.round(main.bottom), mainRight: Math.round(main.right), boxes, sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth };
+    });
+    ok(r.boxes.filter(b => b.cls === 'recap-chart').length === 2, 'recap: both charts are drawn');
+    ok(r.boxes.every(b => b.bottom <= r.mainBottom + 1 && b.right <= r.mainRight + 1), `recap: cards, both charts and the Hall of Fame are inside the screen (${r.boxes.map(b => b.cls + '→' + b.bottom).join(', ')}; panel ends ${r.mainBottom})`);
+    ok(r.sw <= r.cw, 'recap: no horizontal overflow');
+    await page.screenshot({ path: `${shotDir}tv-layout-${w}x${h}-recap.png` });
     await ctx.close();
   }
   console.log('\nTV LAYOUT RUN PASSED');

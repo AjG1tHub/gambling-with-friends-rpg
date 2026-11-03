@@ -45,7 +45,10 @@ export function healthSeries(state, { bins = null } = {}) {
 }
 
 export function lineChart({ series, rounds }, { width = 720, height = 260, title = 'Health over the run' } = {}) {
-  const padL = 44, padR = 16, padT = 30, padB = 30, W = width - padL - padR, H = height - padT - padB;
+  // Five or more names no longer fit on the title's row (each took a fixed 92px from the right and ran over the title
+  // and off the left edge at 8 players, QA run 2 Nov): they go on their own rows under it and the plot moves down.
+  const crowded = series.length > 4, perRow = Math.max(1, Math.floor((width - 44 - 16) / 92)), legendRows = crowded ? Math.ceil(series.length / perRow) : 0;
+  const padL = 44, padR = 16, padT = 30 + legendRows * 16, padB = 30, W = width - padL - padR, H = height - padT - padB;
   const max = Math.max(10, ...series.map(x => x.max)), n = rounds + 1;
   const svg = s('svg', { viewBox: `0 0 ${width} ${height}`, class: 'recap-chart', role: 'img', 'aria-label': title });
   s('text', { x: padL, y: 18, 'font-family': 'Cinzel, serif', 'font-size': 13, 'letter-spacing': 2, fill: '#8a7a62', text: title.toUpperCase() }, svg);
@@ -57,7 +60,9 @@ export function lineChart({ series, rounds }, { width = 720, height = 260, title
     const pts = x.points.map((v, k) => `${xs(k).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
     s('polyline', { points: pts, fill: 'none', stroke: colour, 'stroke-width': 2.2, 'stroke-linejoin': 'round', opacity: x.dead ? 0.7 : 1 }, svg);
     const last = x.points.at(-1); s('circle', { cx: xs(x.points.length - 1), cy: ys(last), r: 3.5, fill: x.dead ? '#0d0a0b' : colour, stroke: colour, 'stroke-width': 1.5 }, svg);
-    s('text', { x: width - padR, y: 18 - 0, 'text-anchor': 'end', dx: -(series.length - 1 - i) * 92, 'font-size': 11, fill: colour, 'font-family': "'IM Fell English', serif", text: `● ${x.name}${x.dead ? ' †' : ''}` }, svg);
+    const label = `● ${x.name}${x.dead ? ' †' : ''}`;
+    if (crowded) s('text', { x: padL + (i % perRow) * 92, y: 36 + Math.floor(i / perRow) * 16, 'text-anchor': 'start', 'font-size': 11, fill: colour, 'font-family': "'IM Fell English', serif", text: label, class: 'chart-legend' }, svg);
+    else s('text', { x: width - padR, y: 18 - 0, 'text-anchor': 'end', dx: -(series.length - 1 - i) * 92, 'font-size': 11, fill: colour, 'font-family': "'IM Fell English', serif", text: label, class: 'chart-legend' }, svg);
   });
   return svg;
 }

@@ -15,7 +15,7 @@ export function renderEnded({ state, stage, rail, clockEls }) {
     h('h1', { class: 'recap-title' }, teamWin ? `${teamWin.name} take the night` : winnerRow ? `${winnerRow.charName || winnerRow.name} takes the night` : 'Nobody takes the night'),
     h('div', { class: 'ital muted' }, state.endReason || '', state.runRecord ? ` · ${state.runRecord.rounds} round${state.runRecord.rounds === 1 ? '' : 's'} · ${state.runRecord.kills} kills · ${state.runRecord.bossesBeaten} boss${state.runRecord.bossesBeaten === 1 ? '' : 'es'} beaten` : '')));
   // Placings + player cards.
-  const cards = h('div', { class: 'recap-cards' });
+  const cards = h('div', { class: `recap-cards${rows.length > 4 ? ' dense' : ''}` });   // 5–8 seats: tighter cards so the charts below them fit the first screen
   rows.forEach((r, i) => {
     const c = characterOf(state, r.pid), st = state.stats[r.pid] || {}, colour = SERIES_COLOURS[i % SERIES_COLOURS.length];
     cards.append(h('div', { class: `recap-card panel${r.winner ? ' gold winner' : ''}${r.survived ? '' : ' dead'}`, style: { '--series': colour } },
@@ -39,8 +39,27 @@ export function renderEnded({ state, stage, rail, clockEls }) {
   if (hofRows.length) wrap.append(h('div', { class: 'hof' }, h('div', { class: 'tag' }, 'HALL OF FAME'), h('div', { class: 'hof-row' }, hofRows.map(x => h('div', { class: 'hof-cell' }, h('b', {}, x.name), h('span', { class: 'small muted' }, ` ${className(x.classId)} · Lv ${x.level} · ${x.kills} kill${x.kills === 1 ? '' : 's'}${x.bosses ? ` · ${x.bosses} boss${x.bosses === 1 ? '' : 'es'}` : ''}${x.petsCaught ? ` · ${x.petsCaught} pet${x.petsCaught === 1 ? '' : 's'}` : ''}${x.tierCleared ? ` · cleared Tier ${x.tierCleared}` : ''}${x.survived ? '' : ' · †'}`))))));
   if (state.runRecord?.longestLived) wrap.append(h('div', { class: 'small muted ital' }, `Longest-lived: ${state.runRecord.longestLived.characterName}, ${state.runRecord.longestLived.turns} turns.${state.seasonEnded ? ' The season ends tonight: levels and quests reset, pets and titles carry over.' : ''}`));
   stage.append(wrap);
+  fitRecap(wrap);
   // Rail.
   const vaulted = rows.filter(r => characterOf(state, r.pid)?.vaulted).length;
   rail.append(h('div', { class: 'panel gold vault-panel' }, h('div', { class: 'tag' }, 'THE VAULT'), h('div', { class: 'display vault-title' }, 'The vault is open on your phones'), h('p', { class: 'small muted' }, 'Survivors bank up to three items, the dead bank one; survivors may save their character as a veteran.'), h('p', { class: 'small' }, `${vaulted} of ${rows.length} have banked.`)));
   if (state.wall?.length) rail.append(h('div', { class: 'panel blood' }, h('div', { class: 'tag' }, 'THE WALL OF NAMES'), h('p', { class: 'small' }, state.wall.slice(-8).join(' · '))));
+}
+
+// A TV has no scroll wheel: when the recap is taller than its screen (six to eight seats), shrink the whole thing to
+// fit instead of hiding the charts below the fold. The box is laid out 1/k larger and scaled by k so it fills the
+// stage exactly; a 4-seat recap already fits and is left alone. (QA run, 2 Nov: 8 seats hid both charts.)
+export function fitRecap(wrap, { min = 0.5 } = {}) {
+  const have = wrap.parentElement?.clientHeight || wrap.clientHeight;
+  if (!(have > 0)) return 1;
+  let k = 1;
+  // Charts are width-driven (their height follows their width), so a wider box makes taller charts: settle in a few passes.
+  for (let i = 0; i < 6; i++) {
+    const need = wrap.scrollHeight * k;   // content height in screen pixels at the current scale
+    if (need <= have + 1) break;
+    k = Math.max(min, k * (have / need) * 0.985);
+    Object.assign(wrap.style, { width: `${100 / k}%`, height: `${100 / k}%`, transform: `scale(${k})`, transformOrigin: '0 0' });
+    if (k <= min) break;
+  }
+  return k;
 }
