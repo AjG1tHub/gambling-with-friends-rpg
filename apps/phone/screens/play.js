@@ -40,7 +40,8 @@ function route(api) {
   if (state.gm?.paused) screen.append(h('div', { class: 'ch-banner draw' }, h('b', {}, 'Paused'), h('span', { class: 'meta' }, 'The GM froze every clock.')));
   if (c.hatching) return screen.append(hatchingScreen(api));
   if (challengeScreen(api)) return;
-  if (state.held[me]) { screen.append(h('div', { class: 'prompt' }, h('h3', {}, 'Held'), h('p', { class: 'muted' }, 'Your seat is held while a challenge settles; you rejoin the order right after.'))); return; }
+  // A one-slot owedWait hold (someone else is owed a turn) is not a real hold: that phone just waits its turn.
+  if (state.held[me] && !state.held[me].owedWait) { screen.append(h('div', { class: 'prompt' }, h('h3', {}, 'Held'), h('p', { class: 'muted' }, 'You are away in a challenge: the table skips your slot and plays on. When it settles you rejoin, and any turn you missed comes back to you.')), waitingScreen(api, pid)); return; }
   if (state.area && !state.area.done && state.area.hexKey === c.pos && !c.dead) { screen.append(areaWindow(api)); if (state.area.attackerPlayerId !== me) return; }
   const pr = state.pendingPrompt;
   if (pr && (pr.playerId === me || (pr.kind === 'callout' && pr.targetId === me)) && renderPrompt(api, pr)) return;

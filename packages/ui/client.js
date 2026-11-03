@@ -5,8 +5,9 @@ import { createBackend } from '../shared/backend/index.js';
 import { openRoom, createRoom } from '../shared/room.js';
 import { banner, toast, store } from './dom.js';
 
-export async function boot({ kind } = {}) {
-  const backend = await createBackend({ kind });
+// Extra options (a local `namespace`, say) go through to the backend factory.
+export async function boot({ kind, ...opts } = {}) {
+  const backend = await createBackend({ kind, ...opts });
   const identity = backend.identity();
   return { backend, identity };
 }

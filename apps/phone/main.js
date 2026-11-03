@@ -15,6 +15,9 @@ import { tabPets } from './screens/pets.js';
 import { tabMap } from './screens/map.js';
 import { tabLetters } from './screens/letters.js';
 import { bugButton, bugSheet, rewardOverlay } from './feedback.js';
+import { coachCard, isRuleBroadcast } from './coach.js';
+import { helpButton, helpSheet } from './help.js';
+import { startPractice } from './practice.js';
 
 const app = $('#app');
 const TABS = [['play', 'Play', tabPlay], ['cage', 'Cage', tabCage], ['self', 'Self', tabSelf], ['pets', 'Pets', tabPets], ['map', 'Map', tabMap], ['letters', 'Letters', tabLetters]];
@@ -22,6 +25,8 @@ const ctx = { backend: null, session: null, me: null, tab: 'play', deviceId: nul
 
 async function main() {
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/phone/sw.js').catch(() => {});
+  // Learn to play: a solo practice run on the local backend (practice.js owns the room; no TV, GM or network).
+  if (qs('practice') === '1') { try { return await startPractice({ ctx, view, app }); } catch (e) { console.error(e); return render(app, joinScreen(`Practice could not start: ${e.message}`)); } }
   const { backend, identity } = await boot();
   ctx.backend = backend; ctx.deviceId = identity.deviceId;
   const code = (qs('code') || '').toUpperCase();
@@ -39,7 +44,9 @@ function joinScreen(error = '') {
   return h('div', { class: 'boot' }, h('h1', {}, 'Gambling With Friends'), h('p', { class: 'ital muted' }, 'Your character lives on your phone.'),
     h('div', { class: 'panel gold col', style: { width: '100%', maxWidth: '380px' } }, h('h3', {}, 'Join the table'), input, h('button', { class: 'primary big', onClick: go }, 'Join'),
       last ? h('button', { class: 'ghost', onClick: () => { input.value = last.code; go(); } }, `Rejoin ${last.code} as ${last.name}`) : null,
-      error ? h('p', { class: 'log error' }, error) : null));
+      error ? h('p', { class: 'log error' }, error) : null),
+    h('button', { class: 'big learn-btn', style: { width: '100%', maxWidth: '380px' }, onClick: () => { location.search = '?practice=1'; } }, '📖 Learn to play (5 min, solo)'),
+    h('p', { class: 'muted small ital' }, 'A short run on this phone alone, with two bots. No table needed.'));
 }
 
 async function join(code) {
@@ -93,19 +100,26 @@ function view(state, session) {
   const rerender = () => view(session.state, session);
   const top = h('header', { class: 'top' },
     h('div', { class: 'who' }, h('div', { class: 'turn-tag' }, state.phase !== 'playing' ? state.phase.toUpperCase() : myTurn ? 'YOUR TURN' : `${state.players[pid]?.name || '—'} TO MOVE`), h('div', { class: 'name' }, c?.name || me.name, c ? h('span', { class: 'ital muted' }, ` ${c.classId || 'no class yet'}${c.region ? ` · ${c.region}` : ''}`) : null)),
-    clock, c ? h('span', { class: `lantern ${tell(c)}`, title: 'your lantern' }) : null, bugButton({ rerender }));
+    clock, c ? h('span', { class: `lantern ${tell(c)}`, title: 'your lantern' }) : null, helpButton({ rerender }), bugButton({ rerender }));
   const screen = lenient(h('main', { class: 'screen', id: 'phScreen' }));
+  // The Coach (coach.js): one card for the situation, above the screen on every tab; never allowed to break the render.
+  let coach = null;
+  try { coach = coachCard({ state, session, me, c, myTurn, ctx, h, dispatch, rerender }); } catch (e) { console.error('coach', e); }
   const tabs = h('nav', { class: 'tabs' }, TABS.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
   // QA: the bug-report sheet and the secret reward overlay sit above the tabs (feedback.js).
   let qa = [];
   try { qa = [bugSheet({ state, ctx, me, myTurn, dispatch, rerender }), rewardOverlay({ state, ctx, me, dispatch })]; } catch (e) { console.error('qa', e); }
-  render(app, h('div', { class: 'shell', style: ctx.proxyFor ? { gridTemplateRows: 'auto auto 1fr auto' } : null }, ctx.proxyFor ? h('div', { class: 'banner', style: { position: 'static' } }, `GM acting for ${me.name}`) : null, top, screen, tabs), qa);
+  try { qa.push(helpSheet({ state, ctx, me, c, myTurn, dispatch, rerender })); } catch (e) { console.error('help', e); }
+  const banner = ctx.proxyFor ? h('div', { class: 'banner', style: { position: 'static' } }, `GM acting for ${me.name}`) : ctx.practice ? h('div', { class: 'banner practice-tag' }, 'PRACTICE · solo run with two bots · ? to quit') : null;
+  const rows = [banner && 'auto', 'auto', coach && 'auto', '1fr', 'auto'].filter(Boolean).join(' ');
+  render(app, h('div', { class: 'shell', style: { gridTemplateRows: rows } }, banner, top, coach, screen, tabs), qa);
   const tab = TABS.find(t => t[0] === ctx.tab) || TABS[0];
-  try { tab[2]({ state, session, me, c, myTurn, ctx, h, dispatch, screen }); } catch (e) { console.error(e); screen.append(h('p', { class: 'log error' }, e.message)); }
+  try { tab[2]({ state, session, me, c, myTurn, ctx, h, dispatch, screen, rerender }); } catch (e) { console.error(e); screen.append(h('p', { class: 'log error' }, e.message)); }
   stopTicker?.(); stopTicker = ticker((now) => { if (state.phase === 'playing') clock.textContent = fmtTime(remainingMs(session.state, currentPlayerId(session.state), now)); });
   // GM whispers / broadcasts
   const seen = ctx.seenToasts ||= new Set();
-  for (const t of state.toasts.slice(-5)) if (!seen.has(t.id) && (t.to == null || t.to === ctx.me) && Date.now() - t.ts < 60000) { seen.add(t.id); toast(t.text, '', 5000); buzz(40); }
+  // A "📖 Title: text" broadcast is a rule card in the coach slot (coach.js), not a five-second toast.
+  for (const t of state.toasts.slice(-5)) if (!seen.has(t.id) && (t.to == null || t.to === ctx.me) && Date.now() - t.ts < 60000) { seen.add(t.id); if (isRuleBroadcast(t)) { buzz(40); continue; } toast(t.text, '', 5000); buzz(40); }
 }
 const tell = (c) => (c.dead ? 'dead' : c.health / c.maxHealth > 0.66 ? '' : c.health / c.maxHealth >= 0.33 ? 'mid' : 'low');
 const unread = (state) => { let seen; try { seen = readSet(ctx.me); } catch { seen = new Set(); } return state.letters.some(l => l.toId === ctx.me && l.deliveredAt && !l.destroyed && !l.read && !seen.has(l.id)); };

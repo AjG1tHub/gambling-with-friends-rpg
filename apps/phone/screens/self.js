@@ -13,6 +13,7 @@ import { openPacts } from '../../../packages/shared/handlers/economy.js';
 import { cooldownKeyFor } from '../../../packages/shared/handlers/classes.js';
 import { store, toast } from '../../../packages/ui/dom.js';
 import { hasHandler } from '../../../packages/shared/reducer.js';
+import { coachPanel } from '../coach.js';
 
 const STAT_TEXT = { luck: 'reroll odds, loot rarity', nerve: 'shot-clock seconds, one free re-stake a night', greed: 'streak damage, dearer pacts', grit: '−3% damage taken a point, cheaper revives' };
 const selfUi = { mirror: false, look: null, crest: null, saveResult: null, saving: false, rosterKicked: false };
@@ -27,7 +28,7 @@ export function tabSelf(args) {
 
   if (!c) {
     screen.append(h('div', { class: 'hero' }, h('div', { class: 'crest' }, me.crest || '🂠'), h('h2', {}, me.name), h('p', { class: 'muted ital' }, me.spectator ? 'You are watching tonight.' : state.phase === 'lobby' ? 'Your character is made when creation opens.' : 'No character on this seat yet.')),
-      claimPanel({ session, backend: ctx?.backend, playerId: me.id, onChange: () => rerenderSoon() }), wallPanel({ backend: ctx?.backend, state }), rulesDrawer());
+      claimPanel({ session, backend: ctx?.backend, playerId: me.id, onChange: () => rerenderSoon() }), wallPanel({ backend: ctx?.backend, state }), coachPanel({ rerender: args.rerender || (() => rerenderSoon()) }), rulesDrawer());
     return;
   }
   const def = classDef(c.classId); const eff = safeEffective(state, c);
@@ -103,8 +104,8 @@ export function tabSelf(args) {
   // ── end of the run: vault, veteran, save-back ──
   if (state.phase === 'ended') screen.append(endPanel({ state, me, c, ctx, h, dispatch, session }));
 
-  // ── roster, wall, rules ──
-  screen.append(claimPanel({ session, backend: ctx?.backend, playerId: me.id, onChange: () => rerenderSoon() }), wallPanel({ backend: ctx?.backend, state }), rulesDrawer());
+  // ── roster, wall, tips, rules ──
+  screen.append(claimPanel({ session, backend: ctx?.backend, playerId: me.id, onChange: () => rerenderSoon() }), wallPanel({ backend: ctx?.backend, state }), coachPanel({ rerender: args.rerender || (() => rerenderSoon()) }), rulesDrawer());
 }
 
 function endPanel({ state, me, c, ctx, h, dispatch, session }) {

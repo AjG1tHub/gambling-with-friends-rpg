@@ -10,6 +10,7 @@ import { group } from '../../../packages/shared/balance.js';
 import { speciesDef } from '../../../packages/shared/handlers/pets.js';
 import { gameMeta } from '../../../packages/games/adapter.js';
 import { wheelStrip } from '../../../packages/ui/dice.js';
+import { turnOrderLine } from '../coach.js';
 
 // ── shared widgets ──────────────────────────────────────────────────────────────────────────────
 // play.js registers its tab renderer here so sub-screens can redraw the Play tab from local UI state without
@@ -156,11 +157,14 @@ export function areaWindow(api) {
 }
 // Who is up, what they are doing, where I stand.
 export function waitingScreen(api, pid) {
-  const { state, c, h } = api; const p = state.players[pid]; const pc = characterOf(state, pid);
+  const { state, c, h, me } = api; const p = state.players[pid]; const pc = characterOf(state, pid);
   const f = state.fight && !state.fight.done ? state.fight : null, ch = state.challenge && !state.challenge.done ? state.challenge : null;
   const doing = ch ? `in a ${ch.call} with ${nameOf(state, ch.attackerId === pid ? ch.defenderId : ch.attackerId)}` : f && f.playerId === pid ? `fighting ${state.monsters[f.monsterId]?.name || 'something'}` : state.turnPhase === 'move' ? 'moving' : state.turnPhase === 'resolve' ? 'resolving a tile' : 'acting';
   const here = c?.pos ? state.map?.hexes?.[c.pos] : null;
+  // Why it is not your turn: held seats, owed turns and the order round the table (coach.js, pure).
+  let order = ''; try { order = turnOrderLine(state, me); } catch { order = ''; }
   return h('div', { class: 'hero wait' }, h('div', { class: 'crest' }, p?.crest || '🂠'), h('h2', {}, `${p?.name || '…'} to move`), h('p', { class: 'muted' }, `${pc?.name || ''} is ${doing}.`),
+    order ? h('p', { class: 'order-line' }, order) : null,
     c?.dead ? h('p', { class: 'bad' }, `You are dead. ${c.missTurns || 0} turn${c.missTurns === 1 ? '' : 's'} to wake at the Graveyard.`) : null,
     here ? h('p', { class: 'muted' }, `You stand on ${tileGlyph(here.type)} ${tileLabel(here.type)} in ${state.map.regions?.[here.regionId]?.name || ''}.`) : null,
     h('p', { class: 'muted ital' }, 'Your phone buzzes on your turn.'),
