@@ -2,7 +2,8 @@
    Matches docs/mockups/tv-hex-map.html: inked parchment map, region cartouches, the rail with To Move / fight / join. */
 body.tv { overflow: hidden; font-size: clamp(13px, 1.05vw, 20px); }
 .boot { display: grid; place-items: center; height: 100vh; text-align: center; gap: 10px; }
-.tv-shell { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 1vw; gap: .8vw; }
+.tv-shell { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; height: 100vh; padding: 1vw; gap: .8vw; }
+.tv-shell > * { min-width: 0; }   /* 6–8 names in the footer ticker used to widen the page past the screen and push the whole right rail off it (QA run, 2 Nov) */
 .tv-head { display: flex; align-items: baseline; gap: 1.2vw; border: 1px solid #3a2a16; border-radius: var(--radius); padding: .55vw 1.4vw; background: linear-gradient(180deg, #14100f, #100c0d); }
 .tv-head h1 { font-size: 1.45em; letter-spacing: .18em; } .tv-head .tagline { font-size: .95em; }
 .tv-head .tag { margin-left: auto; font-size: .78em; color: var(--bone-2); white-space: nowrap; }
@@ -16,7 +17,7 @@ body.tv { overflow: hidden; font-size: clamp(13px, 1.05vw, 20px); }
 .rail-log .log { font-size: .82em; line-height: 1.35; overflow: hidden; display: flex; flex-direction: column-reverse; flex: 1 1 0; min-height: 0; mask-image: linear-gradient(to bottom, transparent, #000 28%); -webkit-mask-image: linear-gradient(to bottom, transparent, #000 28%); } .rail-log .log div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 0 auto; } .rail-log .log .fight { color: var(--bone); } .rail-log .log .letter { color: #b9a9d9; } .rail-log .log .chaos { color: #f2b3b3; }
 .tv-rail .panel .tag { font-size: .68em; letter-spacing: .2em; }
 .tv-foot { border: 1px solid #3a2a16; border-radius: var(--radius); padding: .55vw 1.4vw; display: flex; gap: 1.6vw; align-items: center; background: #100c0d; font-size: .95em; min-height: 3.2em; }
-.tv-foot .ticker { display: flex; gap: 1.6vw; flex: 1; overflow: hidden; white-space: nowrap; }
+.tv-foot .ticker { display: flex; flex-wrap: wrap; gap: .2vw 1.6vw; flex: 1; overflow: hidden; white-space: nowrap; }   /* wrap to a second row at 7–8 seats instead of clipping the last names */
 .tv-foot .tick { display: inline-flex; gap: .5em; align-items: baseline; } .tv-foot .tick.up .tick-name { color: var(--amber); }
 .tv-foot .tick-name { font-family: var(--font-display); color: var(--bone); } .tv-foot .tick-sub { color: var(--bone-2); font-size: .88em; }
 .tick-lamp { font-size: .9em; } .tick-lamp.high { color: #f0a840; } .tick-lamp.mid { color: #c07a30; } .tick-lamp.low { color: #7a4020; } .tick-lamp.dead { color: #4a3f36; }
