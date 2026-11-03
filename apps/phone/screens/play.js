@@ -36,11 +36,12 @@ function route(api) {
   if (state.phase === 'ended') return endedScreen(api);
   const pid = currentPlayerId(state);
   const banner = state.challenge && !state.challenge.done ? null : challengeBanner(api); if (banner) screen.append(banner);
-  if (player.spectator) { screen.append(waitingScreen(api, pid), h('p', { class: 'muted center ital' }, 'You are watching and wagering.')); return; }
+  if (player.spectator) { screen.append(waitingScreen(api, pid), h('p', { class: 'muted center ital' }, 'You are watching the table.')); return; }
   if (!c) { screen.append(h('div', { class: 'hero' }, h('h2', {}, 'No character'), h('p', { class: 'muted' }, 'The run started without you; the GM can seat you from the console.'))); return; }
   if (state.gm?.paused) screen.append(h('div', { class: 'ch-banner draw' }, h('b', {}, 'Paused'), h('span', { class: 'meta' }, 'The GM froze every clock.')));
-  if (c.hatching) return screen.append(hatchingScreen(api));
+  // A challenge you are in comes first: a defender who has not yet picked a starting pet must still be able to answer a Wager or Duel (QA, 3 Nov).
   if (challengeScreen(api)) return;
+  if (c.hatching) return screen.append(hatchingScreen(api));
   // A one-slot owedWait hold (someone else is owed a turn) is not a real hold: that phone just waits its turn.
   if (state.held[me] && !state.held[me].owedWait) { screen.append(h('div', { class: 'prompt' }, h('h3', {}, 'Held'), h('p', { class: 'muted' }, 'You are away in a challenge: the table skips your slot and plays on. When it settles you rejoin, and any turn you missed comes back to you.')), waitingScreen(api, pid)); return; }
   if (state.area && !state.area.done && state.area.hexKey === c.pos && !c.dead) { screen.append(areaWindow(api)); if (state.area.attackerPlayerId !== me) return; }

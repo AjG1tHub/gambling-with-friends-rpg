@@ -148,7 +148,7 @@ function joinPanel(code) {
   const canvas = h('canvas', { 'aria-label': 'Join QR code' });
   // qrcode writes an inline size on the canvas; the stylesheet's vw size must win so the rail fits a laptop.
   QRCode.toCanvas(canvas, joinUrl(code), { margin: 1, width: 220, color: { dark: '#0d0a0b', light: '#e9e1cf' } }).then(() => { canvas.style.width = ''; canvas.style.height = ''; }).catch(() => {});
-  return h('div', { class: 'panel gold join' }, canvas, h('div', {}, h('h3', {}, 'Join the table'), h('div', { class: 'code' }, code), h('p', { class: 'muted' }, 'Scan or type the code at ', h('b', {}, `${location.host}/phone`), '. Spectators may wager.')));
+  return h('div', { class: 'panel gold join' }, canvas, h('div', {}, h('h3', {}, 'Join the table'), h('div', { class: 'code' }, code), h('p', { class: 'muted' }, 'Scan or type the code at ', h('b', {}, `${location.host}/phone`), '. Spectators can scan too and watch.')));
 }
 
 // ── sound ──

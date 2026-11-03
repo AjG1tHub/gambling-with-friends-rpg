@@ -10,7 +10,7 @@ export function tabCage(args) {
   // Local UI changes (lifting, holding, selecting) redraw this tab without waiting for an event.
   onRerender(() => { if (!screen.isConnected) return; screen.replaceChildren(); const s = session?.state || state; tabCage({ ...args, state: s, c: characterOf(s, me.id) || c }); });
   if (!c) {
-    screen.append(h('div', { class: 'hero' }, h('div', { class: 'crest' }, me.crest || '🂠'), h('h2', {}, 'The Cage'), h('p', { class: 'muted ital' }, me.spectator ? 'Spectators carry nothing but their wagers.' : 'Your gear and grid appear once you have a character.')));
+    screen.append(h('div', { class: 'hero' }, h('div', { class: 'crest' }, me.crest || '🂠'), h('h2', {}, 'The Cage'), h('p', { class: 'muted ital' }, me.spectator ? 'Spectators carry nothing: no gear, no grid.' : 'Your gear and grid appear once you have a character.')));
     return;
   }
   const titles = c.titles || [];

@@ -82,7 +82,7 @@ function nameScreen(session) {
   return h('div', { class: 'boot' }, h('h1', {}, ctx.code), h('p', { class: 'muted' }, `${Object.values(session.state.players).filter(p => !p.spectator && !p.kicked).length} at the table`),
     h('div', { class: 'panel gold col', style: { width: '100%', maxWidth: '380px' } }, h('h3', {}, playing ? 'The run has started' : 'Sit down'), input,
       playing ? null : h('button', { class: 'primary big', onClick: () => go(false) }, 'Sit down'),
-      h('button', { class: 'ghost big', onClick: () => go(true) }, 'Watch and wager')));
+      h('button', { class: 'ghost big', onClick: () => go(true) }, 'Just watch')));
 }
 
 let stopTicker = null;

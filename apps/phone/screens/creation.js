@@ -30,7 +30,7 @@ export function creationScreen(api) {
   const deadline = creationDeadline(state);
   const head = h('div', { class: 'cr-head' }, h('div', { class: 'tag' }, creation ? 'Character creation' : 'The lobby'), deadline && creation ? countdown(deadline, 'on the clock') : h('span', { class: 'muted ital' }, 'waiting for the GM to open creation'));
   screen.append(head);
-  if (player.spectator) { screen.append(h('p', { class: 'muted center' }, 'You are watching and wagering; no character to make.')); return; }
+  if (player.spectator) { screen.append(h('p', { class: 'muted center' }, 'You are watching; no character to make.')); return; }
   if (c?.hatching) { screen.append(hatchingScreen(api)); return; }
   if (c?.locked) { lockedView(api); return; }
   if (!creation) { lobbyView(api); return; }
