@@ -48,7 +48,15 @@ export const store = {
   del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
 };
 // Keep a callback running on animation frames while `active()` is true (clocks, stages that tick).
-export function ticker(fn) { let on = true; const loop = () => { if (!on) return; fn(Date.now()); requestAnimationFrame(loop); }; requestAnimationFrame(loop); return () => { on = false; }; }
+// requestAnimationFrame stops dead in a background tab, and the TV's deadline watcher rides on this: fall back to a
+// timer while the page is hidden so the clock at zero still ends the turn when the TV is behind the GM console.
+export function ticker(fn) {
+  let on = true, timer = null;
+  const loop = () => { if (!on) return; fn(Date.now()); if (typeof document !== 'undefined' && document.hidden) timer = setTimeout(loop, HIDDEN_TICK_MS); else requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+  return () => { on = false; if (timer) clearTimeout(timer); };
+}
+const HIDDEN_TICK_MS = 500;   // literal
 
 // Morph a container to new HTML, keeping the nodes that did not change. Stages are redrawn every ~100 ms while a
 // round runs; replacing innerHTML wholesale re-created every card and restarted its deal animation each tick

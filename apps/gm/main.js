@@ -83,6 +83,7 @@ function pinGate(state, session) {
   return h('div', { class: 'boot' }, h('h1', {}, `Room ${ctx.code}`), h('div', { class: 'panel gold col', style: { minWidth: '360px' } }, h('h3', {}, 'GM PIN'), input, h('button', { class: 'primary big', onClick: go }, 'Unlock')));
 }
 
+const TV_STALE_MS = 45000;   // literal — presence pings every few seconds; a background tab pings slower
 function view(state, session) {
   if (!ctx.pinOk) return render(app, pinGate(state, session));
   const nav = h('nav', { class: 'gm-nav' }, h('h1', {}, 'GM console'), h('div', { class: 'code' }, state.code), h('div', { class: 'muted', style: { padding: '0 8px 10px' } }, `${state.mode} · tier ${state.tier} · ${state.size} · ${state.phase}${state.gm.paused ? ' · PAUSED' : ''}`),
@@ -90,6 +91,10 @@ function view(state, session) {
     h('div', { class: 'grow' }), gmReportLine({ h, gm, rerender: () => view(session.state, session) }), h('a', { href: '/', target: '_blank', class: 'btn ghost' }, 'Table screen ↗'), h('a', { href: '/lab/', target: '_blank', class: 'btn ghost' }, 'Game Lab ↗'));
   const main = lenient(h('main', { class: 'gm-main' }));
   if (state.lastError && Date.now() - state.lastError.ts < 15000) main.append(h('div', { class: 'err-box' }, `${state.lastError.type} by ${state.lastError.actor}: ${state.lastError.message}`));
+  // The TV is the table's hands: with no TV online, monsters never act, clocks never time out, challenge caps never
+  // fire. Say so where the GM is looking instead of letting a fight sit "waiting".
+  const tvSeen = session.presence?.tv || 0;
+  if (state.phase === 'playing' && !state.gm?.paused && Date.now() - tvSeen > TV_STALE_MS) main.append(h('div', { class: 'err-box tv-warn' }, h('b', {}, tvSeen ? 'The TV screen dropped off. ' : 'No TV screen is connected. '), 'Monster turns, the clock at zero and challenge time caps all run from the TV page — until it is open and in the foreground, fights sit waiting. ', h('a', { href: `/?code=${state.code}`, target: '_blank' }, 'Open the TV ↗')));
   render(app, h('div', { class: 'gm-shell' }, nav, main));
   const p = PANELS.find(x => x[0] === ctx.panel) || PANELS[0];
   try { p[2]({ state, session, ctx, h, gm, main }); } catch (e) { console.error(e); main.append(h('p', { class: 'log error' }, e.message)); }
