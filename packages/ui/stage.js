@@ -229,7 +229,8 @@ export function challengePanel(state, { now = Date.now() } = {}) {
       panel.append(h('div', { class: 'row between small' }, h('span', { class: 'muted' }, 'The wheel says'), h('b', {}, ch.entry?.name || '—')));
       if (ch.entry && !ch.entry.hosted) panel.append(h('div', { class: 'small muted' }, 'played off-screen · see the card on the map'));
       if (ch.hostedGame) panel.append(hostedBody(state, ch.hostedGame, now));
-      else if (ch.entry?.hosted) panel.append(h('div', { class: 'small ital muted' }, `${gameName(ch.entry.game)} on the two phones…`));
+      else if (ch.versusGame?.legacy) panel.append(liveStage(ch.versusGame.legacy, { now, className: 'tv-stage spot-stage' }), ch.versusGame.text ? h('div', { class: 'small ital muted' }, ch.versusGame.text) : null);
+      else if (ch.entry?.hosted) panel.append(h('div', { class: 'small ital muted' }, `${gameName(ch.entry.game)} on ${nameOf(state, ch.attackerId)}'s phone…`));
     }
     if (ch.deadline && !ch.done) { const t = h('div', { class: 'clock-big small' }, fmtTime(ch.deadline - now)); panel.append(t); const stop = ticker((x) => { if (!t.isConnected && x - now > 500) return stop(); t.textContent = fmtTime(ch.deadline - x); }); }
     if (ch.gmPending) panel.append(h('div', { class: 'small gm' }, 'The two phones disagree. The GM decides.'));

@@ -241,6 +241,7 @@ try {
       // Ready: the seat was readied in the lobby, so toggle it off and on through the real button.
       await clickWhen(ph, 'button:has-text("tap to unready")');
       await waitFor(ph, () => window.__gwf.session.state.players[window.__gwf.ctx.me].ready === false, `${tag}: unready`);
+      await sleep(800);   // the Ready button locks for a moment after a tap (demo night: one seat toggled 19 times in six seconds)
       await clickWhen(ph, 'button:has-text("Tap when ready")');
       await waitFor(ph, () => window.__gwf.session.state.players[window.__gwf.ctx.me].ready === true, `${tag}: ready`);
       if (i === 2) await shot(ph, '13-creation-locked');
@@ -324,7 +325,7 @@ try {
   await step('4. Duel, Wager and Robbery on the Challenge Wheel', async () => {
     for (let i = 0; i < 3; i++) await gmDo('GM_GOLD', { playerId: seat[i], amount: 60 });   // Wagers and Robberies need Gold on both sides
     const played = {};
-    for (const [call, entryId] of [['duel', 'highestcard'], ['wager', 'rps5'], ['robbery', 'highestcard']]) {
+    for (const [call, entryId] of [['duel', 'highestcard'], ['wager', 'rps5'], ['robbery', 'clash']]) {   // clash: a Versus item, played on the attacker's phone
       let cur = await compact(tv);
       if (cur.turnPhase !== 'move' || !cur.mover) cur = await nextTurn(`before the ${call}`);
       let st = await stateOf(tv);
@@ -367,6 +368,19 @@ try {
             await b.first().click(); console.log(`  · ${nameOfSeat[pid]} draws`);
             if (call === 'duel' && !played.shotDuel) { played.shotDuel = true; await sleep(300); await shot(aph, '41-duel-play'); }   // one card up, waiting on the other
           }
+        } else if (ch.entry.hosted && ch.entry.game === 'clash') {
+          // Versus: the attacker's phone plays the round and reports; the defender's phone has no "Who won?" and watches the mirror.
+          if (!played.versusChecked) { played.versusChecked = true;
+            ok((await dph.locator('.btn-grid button', { hasText: nameOfSeat[atk] }).count()) === 0, `${nameOfSeat[def]}'s phone shows no Who won? for a Versus item`);
+            await waitFor(tv, () => !!window.__gwf.session.state.challenge?.versusGame?.legacy, 'the attacker\'s round is mirrored to the room (CHALLENGE_STEP)', null, 8000);
+            // Clash is one draw: the round may settle before the TV paints it, so look for the mirror until it does.
+            let tvMirror = false, phMirror = false; const t1 = Date.now();
+            while (Date.now() - t1 < 4000 && !(tvMirror && phMirror)) { tvMirror ||= (await tv.locator('.challenge-panel .spot-stage').count()) > 0; phMirror ||= (await dph.locator('.mg-stage.mirror').count()) > 0; if (await tv.evaluate(() => !window.__gwf.session.state.challenge)) break; await sleep(100); }
+            const settled = await tv.evaluate(() => !window.__gwf.session.state.challenge);
+            ok(tvMirror || settled, `the TV challenge panel shows the mirrored round${settled && !tvMirror ? ' (settled before the paint)' : ''}`);
+            ok(phMirror || settled, `${nameOfSeat[def]}'s phone shows the mirrored round${settled && !phMirror ? ' (settled before the paint)' : ''}`);
+            await shot(dph, '42b-versus-mirror'); }
+          const b = aph.locator('.mg-buttons button:not([disabled])'); if (await b.count()) { await b.first().click(); console.log(`  · ${nameOfSeat[atk]} plays Clash`); }
         } else if (!ch.entry.hosted) {
           for (const [pid, ph] of [[atk, aph], [def, dph]]) { if (ch.reports?.[pid] === undefined) { const b = ph.getByRole('button', { name: nameOfSeat[atk], exact: true }); if (await b.count()) { await b.first().click(); console.log(`  · ${nameOfSeat[pid]} reports ${nameOfSeat[atk]} won`); } } }
           if (!played.shotWager) { played.shotWager = true; await sleep(300); await shot(dph, '42-wager-report'); }

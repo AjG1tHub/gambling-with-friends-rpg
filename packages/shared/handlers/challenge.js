@@ -29,6 +29,7 @@ import presetsData from '../../../data/challenges.json' with { type: 'json' };
 
 export const VERSUS_GAMES = ['clash', 'diceduel', 'shellgame', 'holdemduel'];
 const isVersus = (ch) => !!(ch?.entry?.hosted && VERSUS_GAMES.includes(ch.entry.game));
+const VERSUS_TEXT_MAX = 200;   // literal
 export const CALLS = ['duel', 'wager', 'robbery'];
 const SERIES_MAX_ROUNDS = 3;      // "best-of-three": structural, not a tunable
 const TIMEOUT_SLACK_MS = 250;     // same slack as TURN_TIMEOUT in run.js
@@ -270,7 +271,7 @@ export function challengeView(state, playerId, now = state.lastEventTs) {
     needsWeapon: role === 'defender' && !ch.spun && ch.call !== 'wager' && !ch.defenderItemId && !ch.defenderAnswered,
     hosted: game ? hosted.phoneView(game, playerId, now) : null,
     reportButtons: ch.spun && !ch.done && !(game && hosted.isPurposeBuilt(ch.entry.game)) && role !== 'spectator' && !(isVersus(ch) && role !== 'attacker') ? [ch.attackerId, ch.defenderId].map(id => ({ winnerId: id, name: nameOf(state, id) })).concat([{ winnerId: 'draw', name: 'Draw' }]) : [],
-    versus: isVersus(ch),
+    versus: isVersus(ch), versusGame: ch.versusGame || null,
     myReport: ch.reports?.[playerId] ?? null, reports: ch.entry && !ch.entry.hosted ? ch.reports : undefined,
     gmPending: !!ch.gmPending, series: ch.series ? { round: ch.series.round, wins: ch.series.wins, target: ch.series.target } : null, calledOut: !!ch.calledOut,
     winnerId: ch.winnerId || null, flawless: !!ch.flawless,
@@ -389,8 +390,17 @@ register({
   CHALLENGE_STEP(state, ev, ctx) {
     const ch = active(state); if (!ch || !ch.spun) refuse('no hosted duel running');
     if (!ctx.isGm && !isParty(ch, ctx.actor)) refuse('not in this challenge', 'forbidden');
-    if (!ch.hostedGame || !hosted.isPurposeBuilt(ch.entry.game)) refuse('this entry is not a purpose-built duel');
     const p = ctx.payload; let game;
+    // A Versus item: the attacker's phone mirrors its round snapshot (as ITEM_STEP does for fights) so the TV and the
+    // defender's phone watch it. Nothing settles here; CHALLENGE_REPORT does.
+    if (isVersus(ch)) {
+      const by = ctx.isGm ? (p.playerId || ch.attackerId) : ctx.actor;
+      if (by !== ch.attackerId) refuse(`${nameOf(state, ch.attackerId)}'s phone plays ${ch.entry.name}`, 'forbidden');
+      if (!p.game || typeof p.game !== 'object') refuse('game snapshot required');
+      ch.versusGame = { legacy: structuredClone(p.game), text: String(p.text || '').slice(0, VERSUS_TEXT_MAX), ts: ctx.now, startedTs: ch.versusGame?.startedTs ?? ctx.now };
+      return;
+    }
+    if (!ch.hostedGame || !hosted.isPurposeBuilt(ch.entry.game)) refuse('this entry is not a purpose-built duel');
     if (p.game) {
       if (p.game.game !== ch.hostedGame.game || p.game.aId !== ch.hostedGame.aId || p.game.bId !== ch.hostedGame.bId || p.game.seed !== ch.hostedGame.seed) refuse('that is a different game');
       game = structuredClone(p.game);

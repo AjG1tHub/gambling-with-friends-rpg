@@ -119,6 +119,13 @@ test('every hosted entry: two bots play each purpose-built duel through CHALLENG
     report(t, a, b);
     assert.equal(t.state.challenge, null); assert.equal(t.state.lastChallenge.winnerId, b); assert.equal(t.char(a).health, 90, `${game}: defender's weapon hits the attacker`);
   }
+  // the attacker's phone mirrors the round (CHALLENGE_STEP {game, text}); the defender may not; the view carries it
+  { const t = table(); const [a, b] = t.order; duel(t, 'clash');
+    assert.match(t.r.try('CHALLENGE_STEP', { game: { id: 'clash', view: {} }, text: 'x' }, b).message, /phone plays/);
+    assert.match(t.r.try('CHALLENGE_STEP', {}, a).message, /snapshot required/);
+    t.r.append('CHALLENGE_STEP', { game: { id: 'clash', view: { a: 1 } }, text: 'Drew the ace' }, a);
+    assert.deepEqual(t.state.challenge.versusGame.legacy, { id: 'clash', view: { a: 1 } }); assert.equal(challengeView(t.state, b).versusGame.text, 'Drew the ace');
+    report(t, a, a); assert.equal(t.state.lastChallenge.winnerId, a); }
   // the GM may still settle a versus round from the console
   { const t = table(); const [a, b] = t.order; duel(t, 'shellgame'); t.r.append('CHALLENGE_REPORT', { winnerId: a }, 'gm'); assert.equal(t.state.lastChallenge.winnerId, a); }
   // a phone may publish the whole game object too (actor-authoritative), and a stale one is refused

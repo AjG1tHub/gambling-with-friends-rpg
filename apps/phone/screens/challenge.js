@@ -10,6 +10,7 @@ import { makeRng, hash32 } from '../../../packages/shared/rng.js';
 import { challengeView, VERSUS_GAMES } from '../../../packages/shared/handlers/challenge.js';
 import { startRound, gameMeta, ITEMS } from '../../../packages/games/adapter.js';
 import { liveRound, dropRound, roundView, seedFor } from '../../../packages/ui/minigame.js';
+import { liveStage } from '../../../packages/ui/stage.js';
 import { sect, why, itemRow, nameOf, weapons, countdown, redraw } from './prompts.js';
 
 const EMOJI = ['🂠', '🎲', '🎰', '🪙', '🔔', '🍒', '💎', '👑', '🃏', '🧿', '🕯', '🐦', '🩸', '⚔', '🪦', '🏪'];
@@ -133,8 +134,10 @@ function versusDuel(api, v, ch) {
   const { state, me, c, h, dispatch, screen } = api; const def = ITEMS[v.entry.game]; const other = v.role === 'attacker' ? v.defenderId : v.attackerId;
   const box = sect(`${gameMeta(def?.gameId).icon} ${def?.name || v.entry.name}`);
   if (v.role !== 'attacker' || !def) {
-    box.append(h('p', { class: 'muted ital' }, `${nameOf(state, v.attackerId)} plays ${def?.name || v.entry.name} on their phone — watch the TV. Their phone reports the result; a win for them hits you with their weapon, a loss hits them with yours.`),
-      h('p', { class: 'muted center' }, '⏳ Waiting for the round to finish…'));
+    box.append(h('p', { class: 'muted ital' }, `${nameOf(state, v.attackerId)} plays ${def?.name || v.entry.name} on their phone; you watch it here and on the TV. Their phone reports the result: a win for them hits you with their weapon, a loss hits them with yours.`));
+    const snap = v.versusGame?.legacy;
+    if (snap) box.append(liveStage(snap, { className: 'mg-stage mirror' }), v.versusGame.text ? h('p', { class: 'muted center small' }, v.versusGame.text) : null);
+    else box.append(h('p', { class: 'muted center' }, '⏳ Waiting for the first move…'));
     screen.append(box); return;
   }
   const key = seedFor('versus', ch.id, v.entry.id, ch.spunAt);
@@ -143,10 +146,13 @@ function versusDuel(api, v, ch) {
   const round = entry.round;
   const finish = () => { if (entry.resolved) return; entry.resolved = true; const o = round.outcome(); const winnerId = o.mult > 1 ? me : o.mult < 1 ? other : 'draw'; dispatch('CHALLENGE_REPORT', { winnerId, flawless: !!o.crit }).then(() => dropRound(key)); };
   const arm = () => { if (round.done && !entry.timer) entry.timer = setTimeout(finish, Math.max(0, (round.revealAt?.() || 0) - Date.now()) + 1000); };
-  const after = () => { arm(); redraw(api); };
+  // Mirror every step to the room (the TV stage and the defender's phone watch it), as fights do with ITEM_STEP.
+  const step = (text) => dispatch('CHALLENGE_STEP', { game: round.snapshot(), text: text || round.text || '' });
+  const after = (text) => { step(text); arm(); redraw(api); };
+  if (!entry.mirrored) { entry.mirrored = true; step(''); }
   arm();
   box.append(h('p', { class: 'muted ital' }, `You play the ${def.name} round against ${target?.name || nameOf(state, other)}: a win takes the round, a loss hands it over, a push is a draw.`));
-  box.append(roundView({ round, stage: true, onAct: (a, p) => { const r = round.act(a, p, Date.now()); if (r?.error) toast(r.text, 'bad'); after(); }, onFork: (i) => { round.pickFork(i); after(); } }));
+  box.append(roundView({ round, stage: true, onAct: (a, p) => { const r = round.act(a, p, Date.now()); if (r?.error) toast(r.text, 'bad'); after(r?.text); }, onFork: (i) => { round.pickFork(i); after(); } }));
   if (round.done) box.append(why('Reporting the result…'));
   screen.append(box);
 }

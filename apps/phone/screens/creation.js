@@ -282,7 +282,7 @@ function readyButton(api) {
     dispatch('PLAYER_READY', { playerId: me, ready: !api.player.ready });
   } }, api.player.ready ? '✓ Ready — tap to unready' : 'Tap when ready');
 }
-const READY_LOCK_MS = 1200;   // literal
+const READY_LOCK_MS = 700;   // literal
 function lobbyView(api) {
   const { state, me, c, h, dispatch, screen } = api;
   screen.append(h('div', { class: 'hero' }, h('div', { class: 'crest' }, c?.crest || api.player.crest || '🂠'), h('h2', {}, c?.name || api.player.name), h('p', { class: 'muted' }, 'The GM opens character creation from the console.')),
