@@ -8,6 +8,7 @@ import { legalSteps, cardView, bootsOf, bootMode, bootDie, bootAffixes, BOOTS } 
 import { tileLabel, tileGlyph, livingMonsterAt, charactersAt, hexDistance, reachableFrom } from '../../../packages/shared/map/query.js';
 import { priceOf, sellPriceOf, openPacts, pactInterest } from '../../../packages/shared/handlers/economy.js';
 import { reachOf } from '../../../packages/shared/handlers/items.js';
+import { unlocked, rampLine, rampStage } from '../../../packages/shared/handlers/ramp.js';
 import { gameMeta } from '../../../packages/games/adapter.js';
 import { rosette } from '../../../packages/ui/rosette.js';
 import { diceElement, wheelStrip, rollOnce } from '../../../packages/ui/dice.js';
@@ -134,21 +135,24 @@ function actionScreen(api) {
   const spin = state.lastSpin && state.lastSpin.playerId === me && Date.now() - state.lastSpin.ts < 20000 && ['fortune', 'fate', 'chaos', 'loot', 'boss'].includes(state.lastSpin.wheel) ? state.lastSpin : null;
   if (spin) screen.append(wheelStrip({ outcomes: spin.outcomes, weights: spin.weights || null, index: spin.index, title: `${spin.wheel} wheel: ${spin.outcomes?.[spin.index]}` }));
   screen.append(h('div', { class: 'row between tile-line' }, h('span', { class: 'tag' }, `${tileGlyph(type)} ${tileLabel(type)} · ${state.map?.regions?.[here?.regionId]?.name || ''}`), h('span', { class: 'muted' }, `${c.gold || 0} Gold`)));
-  tilePanel(api, here);
-  lootPanel(api);
+  // The tutorial opening hides what is not unlocked yet (never greys it): the teaser line says what the next turn opens.
+  const can = (f) => unlocked(state, me, f);
+  if (can('gear') || can('challenge')) tilePanel(api, here);
+  if (can('gear')) lootPanel(api);
   auctionPanel(api);
   attackPanel(api, here);
-  consumablesPanel(api);
-  classActiveRow(api, null, null);
+  if (can('gear')) consumablesPanel(api);
+  if (can('class')) classActiveRow(api, null, null);
   emoteRow(api);
   const boots = bootsOf(c);
   if (boots?.unique === 'movetwice' && (c.usedThisTurn?.moves || 0) === 1) screen.append(h('button', { class: 'primary big', onClick: () => dispatch('MOVE_ROLL', {}) }, 'Move again'));
+  const teaser = rampLine(state, me); if (teaser) screen.append(h('p', { class: 'center muted ital ramp-line' }, teaser));
   screen.append(h('button', { class: 'primary big end-turn', onClick: () => dispatch('TURN_END', {}) }, 'End turn'));
 }
 function tilePanel(api, here) {
   const { state, me, c, h, dispatch, screen } = api; if (!here) return;
-  const ctx = B(state);
-  if (here.type === 'shop' || here.type === 'inn') {
+  const ctx = B(state); const gear = unlocked(state, me, 'gear');
+  if ((here.type === 'shop' || here.type === 'inn') && gear) {
     const shop = state.shops?.[here.key];
     const stock = here.type === 'inn' ? [{ sku: 'potion', name: 'Potion', priceKey: 'potion', qty: shop?.stock?.[0]?.qty ?? group(state, 'shop').stock }] : (shop?.stock || []);
     const box = sect(here.type === 'inn' ? 'The Inn' : 'The Shop');
@@ -163,7 +167,7 @@ function tilePanel(api, here) {
     }
     screen.append(box);
   }
-  if (here.type === 'bloodbank') {
+  if (here.type === 'bloodbank' && gear) {
     const BP = group(state, 'bloodPact'); const pacts = openPacts(state, c);
     const box = sect('The Blood Bank');
     for (const p of pacts) { const rp = amountPicker({ value: Math.min(p.owed, Math.max(1, c.health - 1)), min: 1, max: Math.max(1, Math.min(p.owed, c.health - 1)), label: `${p.id}: ${p.owed} owed · ${p.turnsLeft} turn${p.turnsLeft === 1 ? '' : 's'} left` }); box.append(rp, h('button', { class: 'primary big', onClick: () => dispatch('PACT_REPAY', { pactId: p.id, amount: rp.value() }) }, `Repay ${p.id}`)); }
@@ -178,7 +182,7 @@ function tilePanel(api, here) {
     const quests = (state.quests?.public || []).filter(q => q.status === 'open');
     if (quests.length) { box.append(h('div', { class: 'tag' }, 'Public quests')); for (const q of quests) box.append(h('button', { class: 'item-row', disabled: !!q.takenBy && q.takenBy !== me, onClick: () => dispatch('QUEST_TAKE', { questId: q.id }) }, h('span', { class: 'body' }, h('span', { class: 'nm' }, q.title), h('span', { class: 'meta' }, q.text || ''), q.takenBy ? h('span', { class: 'meta' }, `taken by ${nameOf(state, q.takenBy)}`) : null), h('span', { class: 'act' }, q.takenBy === me ? 'YOURS' : q.takenBy ? '' : 'TAKE'))); }
     else box.append(why('No public quests posted.'));
-    const others = Object.values(state.players).filter(p => p.id !== me && !p.spectator && !p.kicked && characterOf(state, p.id));
+    const others = unlocked(state, me, 'challenge') ? Object.values(state.players).filter(p => p.id !== me && !p.spectator && !p.kicked && characterOf(state, p.id)) : [];
     if (others.length && (c.gold || 0) >= G.bountyMin) {
       let target = ui.target && others.some(p => p.id === ui.target) ? ui.target : others[0].id;
       const chips = h('div', { class: 'chips' }); const draw = () => chips.replaceChildren(...others.map(p => h('button', { class: `chip ${p.id === target ? 'on' : ''}`, onClick: () => { target = p.id; ui.target = p.id; draw(); } }, p.name))); draw();
@@ -189,7 +193,7 @@ function tilePanel(api, here) {
     screen.append(box);
   }
   if (here.type === 'graveyard') screen.append(why('A safe tile. The dead wake here; their drops lie where they fell.'));
-  if (here.type === 'arena' && !state.pendingPrompt) screen.append(why('The Arena call is made as you arrive. Challenge from the attack panel below.'));
+  if (here.type === 'arena' && !state.pendingPrompt && unlocked(state, me, 'challenge')) screen.append(why('The Arena call is made as you arrive. Challenge from the attack panel below.'));
 }
 function lootPanel(api) {
   const { state, c, h, dispatch, screen } = api; const list = state.tileLoot?.[c.pos] || []; if (!list.length) return;
@@ -209,7 +213,9 @@ function attackPanel(api, here) {
   const ctx = B(state);
   const m = livingMonsterAt(state, c.pos);
   const openFight = state.fight && !state.fight.done ? state.fight : null;
-  if (m) { attackMenu(api, openFight, m, { inFight: false }); return; }
+  const canFight = unlocked(state, me, 'fight'), canCall = unlocked(state, me, 'challenge');
+  if (m) { if (canFight) attackMenu(api, openFight, m, { inFight: false }); return; }
+  if (!canCall) { if (canFight) attackMenu(api, openFight, null, { inFight: false }); return; }
   let reach = 1; try { reach = reachOf(state, ctx, c); } catch { reach = 1; }
   const others = Object.values(state.players).filter(p => p.id !== me && !p.spectator && !p.kicked).map(p => ({ p, pc: characterOf(state, p.id) })).filter(x => x.pc && !x.pc.dead && x.pc.pos && hexDistance(x.pc.pos, c.pos) <= reach && !state.held[x.p.id]);
   const box = sect('Attack');
@@ -233,11 +239,11 @@ function attackPanel(api, here) {
     if (ui.call !== 'duel') { const max = ui.call === 'wager' ? poorer : robCap; amt = amountPicker({ value: Math.min(ui.amount, max), min: 1, max: Math.max(1, max), label: ui.call === 'wager' ? `Wager (Gold, up to ${max})` : `Robbery (up to ${robCap} Gold)`, onChange: (v) => { ui.amount = v; } }); box.append(amt); }
     box.append(h('button', { class: 'danger big', disabled: !!no, onClick: () => { buzz(40); dispatch('CHALLENGE_CALL', { defenderId: ui.target, call: ui.call, itemId: ui.weapon || undefined, amount: amt ? amt.value() : 0 }); } }, `⚔ ${ui.call === 'duel' ? 'Duel' : ui.call === 'wager' ? 'Wager against' : 'Rob'} ${nameOf(state, ui.target)}`), no ? why(no) : null);
     const pets = (c.pets || []).filter(p => !p.fainted && p.power > 0);
-    if (pets.length && (tc?.pets || []).some(p => !p.fainted && p.power > 0)) box.append(h('button', { class: 'big', onClick: () => dispatch('PET_BATTLE_START', { opponentId: ui.target, wager: 0 }) }, `🐾 Pet battle with ${nameOf(state, ui.target)}`));
+    if (unlocked(state, me, 'pets') && pets.length && (tc?.pets || []).some(p => !p.fainted && p.power > 0)) box.append(h('button', { class: 'big', onClick: () => dispatch('PET_BATTLE_START', { opponentId: ui.target, wager: 0 }) }, `🐾 Pet battle with ${nameOf(state, ui.target)}`));
   }
   screen.append(box);
   // spells and area items when there is no monster: same list, filtered
-  attackMenu(api, openFight, null, { inFight: false });
+  if (canFight) attackMenu(api, openFight, null, { inFight: false });
 }
 const tellOf = (c) => (c.dead ? 'dead' : c.health / c.maxHealth > 0.66 ? '' : c.health / c.maxHealth >= 0.33 ? 'mid' : 'low');
 function consumablesPanel(api) {

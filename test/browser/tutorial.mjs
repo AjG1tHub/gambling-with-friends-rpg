@@ -1,8 +1,10 @@
 // The phone tutorial in a browser: one phone against the built site, no dev server (the practice run uses the
 // local backend inside the page). The coach card shows on the join → lobby → creation screens and advances, ? opens
 // the help sheet with "This screen", and /phone/?practice=1 reaches phase 'playing' with three seats; the human
-// gambles a stat, locks in, readies, plods and stops, ends a turn, skips the fight-or-shop goal, calls a duel on a
-// bot (walked over by the practice GM), plays Highest Card and the duel settles; "You know enough" returns to the
+// gambles a stat, locks in, readies, plods and stops, ends a turn; the practice room has the tutorial opening on
+// (handlers/ramp.js), so turn 1 hides the attack panel and shows the ramp card and teaser, the gear and fight goals
+// are taken or skipped on turns 2 and 3, and the duel is called on a bot (walked over by the practice GM only once
+// the human's turn 4 allows a challenge), Highest Card plays and the duel settles; "You know enough" returns to the
 // join screen. Screenshots: test/shots/tutorial-*.png. `npm run build` first; `node test/browser/tutorial.mjs`.
 import { chromium } from 'playwright';
 import { mkdirSync, existsSync, statSync } from 'node:fs';
@@ -17,7 +19,7 @@ async function waitFor(page, fn, msg, arg = undefined, timeout = 10000) { const 
 const shot = (page, name) => page.screenshot({ path: `${shotDir}tutorial-${name}.png` }).catch(() => {});
 async function step(name, fn) { console.log(`\n▶ ${name}`); try { await fn(); } catch (e) { e.message = `[${name}] ${e.message}`; throw e; } }
 async function clickWhen(page, sel, msg = '', timeout = 15000) { const loc = (typeof sel === 'string' ? page.locator(sel) : sel).first(); await loc.click({ timeout }); if (msg) console.log('  ·', msg); }
-setTimeout(() => { console.error('WATCHDOG: the tutorial run ran past 3 minutes'); process.exit(1); }, 3 * 60 * 1000).unref();
+setTimeout(() => { console.error('WATCHDOG: the tutorial run ran past 5 minutes'); process.exit(1); }, 5 * 60 * 1000).unref();
 
 const { server, url } = await startServer(0);
 const isFile = (p) => { try { return statSync(p).isFile(); } catch { return false; } };
@@ -40,7 +42,8 @@ const view = () => ph.evaluate(() => {
     prompt: s.pendingPrompt && s.pendingPrompt.playerId === me ? s.pendingPrompt.kind : null,
     fight: f && (f.playerId === me || (f.playerIds || []).includes(me)) ? { turn: f.turn, game: !!(f.game && !f.game.result), mine: f.playerId === me } : null,
     challenge: ch && (ch.attackerId === me || ch.defenderId === me) ? { role: ch.attackerId === me ? 'attacker' : 'defender', spun: !!ch.spun, entry: ch.entry?.id || null, answered: !!ch.defenderAnswered } : null,
-    held: !!(s.held[me] && !s.held[me].owedWait), goal: window.__gwf.practice.goal(s)?.id || null, progress: { ...window.__gwf.practice.progress } };
+    held: !!(s.held[me] && !s.held[me].owedWait), goal: window.__gwf.practice.goal(s)?.id || null, progress: { ...window.__gwf.practice.progress },
+    rampTurn: s.turnCounts?.[me] || 0, rampOn: !!s.gm.ramp?.on, attackPanel: !!document.querySelector('.ph-sect button.danger.big'), teaser: document.querySelector('.ramp-line')?.textContent || '' };
 });
 // One tap towards the current goal; returns after at most one click.
 async function act(v) {
@@ -75,10 +78,16 @@ async function act(v) {
   }
   if (v.turnPhase === 'resolve') return;
   // action phase
-  if (v.goal === 'fightOrShop') { const skip = ph.locator('.coach-goal button:has-text("Skip")'); if (await skip.count()) { await skip.first().click(); console.log('  · skips fight-or-shop'); return; } }
+  // gear (turn 2) and fight (turn 3): take the lesson when the map offers it, else skip it once the ramp has reached that step
+  if (v.goal === 'gear' || v.goal === 'fight') {
+    const buy = ph.locator('.ph-sect button:has-text("BUY"):not([disabled])'); if (v.goal === 'gear' && await buy.count()) { await buy.first().click(); console.log('  · buys from the shelf'); return; }
+    const atk = ph.locator('.ph-sect button:has-text("ATTACK"):not([disabled])'); if (v.goal === 'fight' && await atk.count()) { await atk.first().click(); console.log('  · attacks the monster'); return; }
+    const skip = ph.locator('.coach-goal button:has-text("Skip")'); if (await skip.count()) { await skip.first().click(); console.log(`  · skips ${v.goal} (turn ${v.rampTurn})`); return; }
+  }
   if (v.goal === 'duel') {
     const duelBtn = ph.locator('.ph-sect button.danger.big:has-text("Duel")');
     if (await duelBtn.count() && await duelBtn.first().isEnabled()) { const chip = ph.locator('.chips button.chip:has-text("Duel")'); if (await chip.count()) await chip.first().click(); await duelBtn.first().click(); console.log('  · calls a Duel on the bot'); return; }
+    if (v.rampTurn < 4) return clickWhen(ph, 'button.end-turn', `ends turn ${v.rampTurn} (the duel waits for turn 4)`);
     return;   // the practice GM is walking a bot over
   }
   return clickWhen(ph, 'button.end-turn', 'ends the turn');
@@ -179,12 +188,16 @@ try {
   });
 
   await step('a move, an end turn, a duel on a bot, the result', async () => {
-    const t0 = Date.now(); let last = null, seen = new Set(), spun = false;
-    while (Date.now() - t0 < 110000) {
+    const t0 = Date.now(); let last = null, seen = new Set(), spun = false, firstTurn = null, duelTurn = null;
+    ok((await view()).rampOn, 'the practice room has the tutorial opening on');
+    while (Date.now() - t0 < 220000) {
       const v = last = await view();
       if (v.phase !== 'playing') throw new Error(`the run ended early: ${v.phase}`);
       const cs = await coachStep(); if (cs && !seen.has(cs)) { seen.add(cs); console.log(`  · coach: ${cs} · goal: ${v.goal}`); }
       if (v.goal === 'move' && v.mover === v.me && !spun) { await shot(ph, '05-first-turn'); spun = true; }
+      // turn 1, action phase: no attack panel, the ramp teaser under the buttons
+      if (v.mover === v.me && v.rampTurn === 1 && v.turnPhase === 'action' && !firstTurn) { firstTurn = { attackPanel: v.attackPanel, teaser: v.teaser }; await shot(ph, '05b-first-action'); }
+      if (v.challenge?.role === 'attacker' && duelTurn == null) duelTurn = v.rampTurn;
       if (v.goal === 'result' && v.challenge?.spun) await shot(ph, '06-duel');
       if (v.goal === 'done') break;
       await act(v);
@@ -193,9 +206,12 @@ try {
     ok(last.goal === 'done', `every practice goal done: ${JSON.stringify(last.progress)}`);
     ok(last.progress.moved && last.progress.turnsEnded >= 1, 'the human moved and ended a turn');
     ok(last.progress.duelCalled && last.progress.duelSettled, 'a duel against a bot was called and settled');
+    ok(firstTurn && !firstTurn.attackPanel && /Next turn: shops and your Cage unlock/.test(firstTurn.teaser), `turn 1 hid the attack panel and teased turn 2 (${JSON.stringify(firstTurn)})`);
+    ok(seen.has('ramp.move'), 'the ramp card for the first turn showed');
+    ok(duelTurn == null || duelTurn >= 4, `the duel was called on the human's turn ${duelTurn} (ramp: challenge on turn 4)`);
     const lc = await ph.evaluate(() => { const s = window.__gwf.session.state; return { entry: s.lastChallenge?.entry?.id, winner: s.lastChallenge?.winnerId, how: s.lastChallenge?.how }; });
     ok(lc.entry === 'highestcard', `the practice wheel was rigged to Highest Card (winner ${lc.winner || 'draw'}, ${lc.how})`);
-    ok(seen.has('move.roll') && seen.has('waiting'), `coach steps seen: ${[...seen].join(', ')}`);
+    ok(seen.has('waiting') && [...seen].some(s => s.startsWith('ramp.')), `coach steps seen: ${[...seen].join(', ')}`);
     await shot(ph, '07-done');
   });
 

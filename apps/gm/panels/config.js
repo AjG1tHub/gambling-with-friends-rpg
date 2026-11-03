@@ -38,6 +38,7 @@ export function panelConfig({ state, h, gm, main }) {
         h('label', { class: 'btn ghost' }, 'Import GWF Config Sheet export', sheetFile)),
       h('div', { class: 'row' }, h('label', { class: 'row' }, h('input', { type: 'checkbox', checked: state.gm.duelsEnabled, onChange: (e) => gm('GM_CONFIG', { duelsEnabled: e.target.checked }) }), 'Duels (Health) allowed — off makes a Gold-only night'),
         h('label', { class: 'row' }, h('input', { type: 'checkbox', checked: state.gm.fogOfWar, onChange: (e) => gm('GM_CONFIG', { fogOfWar: e.target.checked }) }), 'Fog of war on the TV'),
+        h('label', { class: 'row', title: 'handlers/ramp.js — the step list is ramp.steps below' }, h('input', { type: 'checkbox', checked: !!state.gm.ramp?.on, onChange: (e) => gm('GM_CONFIG', { ramp: e.target.checked }) }), 'Tutorial opening (one new mechanic per turn)'),
         h('label', { class: 'row' }, h('input', { type: 'checkbox', checked: !!(state.balance?.social?.sideBetsOn ?? B.social.sideBetsOn), onChange: (e) => gm('GM_CONFIG', { sideBets: e.target.checked }) }), 'Side bets'))),
     h('div', { class: 'panel' }, h('h3', {}, `Config check — ${check.length ? `${check.length} note${check.length === 1 ? '' : 's'}` : 'all clear'}`), check.length ? h('ul', {}, check.map(c => h('li', { class: c.level === 'error' ? 'log error' : 'muted' }, c.text))) : h('p', { class: 'muted' }, 'Nothing looks wrong.')),
     table);

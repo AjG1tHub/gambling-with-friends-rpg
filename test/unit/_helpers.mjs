@@ -8,9 +8,10 @@ export const { applyEvent, replay, initialState, currentPlayerId, characterOf, B
 // A tiny in-process room: append(type, payload, actor) applies an event in place and returns the state.
 // Event ids are derived from seq (makeEvent's are random) so two rooms fed the same events build identical states;
 // some handlers (tiles.js fight ids) fold the event id into state.
-export function room({ seed = 42, mode = 'ffa', tier = 1, size = 'regular', code = 'ABCD', t0 = 1_700_000_000_000, balance = null } = {}) {
+// `ramp` is the tutorial opening (handlers/ramp.js): off here by default so every suite plays a full first turn; ramp.test.mjs turns it on.
+export function room({ seed = 42, mode = 'ffa', tier = 1, size = 'regular', code = 'ABCD', t0 = 1_700_000_000_000, balance = null, ramp = false, rampSteps = undefined } = {}) {
   let now = t0; let seq = 0;
-  let state = applyEvent({}, { ...makeEvent('ROOM_CREATED', { roomId: 'r1', code, seed, mode, tier, size, gmPinHash: 'x', balance: balance || undefined }, { actor: 'gm', ts: now }), id: 'e1', seq: ++seq }, { clone: false, strict: true });
+  let state = applyEvent({}, { ...makeEvent('ROOM_CREATED', { roomId: 'r1', code, seed, mode, tier, size, gmPinHash: 'x', balance: balance || undefined, ramp, rampSteps }, { actor: 'gm', ts: now }), id: 'e1', seq: ++seq }, { clone: false, strict: true });
   const api = {
     get state() { return state; },
     now: () => now,

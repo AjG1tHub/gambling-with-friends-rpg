@@ -19,6 +19,7 @@ import { playMonsterTurn } from './handlers/fight.js';
 import { challengeView } from './handlers/challenge.js';
 import * as hosted from './challenge/hosted.js';
 import * as hex from './hex.js';
+import { unlocked } from './handlers/ramp.js';
 
 const CLASSES = ['whale', 'pitboss', 'cutpurse', 'enforcer', 'beastmaster', 'croupier'];
 const NAMES = ['Vesper', 'Ox', 'Marrow', 'Hale', 'Sable', 'Quill', 'Brisk', 'Tallow', 'Rook', 'Ember', 'Fennel', 'Grist', 'Lark', 'Moth', 'Nettle', 'Pike'];
@@ -48,7 +49,7 @@ function gridWeapon(state, c) {
   return gridItems(c).filter(it => it.gameId && it.kind === 'attack' && (it.charges ?? 1) > 0 && (it.stake || 0) <= c.health).sort((a, b) => (b.stake || 0) - (a.stake || 0))[0] || null;
 }
 function reequip(state, c, me) {
-  if (c.usedThisTurn.reequipped) return null;
+  if (c.usedThisTurn.reequipped || !unlocked(state, me, 'gear')) return null;
   if (!usable(state, c, ['attack']).length) { const w = gridWeapon(state, c); if (w) { c.usedThisTurn.reequipped = true; return act('GRID_EQUIP', { itemId: w.id, slot: 'mainhand' }, me); } }
   // Dice boots steer; swap out card or wheel boots when a dice pair sits on the grid.
   if (c.worn?.boots && c.worn.boots.bootMode !== 'dice') { const d = gridItems(c).find(it => it && it.slot === 'boots' && it.bootMode === 'dice'); if (d) { c.usedThisTurn.reequipped = true; return act('GRID_EQUIP', { itemId: d.id, slot: 'boots' }, me); } }
@@ -151,11 +152,12 @@ export function nextAction(state, pid, rng, now, opts = {}) {
       const r = playRound(state, { item: item || { gameId: f.game.gameId, stake: f.game.stake, rarity: 'common', kind: 'attack' }, mode: 'health', stake: f.game.stake, attacker: c, target, rng, now });
       return act('ITEM_RESOLVE', { mult: r.mult, label: r.label, crit: r.crit, game: r.snapshot || null }, me);
     }
-    if (lowHealth(c) && hasConsumable(c, 'potion') && !c.usedThisTurn.potion) { c.usedThisTurn.potion = true; return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'potion').id }, me); }
+    const can = (f2) => unlocked(state, me, f2);
+    if (can('gear') && lowHealth(c) && hasConsumable(c, 'potion') && !c.usedThisTurn.potion) { c.usedThisTurn.potion = true; return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'potion').id }, me); }
     const re = reequip(state, c, me); if (re) return re;
     if (!c.usedThisTurn.attack) { const w = usable(state, c, ['attack']).sort((a, b) => (b.stake || 0) - (a.stake || 0))[0]; if (w) return act('ITEM_USE', { itemId: w.id, targetId: f.monsterId, targetKind: 'monster' }, me); }
     if (!c.usedThisTurn.spell && lowHealth(c)) { const s = usable(state, c, ['spell'])[0]; if (s) return act('ITEM_USE', { itemId: s.id, targetKind: 'self' }, me); }
-    if (c.health <= 12 && hasConsumable(c, 'smokebomb')) return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'smokebomb').id }, me);
+    if (can('gear') && c.health <= 12 && hasConsumable(c, 'smokebomb')) return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'smokebomb').id }, me);
     if (!usable(state, c, ['attack']).length && !f.calledOut && !c.usedThisTurn.fled) { c.usedThisTurn.fled = true; return act('FIGHT_FLEE', {}, me); }
     return act('TURN_END', {}, me);
   }
@@ -199,9 +201,10 @@ export function nextAction(state, pid, rng, now, opts = {}) {
   else if (state.turnPhase === 'resolve') return null;
   if (state.turnPhase === 'action' || state.turnPhase === 'resolve') {
     const here = state.map?.hexes[c.pos];
+    const can = (f2) => unlocked(state, me, f2);
     const re = reequip(state, c, me); if (re) return re;
-    if (c.health / c.maxHealth < 0.6 && hasConsumable(c, 'potion') && (c.usedThisTurn.potion || 0) < 4) { c.usedThisTurn.potion = (c.usedThisTurn.potion || 0) + 1; return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'potion').id }, me); }
-    if (here?.type === 'shop') {
+    if (can('gear') && c.health / c.maxHealth < 0.6 && hasConsumable(c, 'potion') && (c.usedThisTurn.potion || 0) < 4) { c.usedThisTurn.potion = (c.usedThisTurn.potion || 0) + 1; return act('CONSUMABLE_USE', { itemId: hasConsumable(c, 'potion').id }, me); }
+    if (here?.type === 'shop' && can('gear')) {
       const SH = group(state, 'shop'), shelf = state.shops?.[c.pos]?.stock || [];
       const weaponless = !usable(state, c, ['attack']).length;
       const bestStake = Math.max(0, ...usable(state, c, ['attack']).map(it => it.stake || 0));
@@ -212,17 +215,17 @@ export function nextAction(state, pid, rng, now, opts = {}) {
       const wantPotions = c.health / c.maxHealth < 0.6 ? 5 : 3;
       if (c.gold >= SH.potion && shelf.some(e => e.sku === 'potion' && e.qty > 0) && potions < wantPotions && (potions === 0 || c.gold >= SH.potion * 3) && (c.usedThisTurn.potionsBought || 0) < 5) { c.usedThisTurn.potionsBought = (c.usedThisTurn.potionsBought || 0) + 1; return act('SHOP_BUY', { sku: 'potion' }, me); }
     }
-    if (here?.type === 'inn' && !c.usedThisTurn.rested) { c.usedThisTurn.rested = true; return act('INN_REST', {}, me); }
-    if (here?.type === 'bloodbank' && c.health / c.maxHealth < 0.5 && c.health > 40 && (c.pactIds?.length || 0) < 1 && !c.usedThisTurn.pact) { c.usedThisTurn.pact = true; return act('PACT_TAKE', { amount: 30 }, me); }
-    if (state.tileLoot?.[c.pos]?.length && !c.usedThisTurn.looted) { c.usedThisTurn.looted = true; return act('TILE_TAKE_LOOT', { itemId: state.tileLoot[c.pos][0].id }, me); }
+    if (here?.type === 'inn' && can('gear') && !c.usedThisTurn.rested) { c.usedThisTurn.rested = true; return act('INN_REST', {}, me); }
+    if (here?.type === 'bloodbank' && can('gear') && c.health / c.maxHealth < 0.5 && c.health > 40 && (c.pactIds?.length || 0) < 1 && !c.usedThisTurn.pact) { c.usedThisTurn.pact = true; return act('PACT_TAKE', { amount: 30 }, me); }
+    if (can('gear') && state.tileLoot?.[c.pos]?.length && !c.usedThisTurn.looted) { c.usedThisTurn.looted = true; return act('TILE_TAKE_LOOT', { itemId: state.tileLoot[c.pos][0].id }, me); }
     // PvP: hit a non-allied player in reach (one attack a turn), or call a duel, when healthy and the mode allows it.
     if (state.mode !== 'pve' && c.health > 40 && !(f && !f.done)) {
       const foe = Object.values(state.characters).find(o => o.id !== c.id && !o.dead && o.pos && hex.distance(hex.parse(o.pos), hex.parse(c.pos)) <= 1 && state.players[o.playerId] && !state.held[o.playerId] && !allied(state, pid, o.playerId));
       const hot = state.mode === 'pvp' || state.mode === 'royale' ? 0.9 : (opts.aggression ?? 0.5);
-      if (foe && !c.usedThisTurn.attack && rng.chance(hot)) { const w = usable(state, c, ['attack']).sort((a, b) => (b.stake || 0) - (a.stake || 0))[0]; if (w) return act('ITEM_USE', { itemId: w.id, targetId: foe.id, targetKind: 'character' }, me); }
-      if (foe && !c.usedThisTurn.attack && state.gm.duelsEnabled !== false && !state.challenge && !c.usedThisTurn.duelled && rng.chance(opts.aggression ?? 0.5)) { const w = usable(state, c, ['attack', 'versus'])[0]; if (w) { c.usedThisTurn.duelled = true; return act('CHALLENGE_CALL', { defenderId: foe.playerId, call: 'duel', itemId: w.id }, me); } }
+      if (can('fight') && foe && !c.usedThisTurn.attack && rng.chance(hot)) { const w = usable(state, c, ['attack']).sort((a, b) => (b.stake || 0) - (a.stake || 0))[0]; if (w) return act('ITEM_USE', { itemId: w.id, targetId: foe.id, targetKind: 'character' }, me); }
+      if (can('challenge') && foe && !c.usedThisTurn.attack && state.gm.duelsEnabled !== false && !state.challenge && !c.usedThisTurn.duelled && rng.chance(opts.aggression ?? 0.5)) { const w = usable(state, c, ['attack', 'versus'])[0]; if (w) { c.usedThisTurn.duelled = true; return act('CHALLENGE_CALL', { defenderId: foe.playerId, call: 'duel', itemId: w.id }, me); } }
     }
-    if (rng.chance(0.08)) { const others = state.seats.filter(id => id !== pid && state.players[id] && !state.players[id].kicked); if (others.length) return act('LETTER_SEND', { toId: others[rng.int(0, others.length - 1)], text: ['Truce?', 'The Caldera is mine.', 'Watch the Whale.', 'Meet at the Inn.'][rng.int(0, 3)] }, me); }
+    if (can('social') && rng.chance(0.08)) { const others = state.seats.filter(id => id !== pid && state.players[id] && !state.players[id].kicked); if (others.length) return act('LETTER_SEND', { toId: others[rng.int(0, others.length - 1)], text: ['Truce?', 'The Caldera is mine.', 'Watch the Whale.', 'Meet at the Inn.'][rng.int(0, 3)] }, me); }
     return act('TURN_END', {}, me);
   }
   return act('TURN_END', {}, me);
@@ -262,8 +265,9 @@ function chooseGoal(state, c, rng) {
   if (!goal && !armed && canBuyWeapon) goal = nearest(state, c, hexes.filter(h => h.type === 'shop').map(h => h.key));
   // 2b. barefoot with money to spare: the Shop sells Common boots
   if (!goal && !c.worn?.boots && !gridItems(c).some(it => it && it.slot === 'boots') && c.gold >= SH.itemCommon + SH.potion) goal = nearest(state, c, hexes.filter(h => h.type === 'shop').map(h => h.key));
-  // 3. armed and not too hurt: fight — regular monsters first, then bosses, then the Dealer
-  if (!goal && armed && frac >= 0.35) {
+  const canFight = unlocked(state, c.playerId, 'fight');
+  // 3. armed and not too hurt: fight — regular monsters first, then bosses, then the Dealer (never while the ramp keeps the monsters asleep)
+  if (!goal && armed && canFight && frac >= 0.35) {
     // A monster hex you already stand on is no goal (the fight opens on arrival, so you must step off and back);
     // a raid boss only once enough other players are already on its tile.
     const need = group(state, 'monsters').raidMinPlayers || 2;
@@ -280,7 +284,7 @@ function chooseGoal(state, c, rng) {
     if (!goal && finals.length && (gateOpen || c.region === 'citadel')) goal = nearest(state, c, finals.map(m => m.pos));
   }
   // 3b. players-only modes: hunt the nearest enemy when armed and healthy
-  if (!goal && armed && frac >= 0.5 && (state.mode === 'pvp' || state.mode === 'royale')) {
+  if (!goal && armed && canFight && frac >= 0.5 && (state.mode === 'pvp' || state.mode === 'royale')) {
     const foes = Object.values(state.characters).filter(o => o.id !== c.id && !o.dead && !o.eliminated && o.pos && o.pos !== c.pos && state.players[o.playerId] && !state.players[o.playerId].kicked && !allied(state, c.playerId, o.playerId));
     goal = nearest(state, c, foes.map(o => o.pos));
   }

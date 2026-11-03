@@ -7,7 +7,7 @@ import { h, store } from '../../packages/ui/dom.js';
 import { group } from '../../packages/shared/balance.js';
 import { rulesDrawer } from '../../packages/ui/roster.js';
 import { ruleCards } from '../../packages/ui/tutorial.js';
-import { situation, coachStep, coachPanel } from './coach.js';
+import { situation, coachStep, coachPanel, rampLocks } from './coach.js';
 
 const ui = { open: false };
 const g = (state, k) => { try { return group(state, k); } catch { return {}; } };
@@ -79,6 +79,7 @@ export function helpSheet({ state, ctx, me, rerender }) {
   const pid = me.id;
   let sit = null, step = null; try { sit = situation(state, pid, { tab: ctx.tab, dismissed: new Set(), tutorial: true }); step = coachStep(state, pid, { tab: ctx.tab, dismissed: new Set(), tutorial: true }); } catch (e) { console.error(e); }
   const buttons = helpFor(sit);
+  let locks = []; try { locks = rampLocks(state, pid); } catch { locks = []; }
   const sect = (title, open, ...kids) => h('details', { class: 'help-sect', open: open || null }, h('summary', {}, title), h('div', { class: 'help-body' }, ...kids));
   const M = g(state, 'movement'), C = g(state, 'clock');
   let cards = []; try { cards = ruleCards(state); } catch (e) { cards = []; }
@@ -86,7 +87,8 @@ export function helpSheet({ state, ctx, me, rerender }) {
     h('div', { class: 'help-head' }, h('h2', {}, `? Help${ctx.practice ? ' · practice' : ''}`), h('button', { class: 'help-close', 'aria-label': 'Close help', onClick: close }, '✕')),
     sect('This screen', true,
       step ? h('div', { class: 'help-now' }, h('b', {}, step.title), h('p', {}, step.text)) : h('p', { class: 'muted ital' }, 'Nothing to explain here.'),
-      buttons.length ? h('ul', { class: 'help-buttons' }, buttons.map(([b, what]) => h('li', {}, h('b', {}, b), h('span', {}, what)))) : null),
+      buttons.length ? h('ul', { class: 'help-buttons' }, buttons.map(([b, what]) => h('li', {}, h('b', {}, b), h('span', {}, what)))) : null,
+      locks.length ? h('div', { class: 'help-locks' }, h('b', {}, 'The tutorial opening'), h('p', { class: 'muted small' }, 'One new mechanic per turn. Still to come for you:'), h('ul', { class: 'help-buttons' }, locks.map(l => h('li', {}, h('b', {}, l.label), h('span', {}, `your turn ${l.onTurn}`))))) : null),
     sect('A turn in 30 seconds', false,
       h('p', {}, `Your phone buzzes. Roll, spin or draw as your boots decide (barefoot plods ${M.barefoot}), then step hex by hex up to the roll and stop where you like unless the boots say otherwise. Only the hex you stop on does anything: a wheel, a shop, a chest, a monster. Then the action phase: shop, bag, one attack, one spell, a challenge — all optional — and END TURN, which is not. The clock gives you ${mmss(C.perTurnSeconds)} a turn, banked up to ${mmss(C.bankCapSeconds)}; at zero the turn ends where it stands.`)),
     sect('The rules in 10 cards', false, h('div', { class: 'help-cards' }, cards.map(cd => h('div', { class: 'card' }, h('b', {}, cd.title), h('span', {}, cd.text))))),

@@ -15,6 +15,7 @@ import { tableSeats, currentPlayerId, characterOf } from '../../packages/shared/
 import { challengeView, VERSUS_GAMES } from '../../packages/shared/handlers/challenge.js';
 import { bootsOf, bootMode, bootDie, bootAffixes } from '../../packages/shared/handlers/movement.js';
 import { livingMonsterAt } from '../../packages/shared/map/query.js';
+import { rampStage, rampLine, FEATURE_LABEL } from '../../packages/shared/handlers/ramp.js';
 
 export const COACH_KEY = 'gwfrpg:coach:v1';          // dismissed step ids
 export const COACH_OFF_KEY = 'gwfrpg:coach:off';     // "hide all tips"
@@ -92,6 +93,42 @@ const STEPS = {
 };
 export const STEP_IDS = Object.keys(STEPS);
 
+// The tutorial opening (handlers/ramp.js): while the ramp is on, the card for each of the player's first turns is
+// the step's own text, keyed by the step name (a feature key or 'all'). It replaces the plain turn cards
+// (move.roll, move.spent, action) on the player's turn; the sharper situational cards (a prompt, a round, a fight)
+// still win when they apply. Dismissed per step like any other card; never dismissible in the practice run.
+export const RAMP_STEPS = {
+  move: { title: 'Turn 1: the walk', text: (state, me, c) => `${bootsText(state, c)} The hex you stop on still does its thing, but the monsters are asleep for you and nothing else is open yet. Then END TURN.` },
+  gear: { title: 'Turn 2: gear', text: (state) => `Shops, the Inn, the Bank and your Cage open. Stop on a Shop to BUY (a Common weapon is always on the shelf), on the Inn to Rest (+${g(state, 'health').innHeal}). Open the Cage to equip, bag or drop; potions and loot on the ground are yours to take.` },
+  fight: { title: 'Turn 3: fights', text: () => 'The monsters wake. Walk onto one, or ATTACK from the fight panel: you stake your weapon\'s Health cost on its game; win and the monster takes the hit, lose and you do. Spells and Area items open too. From now on a monster swings back.' },
+  challenge: { title: 'Turn 4: challenges', text: () => 'Duels, wagers and robberies: call a player in reach from the Attack panel and the Challenge Wheel picks the game. The call ends your turn. The Arena and the Bounty Board open as well.' },
+  social: { title: 'Turn 5: the table', text: () => 'Letters by crow, alliances, votes, trades and auctions are open. Plot.' },
+  class: { title: 'Your class active', text: () => 'Your class active is open: find it under the attack panel, on a cooldown.' },
+  pets: { title: 'Pet battles', text: () => 'Pet battles are open: your pets fight another player\'s pets for a Gold wager.' },
+  chaos: { title: 'Chaos', text: () => 'Chaos rises as it should from here: the Chaos wheel spins at the table\'s tier for you.' },
+  all: { title: 'Turn 5: everything', text: () => 'Letters, alliances, votes, pacts, trades, pet battles and your class active are open, and Chaos rises as it should. The opening is over: it is the whole game from here.' },
+};
+const RAMP_OVER = new Set(['move.roll', 'move.spent', 'action', 'resolve']);
+// The ramp card for this turn, or null when the ramp is off / over for the player, it is not their turn, or the
+// situation is one the ramp card should not cover.
+function rampCard(state, me, sit, ctx) {
+  let st = null; try { st = rampStage(state, me); } catch { return null; }
+  if (!st?.on || st.index < 0 || !st.step || !RAMP_STEPS[st.step]) return null;
+  if (currentPlayerId(state) !== me || !RAMP_OVER.has(sit)) return null;
+  const id = `ramp.${st.step}`;
+  if (!ctx.tutorial && ctx.dismissed?.has(id)) return null;
+  const def = RAMP_STEPS[st.step]; const c = characterOf(state, me);
+  let text = ''; try { text = def.text(state, me, c, ctx); } catch { text = ''; }
+  let tease = ''; try { tease = rampLine(state, me); } catch { tease = ''; }
+  return { id, title: def.title, text: tease ? `${text} ${tease}.` : text, auto: false, ramp: st.step };
+}
+// What the ramp still holds back from this player, for the help sheet: [{ feature, label, onTurn }].
+export function rampLocks(state, me) {
+  let st = null; try { st = rampStage(state, me); } catch { return []; }
+  if (!st?.on || st.done) return [];
+  return st.locked.map(l => ({ ...l, label: FEATURE_LABEL[l.feature] || l.feature }));
+}
+
 // Which situation the player is in. `me` is the player id; ctx = { tab, dismissed: Set, tutorial, now }.
 export function situation(state, me, ctx = {}) {
   const p = state.players?.[me]; if (!p) return null;
@@ -140,6 +177,7 @@ export function situation(state, me, ctx = {}) {
 
 export function coachStep(state, me, ctx = {}) {
   const id = situation(state, me, ctx); if (!id || !STEPS[id]) return null;
+  const ramp = state.phase === 'playing' ? rampCard(state, me, id, ctx) : null; if (ramp) return ramp;
   if (!ctx.tutorial && ctx.dismissed?.has(id)) return null;
   const def = STEPS[id]; const c = characterOf(state, me);
   let text = ''; try { text = def.text(state, me, c, ctx); } catch (e) { text = ''; }

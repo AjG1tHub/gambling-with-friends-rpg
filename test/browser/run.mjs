@@ -57,10 +57,13 @@ try {
   await step('0. room, join, drop, rejoin, kick', async () => {
     await gm.goto(`${url}/gm/?${Q}`);
     await gm.fill('input[type=password]', '4242');
+    // The gate plays a full first turn (a fight, a challenge): the tutorial opening stays off here; test/browser/tutorial.mjs covers it.
+    await gm.uncheck('input[name=ramp]');
     await gm.click('button:has-text("Create room")');
     await waitFor(gm, () => !!window.__gwf?.session, 'GM created the room');
     code = await gm.evaluate(() => window.__gwf.session.code);
     ok(/^[A-Z]{4}$/.test(code), `room code ${code}`);
+    ok(await gm.evaluate(() => window.__gwf.session.state.gm.ramp?.on === false), 'the gate room has the tutorial opening off');
     await shot(gm, '00-gm-console');
 
     await tv.setViewportSize({ width: 1920, height: 1080 });

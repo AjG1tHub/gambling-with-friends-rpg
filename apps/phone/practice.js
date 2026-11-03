@@ -4,8 +4,10 @@
 // the bots play their seats and the autopilot performs the table duties the TV normally does (monster turns,
 // deadlines, GM decisions). This file is also the GM of the practice room: it opens creation once the human is
 // ready, starts the run once every seat is locked, rigs the first duel's wheel to Highest Card (no TV to watch for
-// a Quick-Draw flash) and walks a bot over when it is time to call a duel. Progress through the goals below is
-// read from the events the human sends and kept in localStorage, so a reload resumes where it was.
+// a Quick-Draw flash) and walks a bot over when it is time to call a duel. The room has the tutorial opening on
+// (handlers/ramp.js), so the goals follow the ramp: the walk and End turn on turn 1, gear on turn 2, a fight on
+// turn 3, the duel on turn 4 (the bot is only walked over once the human's ramp has reached 'challenge'). Progress
+// through the goals below is read from the events the human sends and kept in localStorage, so a reload resumes.
 //   practiceGoal(state, me, progress) → { id, title, text, index, total, skippable }   pure; the Coach shows it
 //   startPractice({ ctx, view, app })  → wires everything into main.js's ctx and renders
 import { h, render, store, toast } from '../../packages/ui/dom.js';
@@ -14,6 +16,7 @@ import { startAutopilot, seatBots } from '../../packages/ui/autopilot.js';
 import { roomCode, seed32, shortId } from '../../packages/shared/ids.js';
 import { currentPlayerId, characterOf, activeSeats } from '../../packages/shared/state.js';
 import { hexDistance } from '../../packages/shared/map/query.js';
+import { unlocked } from '../../packages/shared/handlers/ramp.js';
 
 export const PRACTICE_KEY = 'gwfrpg:practice:v1';
 const PRACTICE_MINUTES = 20;          // Last Call for the practice room
@@ -24,22 +27,24 @@ const PULSE_MS = 1500;
 
 // ── the goals ─────────────────────────────────────────────────────────────────────────────────────
 // Each goal is done when its predicate says so; the first one not done is the current goal. `skippable` goals get a
-// Skip button (the map may put no monster or shop within reach in five minutes).
+// Skip button (the map may put no monster or shop within reach in five minutes) — a function of the state, so the
+// ramp's gear and fight goals can only be skipped once their turn has come.
 const GOALS = [
   { id: 'gamble', title: 'Gamble one stat', text: 'Pick a stat, pick a game, set a stake and tap Play. One real gamble, then Lock in.', done: (s, me, c) => (c?.creation?.gambles?.length || 0) >= 1 || !!c?.locked },
   { id: 'lock', title: 'Lock in', text: 'Tap Lock in → place your spare chips (or Spread for me) → 🔒 Lock in.', done: (s, me, c) => !!c?.locked },
   { id: 'ready', title: 'Tap Ready', text: 'The two bots are ready. Tap Ready and the run starts.', done: (s, me) => !!s.players[me]?.ready || s.phase === 'playing' || s.phase === 'ended' },
-  { id: 'move', title: 'Plod and stop', text: 'Tap Plod, step once or twice on the rosette, then STOP HERE. Only the hex you stop on does anything.', done: (s, me, c, p) => !!p.moved || (p.turnsEnded || 0) >= 1 },
+  { id: 'move', title: 'Turn 1: plod and stop', text: 'Tap Plod, step once or twice on the rosette, then STOP HERE. Only the hex you stop on does anything; the monsters are asleep for you this turn.', done: (s, me, c, p) => !!p.moved || (p.turnsEnded || 0) >= 1 },
   { id: 'end', title: 'End your turn', text: 'Let the hex resolve, then press END TURN. Everything else in the action phase is optional; End turn is not.', done: (s, me, c, p) => (p.turnsEnded || 0) >= 1 },
-  { id: 'fightOrShop', title: 'Fight or shop', text: 'Next turn: walk onto the nearest monster and ATTACK it, or stop on a Shop and BUY. Skip if the map is unkind.', skippable: true, done: (s, me, c, p) => !!p.attacked || !!p.bought || !!p.skipped?.fightOrShop },
-  { id: 'duel', title: 'Call a duel', text: 'In your action phase a bot steps next to you. In the Attack panel pick it, pick Duel and a weapon, tap ⚔ Duel. The call ends your turn.', done: (s, me, c, p) => !!p.duelCalled },
+  { id: 'gear', title: 'Turn 2: gear', text: 'Shops and your Cage open. Stop on a Shop and BUY, or open the Cage tab and move or equip something. Skip if the map is unkind.', skippable: (s, me) => unlocked(s, me, 'gear'), done: (s, me, c, p) => !!p.bought || !!p.geared || !!p.skipped?.gear },
+  { id: 'fight', title: 'Turn 3: fight', text: 'The monsters wake. Walk onto the nearest one and ATTACK it: stake Health on your weapon\'s game. Skip if none is in reach.', skippable: (s, me) => unlocked(s, me, 'fight'), done: (s, me, c, p) => !!p.attacked || !!p.skipped?.fight },
+  { id: 'duel', title: 'Turn 4: call a duel', text: 'In your action phase a bot steps next to you. In the Attack panel pick it, pick Duel and a weapon, tap ⚔ Duel. The call ends your turn.', done: (s, me, c, p) => !!p.duelCalled },
   { id: 'result', title: 'Read the result', text: 'The bot picks a weapon, you spin, the wheel lands. Play it. Then read the banner: who won and what it cost.', done: (s, me, c, p) => !!p.duelSettled },
   { id: 'done', title: 'You know enough', text: 'A turn, a fight and a duel: that is the game. Join a real table.', done: () => false },
 ];
 export const GOAL_IDS = GOALS.map(x => x.id);
 export function practiceGoal(state, me, progress = {}) {
   const c = characterOf(state, me);
-  for (let i = 0; i < GOALS.length; i++) { const x = GOALS[i]; let done = false; try { done = x.done(state, me, c, progress); } catch { done = false; } if (!done) return { id: x.id, title: x.title, text: x.text, index: i, total: GOALS.length, skippable: !!x.skippable }; }
+  for (let i = 0; i < GOALS.length; i++) { const x = GOALS[i]; let done = false; try { done = x.done(state, me, c, progress); } catch { done = false; } if (!done) { let skippable = false; try { skippable = typeof x.skippable === 'function' ? !!x.skippable(state, me, c, progress) : !!x.skippable; } catch { skippable = false; } return { id: x.id, title: x.title, text: x.text, index: i, total: GOALS.length, skippable }; } }
   return null;
 }
 
@@ -59,7 +64,7 @@ export async function startPractice({ ctx, view, app }) {
   }
   if (!session) {
     const code = roomCode();
-    const create = { code, seed: seed32(), mode: 'ffa', tier: 1, size: 'short', gmPinHash: '', fogOfWar: false, challengePreset: 'inperson', balance: { table: { lastCallMinutes: PRACTICE_MINUTES } }, gmDeviceId: identity.deviceId };
+    const create = { code, seed: seed32(), mode: 'ffa', tier: 1, size: 'short', gmPinHash: '', fogOfWar: false, ramp: true, challengePreset: 'inperson', balance: { table: { lastCallMinutes: PRACTICE_MINUTES } }, gmDeviceId: identity.deviceId };
     ({ session } = await attach({ backend, code, role: 'phone', view, presence: presence(null), create }));
     me = shortId('p');
     const last = store.get('gwfrpg:phone:last');
@@ -96,6 +101,7 @@ export async function startPractice({ ctx, view, app }) {
         else if (ev.type === 'TURN_END') progress.turnsEnded = (progress.turnsEnded || 0) + 1;
         else if (ev.type === 'ITEM_USE' || ev.type === 'PET_ATTACK') progress.attacked = true;
         else if (ev.type === 'SHOP_BUY') progress.bought = true;
+        else if (ev.type.startsWith('GRID_')) progress.geared = true;
         else if (ev.type === 'CHALLENGE_CALL') { progress.duelCalled = true; progress.duelId = state.challenge?.id || null; once('rig', () => gm('GM_RIG', { stream: 'challenge', value: PRACTICE_DUEL_ENTRY })); }
         else changed = false;
         if (changed) save();
@@ -117,10 +123,10 @@ export async function startPractice({ ctx, view, app }) {
       return;
     }
     if (state.phase !== 'playing') return;
-    // Time for the duel: on the human's action phase, with no fight or challenge open, bring a bot within reach.
+    // Time for the duel: on the human's action phase, once their ramp allows a challenge, with no fight or challenge open, bring a bot within reach.
     const goal = practiceGoal(state, me, progress);
     const c = characterOf(state, me);
-    if (goal?.id === 'duel' && c && !c.dead && currentPlayerId(state) === me && state.turnPhase === 'action' && !(state.fight && !state.fight.done) && !state.challenge && !state.pendingPrompt && busy.teleTurn !== state.turnIdx) {
+    if (goal?.id === 'duel' && c && !c.dead && currentPlayerId(state) === me && unlocked(state, me, 'challenge') && state.turnPhase === 'action' && !(state.fight && !state.fight.done) && !state.challenge && !state.pendingPrompt && busy.teleTurn !== state.turnIdx) {
       const near = [...botSeats].some(id => { const bc = characterOf(state, id); return bc && !bc.dead && bc.pos && hexDistance(bc.pos, c.pos) <= 1 && !state.held[id]; });
       if (near) return;
       const bot = [...botSeats].map(id => ({ id, c: characterOf(state, id) })).find(x => x.c && !x.c.dead && !state.held[x.id]);

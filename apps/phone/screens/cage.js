@@ -3,6 +3,7 @@
 import { gridElement, itemSheet, lootPanel, onRerender, gridUi } from '../../../packages/ui/grid.js';
 import { paperdollElement } from '../../../packages/ui/paperdoll.js';
 import { characterOf } from '../../../packages/shared/state.js';
+import { unlocked, lockMessage } from '../../../packages/shared/handlers/ramp.js';
 
 export function tabCage(args) {
   const { state, session, me, c, myTurn, h, dispatch, screen } = args;
@@ -13,6 +14,13 @@ export function tabCage(args) {
     return;
   }
   const titles = c.titles || [];
+  // The tutorial opening: before 'gear' the Cage is a window, not a workbench (no sheet, no lifting, no loot).
+  const locked = state.phase === 'playing' && !unlocked(state, me.id, 'gear');
+  if (locked) {
+    screen.append(h('div', { class: 'cage-head' }, h('div', { class: 'grow' }, h('div', { class: 'tag' }, 'The Cage'), h('div', { class: 'cage-who' }, c.name, h('span', { class: 'muted ital' }, ` ${cap(c.classId)} · Lv ${c.level}`)))),
+      h('p', { class: 'muted ital center ramp-line' }, `${lockMessage(state, me.id, 'gear')}: look, don't touch.`), paperdollElement({ c, state, dispatch: null }), gridElement({ c, state, me, dispatch: null, myTurn: false }));
+    return;
+  }
   screen.append(
     h('div', { class: 'cage-head' },
       h('div', { class: 'grow' }, h('div', { class: 'tag' }, 'The Cage'), h('div', { class: 'cage-who' }, c.name, h('span', { class: 'muted ital' }, ` ${cap(c.classId)} · Lv ${c.level}`)),

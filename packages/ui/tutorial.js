@@ -4,8 +4,11 @@
 //                      every phone with one tap (GM_BROADCAST). Numbers come from the room's balance, never typed in.
 //   orderLine(state) — "Milkiee ▸ Jam (held) ▸ Ajax" plus why the table is where it is: held seats, owed turns, the
 //                      dead. The TV prints it under To Move so the room never asks "whose turn is it?" again.
+//   rampBanner(state) — "Milkiee's turn 3 — fights unlock — the monsters wake" while the tutorial opening
+//                      (handlers/ramp.js) is on and the mover's turn is one that unlocks a step; the TV rail line.
 import { group } from '../shared/balance.js';
 import { tableSeats, currentPlayerId, characterOf } from '../shared/state.js';
+import { rampStage, STEP_TEASER } from '../shared/handlers/ramp.js';
 
 const mins = (s) => `${Math.round(s / 60)} min`;
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -53,4 +56,14 @@ export function orderLine(state) {
   const owner = seats[state.turnIdx % seats.length];
   if (owner && owner !== cur && !held.includes(owner) && !why.length) why.push(`${name(cur)} plays ${name(owner)}'s slot`);
   return { text, why: why.join(' · ') };
+}
+
+// The tutorial opening on the TV rail: the mover's new step this turn, or null (ramp off, skipped, or over).
+export function rampBanner(state) {
+  if (state.phase !== 'playing') return null;
+  const pid = currentPlayerId(state); if (!pid) return null;
+  const st = rampStage(state, pid);
+  if (!st.on || st.index < 0 || st.turn !== st.index + 1) return null;
+  const name = characterOf(state, pid)?.name || state.players[pid]?.name || pid;
+  return { playerId: pid, turn: st.turn, step: st.step, text: `${name}'s turn ${st.turn} — ${STEP_TEASER[st.step] || `${st.step} unlocks`}` };
 }

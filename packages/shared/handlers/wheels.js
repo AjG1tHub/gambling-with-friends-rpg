@@ -30,6 +30,7 @@ import { RARITIES, rarityKey } from '../balance.js';
 import { damageHooks, lootHooks, runMods } from '../hooks.js';
 import { hooks as runHooks } from '../handlers/run.js';
 import { speciesOf } from '../encounters/monsters.js';
+import { unlocked } from './ramp.js';
 
 export const WHEELS = wheelsData;
 const VOID_TYPES = new Set(['water', 'chasm', 'wall', 'blocker']);
@@ -92,11 +93,12 @@ export function grantLoot(state, ctx, c, loot, why) {
 // ---- the spin ---------------------------------------------------------------------------------------------
 export function segmentsFor(state, wheel, extra = {}) {
   if (wheel === 'boss') { const m = state.monsters[extra.monsterId]; const sp = m && speciesOf(m.speciesId); return (sp?.moods || []).map(mo => ({ ...mo, label: mo.name })); }
-  if (wheel === 'chaos') return wheelsData.chaos.filter(s => (s.minTier || 1) <= (state.chaos?.tier || 1));
+  // A spinner whose tutorial ramp has not reached 'chaos' spins the tier-1 wheel whatever the room's tier.
+  if (wheel === 'chaos') { const tier = extra.playerId && !unlocked(state, extra.playerId, 'chaos') ? 1 : (state.chaos?.tier || 1); return wheelsData.chaos.filter(s => (s.minTier || 1) <= tier); }
   return wheelsData[wheel] || null;
 }
 export function spinWheel(state, ctx, wheel, playerId, extra = {}) {
-  const segs = segmentsFor(state, wheel, extra);
+  const segs = segmentsFor(state, wheel, { ...extra, playerId });
   if (!segs || !segs.length) refuse(`no such wheel: ${wheel}`);
   const index = rigAwareWeightedIndex(state, 'wheels', segs);
   const seg = segs[index];
@@ -112,7 +114,7 @@ export function spinWheel(state, ctx, wheel, playerId, extra = {}) {
 // the effect logged (loot pickups) is trimmed back out of the room log; the caller stores the result where only
 // the player and the GM read it.
 export function spinWheelSecret(state, ctx, wheel, playerId, extra = {}) {
-  const segs = segmentsFor(state, wheel, extra);
+  const segs = segmentsFor(state, wheel, { ...extra, playerId });
   if (!segs || !segs.length) refuse(`no such wheel: ${wheel}`);
   const index = rigAwareWeightedIndex(state, 'wheels', segs);
   const seg = segs[index];

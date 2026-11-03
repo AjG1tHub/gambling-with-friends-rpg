@@ -279,7 +279,7 @@ export function wheelSvg({ outcomes, weights = null, index = null, size = 260, c
 export function makeSandbox({ seed = 7, classId = 'enforcer', mode = 'ffa', tier = 1, size = 'short', name = 'Tester', extraSeats = 1 } = {}) {
   let now = 1_700_000_000_000, seq = 0, state = null;
   const apply = (type, payload, actor = 'gm') => { state = applyEvent(state || {}, { ...makeEvent(type, payload, { actor, ts: now }), seq: ++seq }, { clone: false, strict: false }); now += 1000; return state.lastError && state.lastError.ts === now - 1000 && state.lastError.type === type ? state.lastError : null; };
-  apply('ROOM_CREATED', { roomId: 'lab', code: 'LAB', seed, mode, tier, size, gmPinHash: 'lab' });
+  apply('ROOM_CREATED', { roomId: 'lab', code: 'LAB', seed, mode, tier, size, gmPinHash: 'lab', ramp: false });
   apply('PLAYER_JOIN', { playerId: 'tester', name, deviceId: 'lab' }, 'system');
   for (let i = 0; i < extraSeats; i++) apply('PLAYER_JOIN', { playerId: `sparring${i}`, name: ['Sparring Partner', 'Second', 'Third'][i] || `Seat ${i}`, deviceId: `lab${i}` }, 'system');
   apply('CREATION_OPEN', {});
@@ -298,7 +298,7 @@ export async function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regula
   let now = 1_700_000_000_000, seq = 0;
   const rng = makeRng(seed * 7919 + 17);
   const recent = [];
-  let state = applyEvent({}, { ...makeEvent('ROOM_CREATED', { roomId: 'bots', code: 'BOTS', seed, mode, tier, size, gmPinHash: 'x' }, { actor: 'gm', ts: now }), seq: ++seq }, { clone: false, strict: true });
+  let state = applyEvent({}, { ...makeEvent('ROOM_CREATED', { roomId: 'bots', code: 'BOTS', seed, mode, tier, size, gmPinHash: 'x', ramp: false }, { actor: 'gm', ts: now }), seq: ++seq }, { clone: false, strict: true });
   const apply = (type, payload, actor) => {
     const ev = { ...makeEvent(type, payload, { actor, ts: now }), seq: ++seq };
     recent.push(`${type}@${actor}`); if (recent.length > 14) recent.shift();

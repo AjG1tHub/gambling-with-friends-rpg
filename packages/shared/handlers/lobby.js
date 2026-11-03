@@ -20,6 +20,8 @@ register({
     if (p.balance) { const bad = checkOverrides(p.balance); if (bad.length) refuse(bad.join('; ')); state.balance = p.balance; }
     if (p.challengePreset) state.gm.challengePreset = p.challengePreset;
     if (p.fogOfWar != null) state.gm.fogOfWar = !!p.fogOfWar;
+    // The tutorial opening (handlers/ramp.js): on by default for a tier-1 room, off above; its own step list is optional.
+    state.gm.ramp = { on: p.ramp != null ? !!p.ramp : state.tier === 1, steps: Array.isArray(p.rampSteps) && p.rampSteps.length ? p.rampSteps.slice() : null, skipped: {} };
     note(state, `Room ${state.code} opened (${state.mode}, tier ${state.tier}, ${state.size})`, 'info', ctx.now);
   },
   PLAYER_JOIN(state, ev, ctx) {
@@ -93,6 +95,8 @@ register({
     if (ctx.payload.reset) state.balance = {};
     if (ctx.payload.duelsEnabled != null) state.gm.duelsEnabled = !!ctx.payload.duelsEnabled;
     if (ctx.payload.fogOfWar != null) state.gm.fogOfWar = !!ctx.payload.fogOfWar;
+    if (ctx.payload.ramp != null) { (state.gm.ramp ||= { on: false, steps: null, skipped: {} }).on = !!ctx.payload.ramp; }
+    if (Array.isArray(ctx.payload.rampSteps)) { (state.gm.ramp ||= { on: false, steps: null, skipped: {} }).steps = ctx.payload.rampSteps.length ? ctx.payload.rampSteps.slice() : null; }
     if (ctx.payload.sideBets != null) state.balance.social = { ...(state.balance.social || {}), sideBetsOn: ctx.payload.sideBets ? 1 : 0 };
     note(state, 'GM changed the config', 'gm', ctx.now);
   },

@@ -3,6 +3,7 @@ import { fmtTime } from '../../../packages/ui/dom.js';
 import { remainingMs } from '../../../packages/shared/clock.js';
 import { currentPlayerId, characterOf } from '../../../packages/shared/state.js';
 import { ruleCards } from '../../../packages/ui/tutorial.js';
+import { rampStage } from '../../../packages/shared/handlers/ramp.js';
 
 export function panelTable({ state, session, h, gm, main }) {
   const seats = state.seats.map(id => state.players[id]).filter(Boolean);
@@ -13,19 +14,22 @@ export function panelTable({ state, session, h, gm, main }) {
     (state.phase === 'lobby' || state.phase === 'creation') ? h('button', { class: 'primary', onClick: () => confirmStart(seats, gm) }, 'Start the run') : null,
     state.phase === 'playing' ? h('button', { class: state.gm.paused ? 'primary' : '', onClick: () => gm(state.gm.paused ? 'GM_RESUME' : 'GM_PAUSE', {}) }, state.gm.paused ? '▶ Resume' : '⏸ Pause') : null,
     state.phase === 'playing' ? h('button', { onClick: () => gm('TURN_END', {}) }, 'End current turn') : null,
+    state.gm.ramp?.on ? h('button', { title: 'Ends the tutorial opening for the whole table: everything unlocks at once', onClick: () => { if (confirm('Skip the tutorial opening for everyone?')) gm('GM_RAMP_SKIP', {}); } }, 'Skip ramp for everyone') : null,
     state.phase === 'playing' ? h('button', { class: 'danger', onClick: () => { if (confirm('End the run now?')) gm('GM_END_RUN', { reason: 'the GM called it' }); } }, 'End run') : null);
   const rows = seats.map(p => {
     const c = characterOf(state, p.id);
     const seen = Math.max(session.presence[p.id] || 0, p.lastSeenTs || 0);
+    const ramp = state.gm.ramp?.on && state.phase === 'playing' ? rampStage(state, p.id) : null;
     return h('tr', { style: p.id === cur ? { background: 'rgba(201,164,92,.08)' } : null },
       h('td', {}, h('b', {}, p.name), p.id === cur ? h('span', { class: 'pill gold', style: { marginLeft: '6px' } }, 'to move') : null, h('div', { class: 'muted' }, c ? `${c.name} · ${c.classId} · Lv ${c.level} · ${c.health}/${c.maxHealth} HP · ${c.gold} G` : (p.ready ? 'ready' : 'no character'))),
       h('td', {}, h('span', { class: `pill ${p.connected ? 'ok' : 'bad'}` }, p.connected ? 'online' : 'away'), seen ? h('div', { class: 'muted' }, `seen ${Math.round((Date.now() - seen) / 1000)}s ago`) : null),
-      h('td', {}, state.phase === 'playing' ? fmtTime(remainingMs(state, p.id, Date.now())) : '—'),
+      h('td', {}, state.phase === 'playing' ? fmtTime(remainingMs(state, p.id, Date.now())) : '—', ramp && !ramp.done ? h('div', { class: 'muted' }, `ramp · turn ${ramp.turn} · ${ramp.step}`) : null),
       h('td', {}, p.teamId ? state.gm.teams[p.teamId]?.name || p.teamId : '—'),
       h('td', { class: 'row' },
         h('button', { class: p.proxied ? 'primary' : '', title: 'Act for this phone from the console', onClick: () => gm('GM_PROXY', { playerId: p.id, on: !p.proxied }) }, p.proxied ? 'Proxy on' : 'Proxy'),
         h('button', { class: p.autopilot ? 'primary' : '', onClick: () => gm('GM_AUTOPILOT', { playerId: p.id, on: !p.autopilot }) }, p.autopilot ? 'Bot on' : 'Autopilot'),
         h('button', { onClick: () => { const t = prompt(`Whisper to ${p.name}:`); if (t) gm('GM_WHISPER', { playerId: p.id, text: t }); } }, 'Whisper'),
+        ramp && !ramp.done ? h('button', { title: 'Skip the tutorial opening for this seat', onClick: () => gm('GM_RAMP_SKIP', { playerId: p.id }) }, 'Skip ramp') : null,
         h('button', { onClick: () => { const o = prompt('Roster owner id to give this seat:'); if (o) gm('GM_REASSIGN_ROSTER', { playerId: p.id, rosterOwnerId: o }); } }, 'Roster'),
         h('button', { class: 'danger', onClick: () => { if (confirm(`Remove ${p.name} from the table?`)) gm('GM_KICK', { playerId: p.id }); } }, 'Kick')));
   });

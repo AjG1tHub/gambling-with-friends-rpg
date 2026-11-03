@@ -24,6 +24,7 @@ import { currentPlayerId, characterOf, activeSeats, note } from '../state.js';
 import { streamRng, rigAwareInt, rigAwareWeightedIndex, rigged } from '../rng.js';
 import { hooks as runHooks } from './run.js';
 import { tileHooks, moveHooks } from '../hooks.js';
+import { unlocked, monstersAsleepMessage } from './ramp.js';
 import { gold } from '../health.js';
 import { group } from '../balance.js';
 import * as H from '../hex.js';
@@ -103,9 +104,11 @@ function drawCard(state, M, MV, affixes) {
 
 // ---- sessions ------------------------------------------------------------------------------------------------------
 
+// A monster hex is closed to a player whose tutorial ramp has not reached 'fight' (the monsters are asleep for them).
+const asleepFor = (state, pid, key) => Q.stopsHere(state, key) && !unlocked(state, pid, 'fight');
 function legalKeys(state, c) {
   const out = [];
-  for (const n of H.neighbors(H.parse(c.pos))) { const k = H.key(n); if (Q.passable(state, k, c.id)) out.push(k); }
+  for (const n of H.neighbors(H.parse(c.pos))) { const k = H.key(n); if (Q.passable(state, k, c.id) && !asleepFor(state, c.playerId, k)) out.push(k); }
   return out;
 }
 function newSession(pid, c, mode, extra = {}) {
@@ -146,6 +149,7 @@ function stepTo(state, ctx, pid, c, key) {
   if (h.void) refuse(`${Q.tileLabel(h.type)} is impassable`, 'void');
   if (h.type === 'blocker') refuse('the way is blocked', 'void');
   const why = Q.gateBlocks(state, c, h); if (why) refuse(why, 'gate');
+  if (asleepFor(state, pid, key)) refuse(monstersAsleepMessage(state, pid), 'locked');
   if (s.movesLeft <= 0) refuse('no moves left');
   const toll = Q.tollDue(c, h); if (toll) gold(state, c, -toll, 'gate toll', ctx);
   c.pos = key; c.region = h.regionId; s.path.push(key); s.movesLeft -= 1; s.stepsTaken += 1; s.lastDir = H.dirIndex(H.parse(from), H.parse(key));
@@ -203,6 +207,7 @@ function endIfOver(state, ctx, pid, c, end) {
 function jumpTo(state, ctx, pid, c, to) {
   const s = state.moveSession;
   if (!s.destinations.includes(to)) refuse('not one of the lit hexes', 'card');
+  if (asleepFor(state, pid, to)) refuse(monstersAsleepMessage(state, pid), 'locked');
   const range = s.range;
   const path = Q.pathTo(state, c.pos, to, c.id, range) || [to];
   const h = Q.hexAt(state, to); const toll = Q.tollDue(c, h); if (toll) gold(state, c, -toll, 'gate toll', ctx);
@@ -287,7 +292,8 @@ register({
       const destinations = card.double ? (ranks[1]?.keys || ranks[0]?.keys || []) : (ranks[0]?.keys || []);
       cards.push({ card, destinations });
     }
-    const destinations = [...new Set(cards.flatMap(x => x.destinations))];
+    const destinations = [...new Set(cards.flatMap(x => x.destinations))].filter(k => !asleepFor(state, pid, k));
+    for (const x of cards) x.destinations = x.destinations.filter(k => !asleepFor(state, pid, k));
     const s = state.moveSession = newSession(pid, c, 'card', { card: cards[0].card, cards: draws > 1 ? cards : null, destinations, range, atomic: destinations.length > 0 });
     if (affixes.has('peekTop')) s.peek = state.map.colourDeck.at(-1) || null;
     note(state, `${who} draws a card`, 'move', ctx.now);
@@ -391,7 +397,7 @@ export function legalSteps(state, playerId) {
   const s = state.moveSession, active = !!s && !s.done && s.playerId === playerId && !s.atomic && !s.awaiting && s.movesLeft > 0;
   return H.DIRS.map((d, dir) => {
     const key = H.key(H.neighbor(H.parse(c.pos), dir)), h = Q.hexAt(state, key);
-    const reason = !active ? (s && !s.done ? 'tap a lit hex' : 'roll first') : Q.blockReason(state, key, c.id);
+    const reason = !active ? (s && !s.done ? 'tap a lit hex' : 'roll first') : (Q.blockReason(state, key, c.id) || (h && asleepFor(state, playerId, key) ? 'the monsters are asleep for you' : null));
     return { dir, name: d.name, key, type: h?.type || null, label: h ? Q.tileLabel(h.type) : 'off the map', legal: active && !reason, reason, bridge: !!h?.bridge, stops: h ? Q.stopsHere(state, key) : false };
   });
 }

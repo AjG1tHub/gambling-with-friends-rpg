@@ -365,6 +365,9 @@
     "classMult": { "v": 2, "unit": "multiplier", "spec": "Wheels", "note": "Damage multiplier against a Chaos-marked class." },
     "voteSeconds": { "v": 30, "unit": "seconds", "spec": "PvP and social", "note": "How long the table has to vote a Chaos victim." }
   },
+  "ramp": {
+    "steps": { "v": ["move", "gear", "fight", "challenge", "all"], "unit": "steps", "spec": "Tutorial opening", "note": "The tutorial opening: what each of a player's first turns unlocks, in order (move, gear, fight, challenge, social, class, pets, chaos, or all). Shorten the list for a quicker ramp; a room made with tier 1 has it on by default (ROOM_CREATED ramp, GM_CONFIG ramp)." }
+  },
   "quests": {
     "perRun": { "v": 3, "unit": "quests", "spec": "RPG layer", "note": "Public quests dealt at the start." },
     "personalPerPlayer": { "v": 1, "unit": "quests", "spec": "RPG layer", "note": "Secret quests per player." },

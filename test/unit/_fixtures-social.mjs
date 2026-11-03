@@ -47,8 +47,8 @@ export function makeMap({ radius = 3, courier = '2,0', start = '0,0', throne = '
 // positions default to 0,0 / 1,0 / 0,1 / 1,-1 (every pair within 2, the first two adjacent).
 // `map`: options for makeMap, or 'generated' to keep the map RUN_START built. `neutral: false` keeps Grit and the
 // Whale's stake/damage passives live (see NEUTRAL_BALANCE).
-export function table({ names = ['Aj', 'Nick', 'Sam', 'Vin'], mode = 'ffa', seed = 42, tier = 1, size = 'regular', gold = 100, start = true, positions = ['0,0', '1,0', '0,1', '1,-1', '-1,1', '2,-1', '-1,0', '0,-1'], char = {}, balance = null, map = {}, neutral = true } = {}) {
-  const r = room({ seed, mode, tier, size, balance: neutral ? mergeBalance(NEUTRAL_BALANCE, balance) : balance }).join(names);
+export function table({ names = ['Aj', 'Nick', 'Sam', 'Vin'], mode = 'ffa', seed = 42, tier = 1, size = 'regular', gold = 100, start = true, positions = ['0,0', '1,0', '0,1', '1,-1', '-1,1', '2,-1', '-1,0', '0,-1'], char = {}, balance = null, map = {}, neutral = true, ramp = false, rampSteps = undefined } = {}) {
+  const r = room({ seed, mode, tier, size, balance: neutral ? mergeBalance(NEUTRAL_BALANCE, balance) : balance, ramp, rampSteps }).join(names);
   const ids = names.map((_, i) => 'p' + i);
   if (start) r.append('RUN_START');   // the whole game starts: seats, default characters, the generated map, monsters, quests
   const order = start ? r.state.seats.slice() : ids.slice();

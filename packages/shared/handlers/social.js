@@ -12,7 +12,7 @@
 //   SIDE_BET          { challengeId? | fightId, onId, amount }       spectators and bystanders only, Health stake, even money
 //
 // Delivery: a letter arrives at the start of the recipient's social.letterDelayTurns-th turn after it was sent
-// (counted in state.turnCounts, this module's own per-player turn counter). While in transit it can be read by
+// (counted in state.turnCounts, the per-player turn counter run.js bumps at every turn start). While in transit it can be read by
 // a player standing on the courier hex (state.map.courier), and by a Spyglass holder or a Cutpurse (readsLetters)
 // when it "crosses their tile": the sender or the recipient stands on or next to them (hex distance ≤ 1). A sender
 // wearing the Impostor's Visor seals their letters: nobody can intercept them.
@@ -227,10 +227,9 @@ register({
   },
 });
 
-// Per-player turn counter, the off-turn letter allowance and delivery of due letters.
+// The off-turn letter allowance and delivery of due letters (state.turnCounts is bumped by run.js's beginTurn).
 runHooks.turnStart.push((state, ctx, pid) => {
   state.turnCounts ||= {}; state.offTurnLetters ||= {};
-  state.turnCounts[pid] = (state.turnCounts[pid] || 0) + 1;
   state.offTurnLetters[pid] = 0;
   deliverDue(state, ctx, pid);
 });

@@ -38,15 +38,18 @@ function startScreen(error = '') {
     pin: h('input', { type: 'password', inputmode: 'numeric', placeholder: 'GM PIN (4+ digits)', value: '', autocomplete: 'off' }),
     preset: h('select', {}, [['inperson', 'In Person'], ['discord', 'Discord'], ['quick', 'Quick']].map(([v, l]) => h('option', { value: v, selected: (saved.preset || 'inperson') === v }, l))),
     fog: h('input', { type: 'checkbox', checked: saved.fog !== false }),
+    // The tutorial opening (handlers/ramp.js): on by default for a tier-1 room; the Config panel toggles it mid-run.
+    ramp: h('input', { type: 'checkbox', name: 'ramp', checked: saved.ramp != null ? saved.ramp !== false : Number(saved.tier || 1) === 1 }),
   };
+  f.tier.addEventListener('change', () => { f.ramp.checked = Number(f.tier.value) === 1; });
   const create = async () => {
     const pin = f.pin.value.trim(); if (pin.length < 4) return toast('Set a PIN of at least 4 digits', 'bad');
     const code = roomCode();
-    const defaults = { mode: f.mode.value, tier: Number(f.tier.value), size: f.size.value, preset: f.preset.value, fog: f.fog.checked };
+    const defaults = { mode: f.mode.value, tier: Number(f.tier.value), size: f.size.value, preset: f.preset.value, fog: f.fog.checked, ramp: f.ramp.checked };
     store.set('gwfrpg:gm:defaults', defaults);
     const balance = store.get('gwfrpg:gm:balance', null);
     try {
-      const { session } = await attach({ backend: ctx.backend, role: 'gm', view, create: { code, seed: seed32(), mode: defaults.mode, tier: defaults.tier, size: defaults.size, gmPinHash: await hashPin(pin), balance, challengePreset: defaults.preset, fogOfWar: defaults.fog, gmDeviceId: ctx.deviceId } });
+      const { session } = await attach({ backend: ctx.backend, role: 'gm', view, create: { code, seed: seed32(), mode: defaults.mode, tier: defaults.tier, size: defaults.size, gmPinHash: await hashPin(pin), balance, challengePreset: defaults.preset, fogOfWar: defaults.fog, ramp: defaults.ramp, gmDeviceId: ctx.deviceId } });
       ctx.session = session; ctx.code = code; ctx.pinOk = true; store.set(`gwfrpg:gm:pin:${code}`, await hashPin(pin));
       history.replaceState(null, '', `?code=${code}`);
       window.__gwf = { session, ctx };
@@ -60,6 +63,7 @@ function startScreen(error = '') {
       h('div', { class: 'panel gold col' }, h('h3', {}, 'Create a room'),
         h('div', { class: 'grid2' }, field('Mode', f.mode), field('Difficulty', f.tier), field('Map size', f.size), field('Challenge list', f.preset)),
         field('GM PIN', f.pin), h('label', { class: 'row' }, f.fog, ' Fog of war on the TV'),
+        h('label', { class: 'row', title: 'Each player\'s first turns unlock one mechanic at a time: move, gear, fight, challenge, then everything. Skip it per seat or for the table from the Table panel.' }, f.ramp, ' Tutorial opening — one new mechanic per turn for the first 5 turns'),
         h('button', { class: 'primary big', onClick: create }, 'Create room'), h('p', { class: 'muted' }, 'Then open ', h('a', { href: '/', target: '_blank' }, 'the table screen'), ' on the TV and enter the code.')),
       h('div', { class: 'panel col' }, h('h3', {}, 'Reopen a room'), codeIn, h('button', { class: 'big', onClick: reopen }, 'Open console'),
         h('div', { class: 'hr' }), h('h3', {}, 'Backend down?'), h('p', { class: 'muted' }, h('a', { href: '/classic/gm/' }, 'Run classic mode'), ' — the previous one-computer build, unchanged.'),

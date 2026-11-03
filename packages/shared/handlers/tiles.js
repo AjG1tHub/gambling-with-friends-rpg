@@ -24,6 +24,7 @@ import * as hexm from '../hex.js';
 import { monsterAt, markMonsterDead } from '../encounters/monsters.js';
 import { spinWheel, rollLoot, rollRarity, grantLoot, pushLoot, regionOf, regionTier, counter } from './wheels.js';
 import { hooks as runHooks } from './run.js';
+import { unlocked, lockMessage } from './ramp.js';
 
 export { rollLoot, rollRarity, grantLoot, pushLoot };
 
@@ -73,9 +74,14 @@ function bounce(state, ctx, c, hex, steps) {
 // ---- the tiles --------------------------------------------------------------------------------------------
 const spinPrompt = (state, playerId, wheel, hex) => { state.pendingPrompt = { playerId, kind: 'spin', wheel, hexKey: hex.key }; state.turnPhase = 'resolve'; };
 
+// The Arena call is a challenge: a player whose ramp has not reached 'challenge' walks on without the prompt.
+function arenaPrompt(state, ctx, playerId, hex) {
+  if (!unlocked(state, playerId, 'challenge')) { note(state, `${need(state, playerId).name} walks past the Arena (${lockMessage(state, playerId, 'challenge')})`, 'tile', ctx.now); action(state); return; }
+  state.pendingPrompt = { playerId, kind: 'arena', hexKey: hex.key }; state.turnPhase = 'resolve';
+}
 registerTile('encounter', (state, ctx, playerId, hex) => {
   const c = need(state, playerId); visit(state, ctx, c, hex);
-  if (state.mode === 'pvp') { state.pendingPrompt = { playerId, kind: 'arena', hexKey: hex.key }; state.turnPhase = 'resolve'; return; }
+  if (state.mode === 'pvp') { arenaPrompt(state, ctx, playerId, hex); return; }
   if (!openEncounter(state, ctx, playerId, hex)) { if (!monsterAt(state, hex.key)) note(state, `Nothing stirs where ${c.name} stands`, 'tile', ctx.now); action(state); }
 });
 registerTile('wheel', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); spinPrompt(state, playerId, 'fortune', hex); });
@@ -98,7 +104,7 @@ registerTile('bounty', (state, ctx, playerId, hex) => { visit(state, ctx, need(s
 registerTile('start', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); action(state); });
 registerTile('plain', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); action(state); });
 registerTile('courier', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); action(state); });
-registerTile('arena', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); state.pendingPrompt = { playerId, kind: 'arena', hexKey: hex.key }; state.turnPhase = 'resolve'; });
+registerTile('arena', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); arenaPrompt(state, ctx, playerId, hex); });
 registerTile('portal', (state, ctx, playerId, hex) => { visit(state, ctx, need(state, playerId), hex); state.pendingPrompt = { playerId, kind: 'portal', from: hex.key, to: hex.portalTo || null }; state.turnPhase = 'resolve'; });
 registerTile('bossgate', (state, ctx, playerId, hex) => {
   const c = need(state, playerId); visit(state, ctx, c, hex);

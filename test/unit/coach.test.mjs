@@ -115,10 +115,11 @@ test('death, the end of the run and the practice goals', () => {
   r.append('PLAYER_READY', { playerId: 'p0', ready: true }, 'p0');
   assert.equal(practiceGoal(r.state, 'p0', {}).id, 'move');
   assert.equal(practiceGoal(r.state, 'p0', { moved: true }).id, 'end');
-  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1 }).id, 'fightOrShop');
-  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1, skipped: { fightOrShop: true } }).id, 'duel');
-  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1, bought: true, duelCalled: true }).id, 'result');
-  const done = practiceGoal(r.state, 'p0', { turnsEnded: 1, attacked: true, duelCalled: true, duelSettled: true });
+  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1 }).id, 'gear');
+  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1, geared: true }).id, 'fight');
+  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1, skipped: { gear: true, fight: true } }).id, 'duel');
+  assert.equal(practiceGoal(r.state, 'p0', { turnsEnded: 1, bought: true, attacked: true, duelCalled: true }).id, 'result');
+  const done = practiceGoal(r.state, 'p0', { turnsEnded: 1, bought: true, attacked: true, duelCalled: true, duelSettled: true });
   assert.equal(done.id, 'done'); assert.equal(done.index, GOAL_IDS.length - 1);
   t.r.append('GM_END_RUN', { reason: 'test' });
   assert.equal(sit(t.state, b), 'ended');

@@ -5,6 +5,7 @@ import { letterCard, composeForm, alliancesPanel, lettersUi, readSet } from '../
 import { onRerender, rerenderSoon } from '../../../packages/ui/grid.js';
 import { inbox, outbox, interceptable } from '../../../packages/shared/handlers/social.js';
 import { characterOf, currentPlayerId } from '../../../packages/shared/state.js';
+import { unlocked, lockMessage } from '../../../packages/shared/handlers/ramp.js';
 
 const tabUi = { view: 'inbox' };
 
@@ -30,8 +31,10 @@ export function tabLetters(args) {
   // ── proposals needing an answer ──
   if (proposals.length) screen.append(h('div', { class: 'panel gold' }, h('h3', {}, 'Alliance proposed'), h('div', { class: 'letters' }, proposals.map(l => { lettersUi.open.add(l.id); return letterCard({ letter: l, state, me: me.id, dispatch, mode: 'in' }); }))));
 
-  // ── tabs: inbox / outbox / write ──
-  const views = [['inbox', `Inbox${unread ? ` (${unread})` : ''}`], ['outbox', `Sent${sent.length ? ` (${sent.length})` : ''}`], ['write', 'Write']];
+  // ── tabs: inbox / outbox / write (the tutorial opening hides Write until 'social' unlocks) ──
+  const canWrite = state.phase !== 'playing' || unlocked(state, me.id, 'social');
+  if (!canWrite && tabUi.view === 'write') tabUi.view = 'inbox';
+  const views = [['inbox', `Inbox${unread ? ` (${unread})` : ''}`], ['outbox', `Sent${sent.length ? ` (${sent.length})` : ''}`], ...(canWrite ? [['write', 'Write']] : [])];
   screen.append(h('div', { class: 'subtabs' }, views.map(([id, label]) => h('button', { class: id === tabUi.view ? 'on' : '', onClick: () => { tabUi.view = id; rerenderSoon(); } }, label))));
   if (tabUi.view === 'inbox') {
     const list = mine.filter(l => !(l.kind === 'alliance' && !l.answered));
@@ -43,6 +46,7 @@ export function tabLetters(args) {
   } else screen.append(composeForm({ state, me: me.id, c, dispatch, myTurn }));
 
   screen.append(alliancesPanel({ state, me: me.id, dispatch }));
-  if (tabUi.view !== 'write') screen.append(h('button', { class: 'primary big', style: { marginTop: '12px' }, onClick: () => { tabUi.view = 'write'; rerenderSoon(); } }, 'Write a letter'));
+  if (!canWrite) screen.append(h('p', { class: 'muted ital center ramp-line' }, `${lockMessage(state, me.id, 'social')}.`));
+  else if (tabUi.view !== 'write') screen.append(h('button', { class: 'primary big', style: { marginTop: '12px' }, onClick: () => { tabUi.view = 'write'; rerenderSoon(); } }, 'Write a letter'));
 }
 const safe = (fn, d) => { try { return fn() ?? d; } catch { return d; } };

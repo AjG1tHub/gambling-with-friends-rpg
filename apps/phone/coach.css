@@ -41,3 +41,6 @@
 .help-sheet .rules-drawer { margin-top: 8px; }
 
 .banner.practice-tag { position: static; background: linear-gradient(90deg, #3a2a10, var(--velvet-3)); color: var(--amber); border-bottom: 1px solid var(--gold-dim); font-family: var(--font-display); letter-spacing: .18em; font-size: .72rem; text-align: center; padding: 6px 12px; }
+
+/* The tutorial opening's teaser line (play.js action phase, the Cage and Letters while locked). */
+.ramp-line { margin: 10px 0 4px; font-size: .9rem; color: var(--amber); }

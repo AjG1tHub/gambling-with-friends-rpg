@@ -17,6 +17,7 @@ import { group } from '../../packages/shared/balance.js';
 import { SoundPlayer, cuesFor, DEFAULT_SOUND } from '../../packages/ui/sound.js';
 import { loadManifest } from '../../packages/ui/sprite.js';
 import { startAutopilot, seatBots } from '../../packages/ui/autopilot.js';
+import { rampStage } from '../../packages/shared/handlers/ramp.js';
 import { className } from '../../packages/ui/recap.js';
 import { renderLobby } from './screens/lobby.js';
 import { renderPlay, visibleLog } from './screens/play.js';
@@ -61,7 +62,7 @@ function startScreen(backend, error = '') {
 async function createDemoRoom(backend, bots) {
   const code = roomCode(), pinHash = await hashPin('1234');
   const mode = ['ffa', 'pvp', 'pve', 'teams', 'royale'].includes(qs('mode')) ? qs('mode') : 'ffa';
-  const create = { code, seed: seed32(), mode, tier: Number(qs('tier')) || 1, size: ['short', 'regular', 'long'].includes(qs('size')) ? qs('size') : 'regular', gmPinHash: pinHash, fogOfWar: qs('fog') !== '0', gmDeviceId: backend.identity().deviceId };
+  const create = { code, seed: seed32(), mode, tier: Number(qs('tier')) || 1, size: ['short', 'regular', 'long'].includes(qs('size')) ? qs('size') : 'regular', gmPinHash: pinHash, fogOfWar: qs('fog') !== '0', ramp: qs('ramp') === '1' ? true : qs('ramp') === '0' ? false : undefined, gmDeviceId: backend.identity().deviceId };
   store.set(`gwfrpg:gm:pin:${code}`, pinHash);
   const q = new URLSearchParams(location.search); q.set('code', code); history.replaceState(null, '', `?${q.toString()}`);
   await open(backend, code, { bots, create });
@@ -134,11 +135,14 @@ function view(state, sess, now = Date.now()) {
   for (const pid of state.seats) {
     const p = state.players[pid]; if (!p || p.kicked) continue; const c = characterOf(state, pid);
     const third = c ? healthThird(c, H) : null;
-    t.append(h('span', { class: `tick${pid === currentPlayerId(state) && state.phase === 'playing' ? ' up' : ''}` }, h('span', { class: 'tick-name' }, c?.name || p.name), third ? h('span', { class: `tick-lamp ${third}`, title: 'lantern' }, third === 'high' ? '●' : third === 'mid' ? '◐' : third === 'low' ? '○' : '✝') : null, h('span', { class: 'tick-sub' }, c ? `${className(c.classId)} · Lv ${c.level}${c.pets?.length ? ` · ${c.pets.length} pet${c.pets.length === 1 ? '' : 's'}` : ''}${c.gold ? ` · ${c.gold}g` : ''}` : (p.ready ? 'ready' : 'joined'))));
+    t.append(h('span', { class: `tick${pid === currentPlayerId(state) && state.phase === 'playing' ? ' up' : ''}` }, h('span', { class: 'tick-name' }, c?.name || p.name), third ? h('span', { class: `tick-lamp ${third}`, title: 'lantern' }, third === 'high' ? '●' : third === 'mid' ? '◐' : third === 'low' ? '○' : '✝') : null, h('span', { class: 'tick-sub' }, c ? `${className(c.classId)} · Lv ${c.level}${c.pets?.length ? ` · ${c.pets.length} pet${c.pets.length === 1 ? '' : 's'}` : ''}${rampTick(state, pid)}${c.gold ? ` · ${c.gold}g` : ''}` : (p.ready ? 'ready' : 'joined'))));
   }
   const last = visibleLog(state, now).at(-1); $('#tvLog', frame).textContent = last ? last.text : '';
   if (state.banner) stage.append(h('div', { class: 'big-banner' }, state.banner));
 }
+
+// The tutorial opening's stage for a seat (" · turn 2 · gear") while the ramp is on and not yet over for them.
+function rampTick(state, pid) { try { const st = state.phase === 'playing' ? rampStage(state, pid) : null; return st && st.on && !st.done ? ` · turn ${st.turn} · ${st.step || 'move'}` : ''; } catch { return ''; } }
 
 function joinPanel(code) {
   const canvas = h('canvas', { 'aria-label': 'Join QR code' });

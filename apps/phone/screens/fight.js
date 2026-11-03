@@ -16,6 +16,7 @@ import { activePet, healthyPets } from '../../../packages/shared/handlers/pets.j
 import { CLASSES } from '../../../packages/shared/characters/character.js';
 import { liveRound, dropRound, peekRound, roundView, nudgePicker, seedFor } from '../../../packages/ui/minigame.js';
 import { sect, why, itemRow, statLabel, nameOf, consumables, weapons, spells, redraw } from './prompts.js';
+import { unlocked } from '../../../packages/shared/handlers/ramp.js';
 
 const B = (state) => ({ B: (g) => group(state, g), now: Date.now(), payload: {}, actor: 'phone', isGm: false });
 const findItem = (c, id) => c?.items?.[id] || Object.values(c?.worn || {}).find(it => it && it.id === id) || null;
@@ -85,8 +86,8 @@ export function attackMenu(api, f, m, { inFight = true } = {}) {
   screen.append(box);
   if (m) petLine(api, f, m);
   if (!inFight) return;   // the action screen draws its own consumables and class active rows
-  consumableRow(api, f);
-  classActiveRow(api, f, m);
+  if (unlocked(state, me, 'gear')) consumableRow(api, f);
+  if (unlocked(state, me, 'class')) classActiveRow(api, f, m);
   {
     const row = h('div', { class: 'btn-grid' });
     const fleeWhy = f?.calledOut ? 'you were called out' : f?.game && !f.game.result ? 'finish the round first' : '';

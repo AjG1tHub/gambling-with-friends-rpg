@@ -21,6 +21,8 @@ export function beginTurn(state, ctx) {
     const p = state.players[pid], c = ensureCharacterShape(characterOf(state, pid));
     state.turnStartedAt = ctx.now; state.turnPhase = 'move'; state.moveSession = null; state.pendingPrompt = null;
     state.stats[pid] && (state.stats[pid].turns += 1);
+    // The per-player turn counter (letters, the tutorial ramp) is bumped before the turnStart hooks so every hook sees this turn's number.
+    (state.turnCounts ||= {})[pid] = (state.turnCounts[pid] || 0) + 1;
     if (c) { c.turnsTaken = (c.turnsTaken || 0) + 1; c.usedThisTurn = { attack: 0, spell: 0, moved: false }; }
     let skip = false;
     for (const h of hooks.turnStart) { if (h(state, ctx, pid) === 'skip') skip = true; }

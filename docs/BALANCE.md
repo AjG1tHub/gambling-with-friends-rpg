@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 331 tunables in 28 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 332 tunables in 29 groups.
 
 ## Changing a value
 
@@ -448,6 +448,12 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `chaos.regionMult` | 2 | multiplier | Wheels | Damage multiplier of a region-targeted Chaos effect (double damage in the Docks). |
 | `chaos.classMult` | 2 | multiplier | Wheels | Damage multiplier against a Chaos-marked class. |
 | `chaos.voteSeconds` | 30 | seconds | PvP and social | How long the table has to vote a Chaos victim. |
+
+## ramp
+
+| Key | Default | Unit | Spec section | What moving it does |
+| --- | --- | --- | --- | --- |
+| `ramp.steps` | [move, gear, fight, challenge, all] | steps | Tutorial opening | The tutorial opening: what each of a player's first turns unlocks, in order (move, gear, fight, challenge, social, class, pets, chaos, or all). Shorten the list for a quicker ramp; a room made with tier 1 has it on by default (ROOM_CREATED ramp, GM_CONFIG ramp). |
 
 ## quests
 

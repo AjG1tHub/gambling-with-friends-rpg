@@ -61,8 +61,8 @@ export async function openRoom(backend, { roomId, code, role = 'phone', onChange
 }
 
 // Create a room and open it as its GM/TV client.
-export async function createRoom(backend, { code, seed, mode, tier, size, gmPinHash, role = 'tv', balance = null, challengePreset = null, fogOfWar = null, gmDeviceId = null, ...rest }) {
+export async function createRoom(backend, { code, seed, mode, tier, size, gmPinHash, role = 'tv', balance = null, challengePreset = null, fogOfWar = null, ramp = null, rampSteps = null, gmDeviceId = null, ...rest }) {
   const made = await backend.createRoom({ code, seed, mode, tier, size, gmPinHash });
-  await backend.append(made.roomId, makeEvent('ROOM_CREATED', { roomId: made.roomId, code, seed, mode, tier, size, gmPinHash, balance: balance || undefined, challengePreset: challengePreset || undefined, fogOfWar: fogOfWar ?? undefined, gmDeviceId }, { actor: 'gm', ts: Date.now(), roomId: made.roomId }));
+  await backend.append(made.roomId, makeEvent('ROOM_CREATED', { roomId: made.roomId, code, seed, mode, tier, size, gmPinHash, balance: balance || undefined, challengePreset: challengePreset || undefined, fogOfWar: fogOfWar ?? undefined, ramp: ramp ?? undefined, rampSteps: rampSteps || undefined, gmDeviceId }, { actor: 'gm', ts: Date.now(), roomId: made.roomId }));
   return openRoom(backend, { roomId: made.roomId, role, ...rest });
 }

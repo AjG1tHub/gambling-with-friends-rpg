@@ -125,3 +125,16 @@ Calls made during the build where the spec and the build prompt left room. Newes
     regions are not drawn at all (no "undried ink" silhouette), bridges dangle off the edge as the hint. A region
     holding a living character is always drawn, and GM_TELEPORT reveals its destination, so no token is ever off
     the map. Fog off = the whole map, as before.
+36. **The tutorial opening is a per-player ramp the engine enforces.** A tier-1 room opens with `gm.ramp` on
+    (`ROOM_CREATED { ramp }`, the GM's Create-a-room checkbox, `GM_CONFIG { ramp }` mid-run, `GM_RAMP_SKIP` per seat
+    or for all): each player's first turns unlock one mechanic at a time, `balance ramp.steps` = move → gear →
+    fight → challenge → all. *Per player's own turns* (`state.turnCounts`, bumped in `beginTurn`), not table rounds,
+    so a late joiner or a held seat ramps at the same pace as everyone else and the GM can skip one seat without
+    touching the rest. *Engine-enforced*, not UI-hidden only: one table in `handlers/ramp.js` (`LOCKS`) refuses every
+    locked event with code `locked` from a reducer `onBefore` hook, the movement module refuses a step onto a monster
+    hex while fights are locked ("the monsters are asleep until your turn 3"), the Arena prompt is skipped and the
+    Chaos wheel spins at tier 1 for a locked spinner — so a stale phone, a proxied seat or a bot cannot do what the
+    ramp says is closed, and the bot policy consults `unlocked()` so it never proposes a refused action. *Hidden, not
+    disabled* on the phones: a greyed-out Duel button on turn 1 is a question nobody can answer yet; the action phase
+    shows only what is open plus one teaser line ("Next turn: fights unlock — the monsters wake"), and the Coach's
+    card for the turn is the step's own text. The practice run has the ramp on so its goals are the ramp.

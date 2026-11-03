@@ -34,10 +34,11 @@ events to it through `applyEvent` (`reducer.js`). This file is the field referen
 | `mode` | `'ffa' \| 'pvp' \| 'pve' \| 'teams' \| 'royale'` | |
 | `tier, size` | `1..3`, `'short' \| 'regular' \| 'long'` | |
 | `phase` | `'lobby' \| 'creation' \| 'playing' \| 'ended'` | |
-| `gm` | `{pinHash, deviceId, paused, pausedAt, spotlight[], proxies{}, challengePreset, challengeLists{}, duelsEnabled, fogOfWar, teams{}}` | |
+| `gm` | `{pinHash, deviceId, paused, pausedAt, spotlight[], proxies{}, challengePreset, challengeLists{}, duelsEnabled, fogOfWar, teams{}, ramp: {on, steps, skipped{}}}` | `ramp`: the tutorial opening (handlers/ramp.js) |
 | `players` | `{id: Player}` | seats and spectators |
 | `seats` | `[playerId]` | turn order after `RUN_START` shuffles it |
 | `turnIdx, round, turnStartedAt, turnPhase, moveSession` | | `turnPhase`: `'move' \| 'resolve' \| 'action' \| 'done'` |
+| `turnCounts` | `{playerId: n}` | turns each seat has started (bumped in `beginTurn`); letters and the tutorial ramp count on it |
 | `moverId` | `playerId \| null` | the seat whose turn is in progress; set by `beginTurn`, cleared by `finishTurn`. `currentPlayerId` returns it while set, otherwise derives from `turnIdx` over `tableSeats` (active seats minus eliminated characters), skipping `held` seats |
 | `owedTurns, turnCredits, owedInsert` | `[{playerId, at}]`, `{playerId: n}`, `playerId \| null` | turns a held seat missed and is owed back (challenge.js) |
 | `startedAt, endedAt` | ms | `RUN_START` / run end; `table.lastCallMinutes` after `startedAt` the run ends on placings |

@@ -12,7 +12,7 @@ import { spinOverlay, spinningTs, landedFor } from '../../../packages/ui/wheel.j
 import { fightPanel, stageOverlay, spotlightGrid, offScreenCardEl, challengePanel, areaPanel, tellLine } from '../../../packages/ui/stage.js';
 import { manifestNow } from '../../../packages/ui/sprite.js';
 import { className } from '../../../packages/ui/recap.js';
-import { orderLine } from '../../../packages/ui/tutorial.js';
+import { orderLine, rampBanner } from '../../../packages/ui/tutorial.js';
 const roman = (n) => ['', 'I', 'II', 'III', 'IV', 'V'][n] || n;
 
 // The SVG lives across renders so the map is built once and patched (hexmap.js keeps the element map on it).
@@ -45,6 +45,7 @@ export function renderPlay({ state, session, stage, rail, clockEls, rerender = n
     orderPanel(state)));
   // ── situation panels ──
   const taught = teachPanel(state, now); if (taught) rail.append(taught);
+  const ramp = rampBanner(state); if (ramp) rail.append(h('div', { class: 'panel howto ramp-banner' }, h('div', { class: 'tag' }, 'TUTORIAL OPENING'), h('div', { class: 'howto-title' }, ramp.text)));
   rail.append(fightPanel(state, { now }));
   rail.append(challengePanel(state, { now }));
   rail.append(areaPanel(state, { now }));
