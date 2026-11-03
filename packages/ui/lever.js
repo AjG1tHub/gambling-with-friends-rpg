@@ -25,7 +25,7 @@ export function leverCurve(v, { width = 220, height = 54 } = {}) {
 
 // 'Wins N% of rounds at your Luck (M% at neutral).' Quote the odds table's own Win chance row when it has one: the
 // curve's win is a simulated rate (51% at neutral for the 50/50 wheel) and printed 51% under a 50% row (QA run, 2 Nov).
-function winLine(v, lines) {
+export function winLine(v, lines) {
   const row = (lines || []).find(l => /^win chance$/i.test(l.label));
   const yours = row ? row.yours : `${Math.round(v.yours.win * 100)}%`, base = row ? row.base : `${Math.round(v.base.win * 100)}%`;
   return `${v.text}. Wins ${yours} of rounds at your ${v.stat} (${base} at neutral).`;
