@@ -106,13 +106,21 @@ test('every hosted entry: two bots play each purpose-built duel through CHALLENG
     }
     if (game !== 'quickdraw' && game !== 'highestcard' && game !== 'memorymatch') { assert.equal(last.winnerId, a, `${game}: the perfect bot wins`); assert.equal(last.flawless, true); }
   }
-  // the four versus items are hosted by the items adapter: one report from the hosting phone settles
+  // the four versus items are hosted by the items adapter on the attacker's phone: that phone's one report settles;
+  // the defender has no buttons and their report is refused (demo night: a defender tapped their own name and "won")
   for (const game of VERSUS_GAMES) {
     const t = table(); const [a, b] = t.order; duel(t, game);
-    assert.equal(t.state.challenge.hostedGame, null); assert.ok(challengeView(t.state, b).reportButtons.length === 3);
-    report(t, b, b);
+    assert.equal(t.state.challenge.hostedGame, null);
+    assert.equal(challengeView(t.state, a).reportButtons.length, 3, `${game}: the attacker's phone reports`);
+    assert.deepEqual(challengeView(t.state, b).reportButtons, [], `${game}: the defender's phone has no Who won?`);
+    assert.equal(challengeView(t.state, b).versus, true);
+    assert.match(t.r.try('CHALLENGE_REPORT', { winnerId: b }, b).message, /phone plays/);
+    assert.ok(t.state.challenge && !t.state.challenge.done, `${game}: still running`);
+    report(t, a, b);
     assert.equal(t.state.challenge, null); assert.equal(t.state.lastChallenge.winnerId, b); assert.equal(t.char(a).health, 90, `${game}: defender's weapon hits the attacker`);
   }
+  // the GM may still settle a versus round from the console
+  { const t = table(); const [a, b] = t.order; duel(t, 'shellgame'); t.r.append('CHALLENGE_REPORT', { winnerId: a }, 'gm'); assert.equal(t.state.lastChallenge.winnerId, a); }
   // a phone may publish the whole game object too (actor-authoritative), and a stale one is refused
   const t = table(); const [a, b] = t.order; duel(t, 'highestcard'); t.r.tick(B.challenge.gmWindowSeconds * 1000);
   const g1 = hosted.act(t.state.challenge.hostedGame, a, 'draw', {}, t.r.now()); t.r.append('CHALLENGE_STEP', { game: g1 }, a);

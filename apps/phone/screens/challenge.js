@@ -133,8 +133,9 @@ function versusDuel(api, v, ch) {
   const { state, me, c, h, dispatch, screen } = api; const def = ITEMS[v.entry.game]; const other = v.role === 'attacker' ? v.defenderId : v.attackerId;
   const box = sect(`${gameMeta(def?.gameId).icon} ${def?.name || v.entry.name}`);
   if (v.role !== 'attacker' || !def) {
-    box.append(h('p', { class: 'muted ital' }, `${nameOf(state, v.attackerId)} plays ${def?.name || v.entry.name} for the table; the result settles the round.`));
-    reportRow(api, v, box); screen.append(box); return;
+    box.append(h('p', { class: 'muted ital' }, `${nameOf(state, v.attackerId)} plays ${def?.name || v.entry.name} on their phone — watch the TV. Their phone reports the result; a win for them hits you with their weapon, a loss hits them with yours.`),
+      h('p', { class: 'muted center' }, '⏳ Waiting for the round to finish…'));
+    screen.append(box); return;
   }
   const key = seedFor('versus', ch.id, v.entry.id, ch.spunAt);
   const target = characterOf(state, other);

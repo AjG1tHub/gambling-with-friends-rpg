@@ -28,6 +28,7 @@ import * as hosted from '../challenge/hosted.js';
 import presetsData from '../../../data/challenges.json' with { type: 'json' };
 
 export const VERSUS_GAMES = ['clash', 'diceduel', 'shellgame', 'holdemduel'];
+const isVersus = (ch) => !!(ch?.entry?.hosted && VERSUS_GAMES.includes(ch.entry.game));
 export const CALLS = ['duel', 'wager', 'robbery'];
 const SERIES_MAX_ROUNDS = 3;      // "best-of-three": structural, not a tunable
 const TIMEOUT_SLACK_MS = 250;     // same slack as TURN_TIMEOUT in run.js
@@ -268,7 +269,8 @@ export function challengeView(state, playerId, now = state.lastEventTs) {
     canAnswer: role === 'defender' && !ch.spun && ch.call === 'wager' && !ch.accepted,
     needsWeapon: role === 'defender' && !ch.spun && ch.call !== 'wager' && !ch.defenderItemId && !ch.defenderAnswered,
     hosted: game ? hosted.phoneView(game, playerId, now) : null,
-    reportButtons: ch.spun && !ch.done && !(game && hosted.isPurposeBuilt(ch.entry.game)) && role !== 'spectator' ? [ch.attackerId, ch.defenderId].map(id => ({ winnerId: id, name: nameOf(state, id) })).concat([{ winnerId: 'draw', name: 'Draw' }]) : [],
+    reportButtons: ch.spun && !ch.done && !(game && hosted.isPurposeBuilt(ch.entry.game)) && role !== 'spectator' && !(isVersus(ch) && role !== 'attacker') ? [ch.attackerId, ch.defenderId].map(id => ({ winnerId: id, name: nameOf(state, id) })).concat([{ winnerId: 'draw', name: 'Draw' }]) : [],
+    versus: isVersus(ch),
     myReport: ch.reports?.[playerId] ?? null, reports: ch.entry && !ch.entry.hosted ? ch.reports : undefined,
     gmPending: !!ch.gmPending, series: ch.series ? { round: ch.series.round, wins: ch.series.wins, target: ch.series.target } : null, calledOut: !!ch.calledOut,
     winnerId: ch.winnerId || null, flawless: !!ch.flawless,
@@ -408,6 +410,8 @@ register({
     const asGm = ctx.isGm && reporter === ctx.actor;
     const party = isParty(ch, reporter);
     if (!asGm && !party) refuse('not in this challenge', 'forbidden');
+    // A Versus item is played on the attacker's phone and reported by it; the defender's word settles nothing.
+    if (!asGm && isVersus(ch) && reporter !== ch.attackerId) refuse(`${nameOf(state, ch.attackerId)}'s phone plays ${ch.entry.name} and reports it`, 'forbidden');
     const w = ctx.payload.winnerId; if (w !== 'draw' && !isParty(ch, w)) refuse('winnerId must be a player in the challenge or "draw"');
     const winnerId = w === 'draw' ? null : w;
     if (ch.entry.hosted || asGm) { settleRound(state, ctx, winnerId, { flawless: !!ctx.payload.flawless, how: asGm ? 'gm' : 'hosted' }); return; }

@@ -269,14 +269,24 @@ function lockedView(api) {
   }
   if (!(c.pets || []).length && !c.flags?.setupHatched) screen.append(h('button', { class: 'big', onClick: () => dispatch('PET_HATCH', { source: 'setup' }) }, '🥚 Hatch a pet on the Triple Pet Wheel'));
   else if (c.pets?.length) screen.append(why(`Pets: ${c.pets.map(p => p.name).join(', ')}`));
-  screen.append(h('button', { class: `big ${api.player.ready ? 'primary' : ''}`, onClick: () => dispatch('PLAYER_READY', { playerId: me, ready: !api.player.ready }) }, api.player.ready ? '✓ Ready — tap to unready' : 'Tap when ready'));
+  screen.append(readyButton(api));
   screen.append(h('p', { class: 'muted ital center' }, c.buyinSpun ? `Buy-in: ${c.maxHealth} Health. Waiting for the GM to start the run.` : 'Waiting for the GM: the Buy-in Wheel sets your starting Health.'));
   seatsList(api);
 }
+// One tap, one event: a mashed Ready button toggled a seat 19 times in six seconds on the first demo night.
+let readyLockUntil = 0;
+function readyButton(api) {
+  const { h, dispatch, me } = api;
+  return h('button', { class: `big ${api.player.ready ? 'primary' : ''}`, onClick: (e) => {
+    if (Date.now() < readyLockUntil) return; readyLockUntil = Date.now() + READY_LOCK_MS; e.currentTarget.disabled = true;
+    dispatch('PLAYER_READY', { playerId: me, ready: !api.player.ready });
+  } }, api.player.ready ? '✓ Ready — tap to unready' : 'Tap when ready');
+}
+const READY_LOCK_MS = 1200;   // literal
 function lobbyView(api) {
   const { state, me, c, h, dispatch, screen } = api;
   screen.append(h('div', { class: 'hero' }, h('div', { class: 'crest' }, c?.crest || api.player.crest || '🂠'), h('h2', {}, c?.name || api.player.name), h('p', { class: 'muted' }, 'The GM opens character creation from the console.')),
-    h('button', { class: `big ${api.player.ready ? 'primary' : ''}`, onClick: () => dispatch('PLAYER_READY', { playerId: me, ready: !api.player.ready }) }, api.player.ready ? '✓ Ready — tap to unready' : 'Tap when ready'));
+    readyButton(api));
   rosterPick(api); seatsList(api);
 }
 function seatsList(api) {
