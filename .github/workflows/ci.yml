@@ -30,6 +30,7 @@ jobs:
       - run: node test/browser/small-phone.mjs
       - run: node test/browser/tv-layout.mjs
       - run: node test/browser/reconnect.mjs
+      - run: node test/browser/offline.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: browser-shots, path: test/shots, if-no-files-found: ignore }

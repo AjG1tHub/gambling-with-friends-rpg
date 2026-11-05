@@ -35,6 +35,8 @@ export async function openRoom(backend, { roomId, code, role = 'phone', onChange
 
   // Subscribe first, then back-fill, so nothing slips between the two.
   const unsub = backend.subscribe(roomId, ingest);
+  // A socket that dropped and came back may have missed events nobody will repeat: back-fill from the last seq.
+  const unReconnect = backend.onReconnect ? backend.onReconnect(() => fillGap()) : null;
   const events = await backend.loadEvents(roomId, lastSeq);
   for (const ev of events) buffer.set(ev.seq, ev);
   drain();
@@ -55,7 +57,7 @@ export async function openRoom(backend, { roomId, code, role = 'phone', onChange
     peek(type, payload = {}, actor = 'system') { return applyEvent(state, makeEvent(type, payload, { actor, ts: Date.now(), roomId }), { clone: true, strict: false }); },
     touch(playerId, ts = Date.now()) { presence[playerId] = ts; },
     async refresh() { await fillGap(); },
-    close() { closed = true; unsub?.(); if (gapTimer) clearTimeout(gapTimer); listeners.clear(); },
+    close() { closed = true; unsub?.(); unReconnect?.(); if (gapTimer) clearTimeout(gapTimer); listeners.clear(); },
   };
   return session;
 }

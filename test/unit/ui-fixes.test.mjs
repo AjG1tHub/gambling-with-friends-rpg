@@ -77,3 +77,21 @@ test('visibleLog: lines logged at or after a holding round start are hidden; ear
   const later = visibleLog(state, t + WHEEL_SPIN_MS + 4500).map(l => l.text);
   assert.equal(later.length, 3, 'after the window everything shows');
 });
+
+// 4. A seat the TV proxied for silence is the phone's to take back; one the GM took on purpose is not.
+import { shouldReclaimSeat } from '../../packages/shared/handlers/lobby.js';
+import { room, names4 } from './_fixtures-characters.mjs';
+test('shouldReclaimSeat: only a seat proxied for silence, and PLAYER_RECONNECT clears it', () => {
+  const r = room().join(names4); const pid = 'p0';
+  assert.equal(shouldReclaimSeat(r.state, pid), false, 'not proxied: nothing to reclaim');
+  r.append('GM_PROXY', { playerId: pid, on: true }, 'gm');
+  assert.equal(shouldReclaimSeat(r.state, pid), false, 'the GM chose to act for the seat: the phone waits for the hand-back');
+  r.append('GM_PROXY', { playerId: pid, on: false }, 'gm');
+  r.append('GM_PROXY', { playerId: pid, on: true, reason: 'silent' }, 'system');
+  assert.equal(r.state.gm.proxyReasons[pid], 'silent');
+  assert.equal(shouldReclaimSeat(r.state, pid), true, 'proxied for silence: the phone may take it back');
+  r.append('PLAYER_RECONNECT', { playerId: pid }, pid);
+  assert.equal(r.state.players[pid].proxied, false); assert.equal(r.state.gm.proxyReasons[pid], undefined);
+  assert.equal(shouldReclaimSeat(r.state, pid), false);
+  assert.equal(shouldReclaimSeat(r.state, 'nobody'), false);
+});

@@ -50,7 +50,7 @@ register({
     p.connected = true; p.lastSeenTs = ctx.now;
     if (ctx.payload.deviceId) p.deviceId = ctx.payload.deviceId;
     // Reconnecting takes the seat back from the GM proxy without a GM action.
-    if (p.proxied) { p.proxied = false; delete state.gm.proxies[p.id]; note(state, `${p.name} is back`, 'join', ctx.now); }
+    if (p.proxied) { p.proxied = false; delete state.gm.proxies[p.id]; if (state.gm.proxyReasons) delete state.gm.proxyReasons[p.id]; note(state, `${p.name} is back`, 'join', ctx.now); }
   },
   PLAYER_RENAME(state, ev, ctx) { const p = requirePlayer(state, ctx.payload.playerId); if (!ctx.isGm && ctx.actor !== p.id) refuse('not your seat', 'forbidden'); const n = cleanName(ctx.payload.name); if (!n) refuse('name required'); p.name = n; },
   PLAYER_READY(state, ev, ctx) { const p = requirePlayer(state, ctx.payload.playerId); if (!ctx.isGm && ctx.actor !== p.id) refuse('not your seat', 'forbidden'); requirePhase(state, 'lobby', 'creation'); p.ready = ctx.payload.ready !== false; },
@@ -66,6 +66,10 @@ register({
     requireGm(ctx); const p = requirePlayer(state, ctx.payload.playerId);
     p.proxied = ctx.payload.on !== false;
     if (p.proxied) state.gm.proxies[p.id] = ctx.now; else delete state.gm.proxies[p.id];
+    // Why: 'silent' is the TV's doing (a phone that stopped pinging) and the phone may take the seat back on its own;
+    // no reason means the GM chose to, and only the GM or a reload gives it back.
+    state.gm.proxyReasons ||= {};
+    if (p.proxied && ctx.payload.reason) state.gm.proxyReasons[p.id] = String(ctx.payload.reason); else delete state.gm.proxyReasons[p.id];
     note(state, p.proxied ? `GM is acting for ${p.name}` : `${p.name} has their phone back`, 'gm', ctx.now);
   },
   GM_AUTOPILOT(state, ev, ctx) { requireGm(ctx); const p = requirePlayer(state, ctx.payload.playerId); p.autopilot = ctx.payload.on !== false; note(state, `${p.name} ${p.autopilot ? 'is on autopilot' : 'is off autopilot'}`, 'gm', ctx.now); },
@@ -128,3 +132,11 @@ register({
     note(state, 'Room imported', 'gm', ctx.now);
   },
 });
+
+// A phone that is demonstrably alive (it just received an event, came back online, or was foregrounded) takes a
+// seat back only when the TV proxied it for silence; a seat the GM took on purpose stays with the GM. (QA, 4 Nov:
+// a phone back from airplane mode or another app stayed locked out until it reloaded.)
+export function shouldReclaimSeat(state, playerId) {
+  const p = state?.players?.[playerId];
+  return !!(p && p.proxied && !p.kicked && state.gm?.proxyReasons?.[playerId] === 'silent');
+}

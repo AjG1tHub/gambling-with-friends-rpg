@@ -7,6 +7,7 @@ import { ensureRoster } from '../../packages/ui/roster.js';
 import { readSet } from '../../packages/ui/letters.js';
 import { shortId } from '../../packages/shared/ids.js';
 import { currentPlayerId, characterOf } from '../../packages/shared/state.js';
+import { shouldReclaimSeat } from '../../packages/shared/handlers/lobby.js';
 import { remainingMs } from '../../packages/shared/clock.js';
 import { tabPlay } from './screens/play.js';
 import { tabCage } from './screens/cage.js';
@@ -55,6 +56,18 @@ async function join(code) {
   try {
     const { session, setPresence } = await attach({ backend: ctx.backend, code, role: 'phone', view, presence: ctx.proxyFor ? { role: 'gm' } : { role: 'phone', playerId: recallSeat(code) || undefined } });
     ctx.session = session; ctx.setPresence = setPresence; window.__gwf = { session, ctx };
+    // Back from airplane mode, a lock screen or another app: if the TV handed this seat to the GM for silence while
+    // we were away, take it back the moment we are provably here (we just received an event or came back online).
+    let reclaimedAt = 0;
+    const reclaim = async () => {
+      const since = session.state.gm?.proxies?.[ctx.me] || 0;
+      if (!ctx.me || ctx.proxyFor || !shouldReclaimSeat(session.state, ctx.me) || since === reclaimedAt) return;
+      reclaimedAt = since;
+      try { await session.dispatch('PLAYER_RECONNECT', { playerId: ctx.me, deviceId: ctx.deviceId }, ctx.me); toast('You are back at the table', 'ok'); } catch (e) { console.warn('reclaim', e); }
+    };
+    session.onChange(() => { reclaim(); });
+    window.addEventListener('online', () => setTimeout(reclaim, 500));
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(reclaim, 500); });
     if (ctx.proxyFor) { if (!session.state.players[ctx.proxyFor]) throw new Error(`no seat ${ctx.proxyFor} in this room`); ctx.me = ctx.proxyFor; view(session.state, session); return; }
     const seat = recallSeat(code);
     const existing = seat && session.state.players[seat];

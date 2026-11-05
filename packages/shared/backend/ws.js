@@ -11,12 +11,12 @@ function identityFromStorage() {
 
 export function createWsBackend({ url, WebSocketImpl = globalThis.WebSocket } = {}) {
   const identity = typeof localStorage !== 'undefined' ? identityFromStorage() : { deviceId: uuid() };
-  let ws = null, ready = null, seq = 0, backoff = 300;
-  const pending = new Map(), listeners = new Map(), presenceListeners = new Map(), subscribed = new Set();
+  let ws = null, ready = null, seq = 0, backoff = 300, opened = 0;
+  const pending = new Map(), listeners = new Map(), presenceListeners = new Map(), subscribed = new Set(), reconnectListeners = new Set();
   function connect() {
     ready = new Promise((ok, fail) => {
       ws = new WebSocketImpl(url);
-      ws.onopen = () => { backoff = 300; for (const r of subscribed) send('subscribe', [r]).catch(() => {}); ok(); };
+      ws.onopen = () => { backoff = 300; for (const r of subscribed) send('subscribe', [r]).catch(() => {}); ok(); if (opened++ > 0) for (const fn of reconnectListeners) { try { fn(); } catch { /* ignore */ } } };
       ws.onmessage = (m) => {
         const msg = JSON.parse(m.data);
         if (msg.id != null && pending.has(msg.id)) { const { res, rej } = pending.get(msg.id); pending.delete(msg.id); msg.error ? rej(new Error(msg.error)) : res(msg.result); return; }
@@ -54,6 +54,8 @@ export function createWsBackend({ url, WebSocketImpl = globalThis.WebSocket } = 
     presets: proxyGroup('presets', ['list', 'save']),
     metaLedger: proxyGroup('metaLedger', ['add', 'list']),
     seasons: proxyGroup('seasons', ['current', 'save']),
+    // Fires after every re-open (not the first): the room session back-fills what was missed while the socket was down.
+    onReconnect(fn) { reconnectListeners.add(fn); return () => reconnectListeners.delete(fn); },
     close() { ws.onclose = null; ws.close(); },
   };
 }
