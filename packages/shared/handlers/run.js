@@ -9,6 +9,7 @@ import { register, refuse, requireGm, requirePhase, requireActor, onAfter } from
 import { activeSeats, tableSeats, currentPlayerId, characterOf, note, ensureCharacterShape } from '../state.js';
 import { startClock, stopClock } from '../clock.js';
 import { streamRng, rigAwareWeightedIndex } from '../rng.js';
+import { seatHooks } from '../hooks.js';
 
 export const hooks = { runStart: [], turnStart: [], turnEnd: [], roundEnd: [], endCheck: [], turnPhaseAdvance: [] };
 
@@ -117,4 +118,14 @@ register({
 onAfter((state, ev, ctx) => {
   if (state.phase !== 'playing') return;
   for (const h of hooks.endCheck) { const r = h(state, ctx); if (r) { endRun(state, ctx, r.winner, r.reason); return; } }
+});
+
+// A kicked mover's turn ends like a timed-out one, so the next seat gets a proper turn (hooks, clock, "X's turn") and
+// the stale turn state does not sit on the table. An open fight with the kicked seat is closed outright: no parting
+// blow at an empty chair. (QA, 5 Nov: kicking the mover left moverId pointing at nobody and the next phone clockless.)
+seatHooks.beforeKick.push((state, ctx, p) => {
+  if (state.phase !== 'playing') return;
+  const f = state.fight;
+  if (f && !f.done && (f.playerId === p.id || (f.playerIds || []).includes(p.id))) { f.done = true; f.left = true; f.turn = 'player'; f.game = null; note(state, `${p.name}'s fight is called off`, 'fight', ctx.now); }
+  if (state.moverId === p.id) { note(state, `${p.name}'s turn ends with the seat`, 'turn', ctx.now); endTurn(state, ctx, 'kicked'); }
 });

@@ -195,3 +195,22 @@ test('side bets: only when on, only from outside the fight, even money in Health
   t.state.fight = { id: 'f3', playerIds: [s0], monsterId: 'm', done: false }; t.r.append('SIDE_BET', { fightId: 'f3', onId: s0, amount: 3 }, s2);
   settleSideBets(t.state, { now: 5, B: (g) => B[g] }, 'fight', 'f3', s0); assert.equal(t.char(s2).health, 93);
 });
+
+test('GM_KICK during a challenge: before the spin the call is cancelled, after it the round is voided; the other party is released', () => {
+  let t = table(); let [s0, s1, s2] = t.order;
+  t.until(s0); t.rigEntry('rps5'); t.r.append('CHALLENGE_CALL', { defenderId: s1, call: 'duel' }, s0);
+  assert.ok(t.state.challenge && !t.state.challenge.spun);
+  t.r.append('GM_KICK', { playerId: s1 });
+  assert.ok(!t.state.challenge || t.state.challenge.done, 'the unspun call is cancelled when the defender is removed');
+  assert.ok(!t.state.held[s0], 'the attacker is not left held');
+  t = table(); [s0, s1, s2] = t.order;
+  rps(t, s0, s1);
+  assert.ok(t.state.challenge?.spun);
+  t.r.append('GM_KICK', { playerId: s0 });
+  assert.ok(!t.state.challenge || t.state.challenge.done, 'the spun challenge is settled when the attacker is removed');
+  assert.ok(!t.state.held[s1], 'the defender is released');
+  assert.ok(!t.state.seats.includes(s0));
+  // The table plays on: whoever is up can end a turn.
+  const cur = shared.currentPlayerId(t.state); assert.ok(cur && cur !== s0);
+  assert.equal(t.r.try('TURN_END', {}, cur), null, 'the next mover can end the turn');
+});

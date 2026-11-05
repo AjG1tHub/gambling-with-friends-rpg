@@ -23,7 +23,7 @@ import { stopClock } from '../clock.js';
 import { streamRng, rigAwareWeightedIndex } from '../rng.js';
 import * as hex from '../hex.js';
 import { health, gold, power } from '../health.js';
-import { damageHooks, deathHooks, petHooks, heldHooks, runMods } from '../hooks.js';
+import { damageHooks, deathHooks, petHooks, heldHooks, runMods, seatHooks } from '../hooks.js';
 import * as hosted from '../challenge/hosted.js';
 import presetsData from '../../../data/challenges.json' with { type: 'json' };
 
@@ -518,4 +518,12 @@ runHooks.turnStart.push((state, ctx, pid) => {
   // Wanted counts down on the wanted player's own turns.
   const c = charOf(state, pid);
   if (c && c.wanted > 0) { c.wanted -= 1; if (c.wanted === 0) { c.wantedBounty = 0; note(state, `${nameOf(state, pid)} is no longer Wanted`, 'info', ctx.now); } }
+});
+
+// A seat kicked out of an open challenge: the call is cancelled before the spin, voided (a draw) after it, and the
+// other party is released from its hold either way.
+seatHooks.beforeKick.push((state, ctx, p) => {
+  const ch = state.challenge; if (!ch || ch.done || !isParty(ch, p.id)) return;
+  if (!ch.spun) cancelCall(state, ctx, `${p.name} was removed: the challenge is off`);
+  else settleRound(state, ctx, null, { how: 'gm', final: true });
 });

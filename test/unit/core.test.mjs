@@ -109,3 +109,18 @@ test('GM_UNDO: a restore point taken mid-turn comes back with the mover\'s clock
   assert.ok(left > 0 && left >= full - 20000 - 1000, `the clock shows what it showed when the point was taken (${left} of ${full}), not zero`);
   assert.match(r.try('TURN_TIMEOUT', {}, 'system').message, /not yet/, 'the TV cannot time the restored turn out at once');
 });
+
+test('GM_KICK mid-run: kicking the mover ends their turn properly (next seat gets a clock and a turn note); a kicked fighter\'s fight closes', () => {
+  const r = room().join(names4); r.append('RUN_START');
+  const cur = currentPlayerId(r.state); r.append('MOVE_ROLL', {}, cur);
+  const turnIdx = r.state.turnIdx;
+  r.append('GM_KICK', { playerId: cur });
+  const next = currentPlayerId(r.state);
+  assert.notEqual(next, cur); assert.equal(r.state.moverId, next, 'moverId points at the new mover, not the empty chair');
+  assert.equal(r.state.turnIdx, turnIdx + 1, 'the kicked turn is finished, not dropped');
+  assert.ok(r.state.clocks[next]?.runningSince != null, 'the next seat\'s clock is running');
+  assert.ok(r.state.log.some(l => l.text === `${r.state.players[next].name}'s turn`), 'the next turn is announced');
+  assert.equal(r.state.moveSession, null, 'no stale move session');
+  assert.match(r.try('TURN_END', {}, cur).message, /cannot act|kicked|not your turn/i, 'the kicked seat can no longer act');
+  r.append('TURN_END', {}, next); assert.equal(r.state.turnIdx, turnIdx + 2);
+});

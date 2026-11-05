@@ -4,6 +4,7 @@ import { initialState, newPlayer, note } from '../state.js';
 import { pauseAll, resumeAll } from '../clock.js';
 import { checkOverrides } from '../balance.js';
 import { rig } from '../rng.js';
+import { seatHooks } from '../hooks.js';
 
 const MAX_NAME = 18;
 export const cleanName = (s) => String(s || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim().slice(0, MAX_NAME);
@@ -56,6 +57,8 @@ register({
   PLAYER_READY(state, ev, ctx) { const p = requirePlayer(state, ctx.payload.playerId); if (!ctx.isGm && ctx.actor !== p.id) refuse('not your seat', 'forbidden'); requirePhase(state, 'lobby', 'creation'); p.ready = ctx.payload.ready !== false; },
   GM_KICK(state, ev, ctx) {
     requireGm(ctx); const p = requirePlayer(state, ctx.payload.playerId);
+    // Mid-run: close whatever the seat was in the middle of (its turn, a fight, a challenge) while it still has a seat.
+    for (const h of seatHooks.beforeKick) h(state, ctx, p);
     p.kicked = true; p.connected = false; p.ready = false;
     state.seats = state.seats.filter(id => id !== p.id);
     delete state.held[p.id];
