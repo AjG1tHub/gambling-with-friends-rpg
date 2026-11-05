@@ -16,6 +16,7 @@ const rowToOwner = (o) => o && ({ id: o.id, claimCode: o.claim_code, deviceIds: 
 const must = ({ data, error }) => { if (error) throw new Error(error.message || String(error)); return data; };
 
 export function createSupabaseBackend({ url, key, client = null } = {}) {
+  const reconnectListeners = new Set(), disconnectListeners = new Set();
   const sb = client || createClient(url, key, { auth: { persistSession: false }, realtime: { params: { eventsPerSecond: 20 } } });
   const identity = typeof localStorage !== 'undefined' ? loadIdentity() : { deviceId: uuid() };
   const api = {
@@ -37,9 +38,20 @@ export function createSupabaseBackend({ url, key, client = null } = {}) {
       return out;
     },
     subscribe(roomId, onEvent) {
-      const ch = sb.channel(`room:${roomId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events', filter: `room_id=eq.${roomId}` }, (m) => onEvent(rowToEvent(m.new))).subscribe();
+      // Realtime rejoins the channel by itself after a dropped socket, but rows inserted meanwhile are never replayed:
+      // a second SUBSCRIBED is reported as a reconnect so the room session back-fills (room.js onReconnect), and an
+      // error / time-out as a disconnect so the UI can say so (packages/ui/client.js). Not verified against a live
+      // project from the QA box; the ws backend has the same hooks and is gated.
+      let joined = 0;
+      const ch = sb.channel(`room:${roomId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events', filter: `room_id=eq.${roomId}` }, (m) => onEvent(rowToEvent(m.new)))
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') { if (joined++ > 0) for (const fn of reconnectListeners) { try { fn(); } catch { /* ignore */ } } }
+          else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') { if (joined > 0) for (const fn of disconnectListeners) { try { fn(); } catch { /* ignore */ } } }
+        });
       return () => { sb.removeChannel(ch); };
     },
+    onReconnect(fn) { reconnectListeners.add(fn); return () => reconnectListeners.delete(fn); },
+    onDisconnect(fn) { disconnectListeners.add(fn); return () => disconnectListeners.delete(fn); },
     async saveSnapshot(roomId, seq, state) { must(await sb.rpc('save_snapshot', { p_room_id: roomId, p_seq: seq, p_state: state })); },
     // Presence through a Realtime presence channel keyed by player id; onSync gets { playerId: lastSeenTs }.
     presence(roomId, meta, onSync) {
