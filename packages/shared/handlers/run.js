@@ -106,6 +106,7 @@ register({
     const c = state.clocks[pid]; if (!c || c.runningSince == null) return;
     if (c.bankMs - (ctx.now - c.runningSince) > ctx.B('clock').timeoutSlackMs) refuse('clock not yet at zero', 'early');
     note(state, `${state.players[pid].name} ran out of time`, 'turn', ctx.now);
+    (state.toasts ||= []).push({ id: ev.id, to: pid, text: 'Your clock ran out: the turn passed. Unused time banks, so a quick turn buys a slow one.', ts: ctx.now });   // the phone shows toasts addressed to it
     endTurn(state, ctx, 'timeout');
   },
   CLOCK_TICK() { /* a no-op event the TV may append to force clients to re-render clocks; kept for logs */ },

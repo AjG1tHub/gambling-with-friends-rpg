@@ -9,6 +9,7 @@ import { shortId } from '../../packages/shared/ids.js';
 import { currentPlayerId, characterOf } from '../../packages/shared/state.js';
 import { shouldReclaimSeat } from '../../packages/shared/handlers/lobby.js';
 import { remainingMs } from '../../packages/shared/clock.js';
+import { group } from '../../packages/shared/balance.js';
 import { tabPlay } from './screens/play.js';
 import { tabCage } from './screens/cage.js';
 import { tabSelf } from './screens/self.js';
@@ -128,7 +129,17 @@ function view(state, session) {
   render(app, h('div', { class: 'shell', style: { gridTemplateRows: rows } }, banner, top, coach, screen, tabs), qa);
   const tab = TABS.find(t => t[0] === ctx.tab) || TABS[0];
   try { tab[2]({ state, session, me, c, myTurn, ctx, h, dispatch, screen, rerender }); } catch (e) { console.error(e); screen.append(h('p', { class: 'log error' }, e.message)); }
-  stopTicker?.(); stopTicker = ticker((now) => { if (state.phase === 'playing') clock.textContent = fmtTime(remainingMs(session.state, currentPlayerId(session.state), now)); });
+  // The clock: on your own turn it turns red with warningSeconds left and buzzes once (the TV plays the warning sound;
+  // the phone in your hand should say so too).
+  let warned = false;
+  stopTicker?.(); stopTicker = ticker((now) => {
+    if (state.phase !== 'playing') return;
+    const s = session.state, cur = currentPlayerId(s), left = remainingMs(s, cur, now);
+    clock.textContent = fmtTime(left);
+    const mine = cur === ctx.me, low = mine && left <= (group(s, 'clock').warningSeconds || 15) * 1000;
+    clock.classList.toggle('low', low);
+    if (low && !warned) { warned = true; buzz([200, 80, 200]); } else if (!low) warned = false;
+  });
   // GM whispers / broadcasts
   const seen = ctx.seenToasts ||= new Set();
   // A "📖 Title: text" broadcast is a rule card in the coach slot (coach.js), not a five-second toast.

@@ -6,6 +6,7 @@ body.phone { font-size: 17px; overscroll-behavior: none; }
 .top { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; background: var(--velvet-2); position: sticky; top: 0; z-index: 5; }
 .top .who { flex: 1; min-width: 0; } .top .who .name { font-family: var(--font-display); letter-spacing: .08em; color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top .clock { font-family: var(--font-display); font-size: 1.4rem; color: var(--amber); }
+.top .clock.low { color: #ff5a5a; animation: clock-low 1s steps(2) infinite; } @keyframes clock-low { 50% { opacity: .35; } }
 .top .turn-tag { font-family: var(--font-display); font-size: .7rem; letter-spacing: .2em; color: var(--gold); }
 .screen { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .tabs { display: grid; grid-template-columns: repeat(6, 1fr); border-top: 1px solid var(--line); background: var(--velvet-2); padding-bottom: env(safe-area-inset-bottom); position: sticky; bottom: 0; z-index: 5; }

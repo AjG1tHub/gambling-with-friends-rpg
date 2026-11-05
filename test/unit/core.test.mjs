@@ -74,6 +74,7 @@ test('turns: order is derived from turnIdx, held seats are skipped, clocks bank 
   // timeout only at zero
   const cur = currentPlayerId(r.state); assert.match(r.try('TURN_TIMEOUT', {}, 'system').message, /not yet/);
   r.tick(remainingMs(r.state, cur, r.now()) + 1); r.append('TURN_TIMEOUT', {}, 'system'); assert.notEqual(currentPlayerId(r.state), cur);
+  assert.ok(r.state.toasts.some(x => x.to === cur && /clock ran out/.test(x.text)), 'the timed-out phone is told so (a toast addressed to that seat)');
   // four turns = one round
   for (let i = 0; i < 2; i++) r.append('TURN_END', {}, currentPlayerId(r.state));
   assert.equal(r.state.round, 2);
