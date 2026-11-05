@@ -228,3 +228,6 @@
 .lever-odds .yours { color: var(--bone); } .lever-odds tr.changed td.yours, .lever-odds th.yours { color: var(--gold-2); font-weight: 700; }
 /* The waiting screen's order line (coach.js turnOrderLine): why it is not your turn. */
 .hero.wait .order-line { color: var(--bone); font-size: .95rem; padding: 8px 12px; border: 1px dashed var(--gold-dim); border-radius: var(--radius); background: var(--velvet-3); }
+/* Side bets (spectators and bystanders): a compact panel under the waiting screen. */
+.sidebet { border-left: 3px solid var(--gold-dim); }
+.sidebet .chips { margin: 6px 0; }

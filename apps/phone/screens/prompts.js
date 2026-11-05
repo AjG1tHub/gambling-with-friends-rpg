@@ -170,7 +170,7 @@ export function waitingScreen(api, pid) {
     order ? h('p', { class: 'order-line' }, order) : null,
     c?.dead ? h('p', { class: 'bad' }, `You are dead. ${c.missTurns || 0} turn${c.missTurns === 1 ? '' : 's'} to wake at the Graveyard.`) : null,
     here ? h('p', { class: 'muted' }, `You stand on ${tileGlyph(here.type)} ${tileLabel(here.type)} in ${state.map.regions?.[here.regionId]?.name || ''}.`) : null,
-    h('p', { class: 'muted ital' }, 'Your phone buzzes on your turn.'),
+    h('p', { class: 'muted ital' }, state.players[me]?.spectator ? 'You are watching; no seat, no turns.' : 'Your phone buzzes on your turn.'),
     h('div', { class: 'log small' }, state.log.slice(-4).map(l => h('div', { class: l.kind }, l.text))));
 }
 export { hexDistance };

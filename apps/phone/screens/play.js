@@ -17,6 +17,7 @@ import { hexMini } from '../../../packages/ui/hexmini.js';
 import { creationScreen } from './creation.js';
 import { fightScreen, attackMenu, classActiveRow } from './fight.js';
 import { challengeScreen, challengeBanner } from './challenge.js';
+import { sideBetPanel } from './sidebet.js';
 import { renderPrompt, hatchingScreen, areaWindow, waitingScreen, sect, why, amountPicker, itemRow, nameOf, gridItems, weapons, consumables, playHooks, redraw } from './prompts.js';
 
 const B = (state) => ({ B: (g) => group(state, g), now: Date.now(), payload: {}, actor: 'phone', isGm: false });
@@ -36,7 +37,7 @@ function route(api) {
   if (state.phase === 'ended') return endedScreen(api);
   const pid = currentPlayerId(state);
   const banner = state.challenge && !state.challenge.done ? null : challengeBanner(api); if (banner) screen.append(banner);
-  if (player.spectator) { screen.append(waitingScreen(api, pid), h('p', { class: 'muted center ital' }, 'You are watching the table.')); return; }
+  if (player.spectator) { screen.append(waitingScreen(api, pid)); const sb = sideBetPanel(api); if (sb) screen.append(sb); else screen.append(h('p', { class: 'muted center ital' }, 'You are watching the table.')); return; }
   if (!c) { screen.append(h('div', { class: 'hero' }, h('h2', {}, 'No character'), h('p', { class: 'muted' }, 'The run started without you; the GM can seat you from the console.'))); return; }
   if (state.gm?.paused) screen.append(h('div', { class: 'ch-banner draw' }, h('b', {}, 'Paused'), h('span', { class: 'meta' }, 'The GM froze every clock.')));
   // A challenge you are in comes first: a defender who has not yet picked a starting pet must still be able to answer a Wager or Duel (QA, 3 Nov).
@@ -49,7 +50,7 @@ function route(api) {
   if (pr && (pr.playerId === me || (pr.kind === 'callout' && pr.targetId === me)) && renderPrompt(api, pr)) return;
   const f = state.fight && !state.fight.done ? state.fight : null;
   if (f && (f.playerId === me || (f.playerIds || []).includes(me)) && fightScreen(api)) return;
-  if (!myTurn) return screen.append(waitingScreen(api, pid));
+  if (!myTurn) { screen.append(waitingScreen(api, pid)); const sb = sideBetPanel(api); if (sb) screen.append(sb); return; }
   if (c.dead) { screen.append(h('div', { class: 'hero' }, h('h2', {}, 'You are dead'), h('p', { class: 'muted' }, `${c.missTurns || 0} more turn${c.missTurns === 1 ? '' : 's'} before you wake at the Graveyard at half Health.`)), h('button', { class: 'primary big', onClick: () => dispatch('TURN_END', {}) }, 'Pass')); return; }
   if (state.turnPhase === 'move') return movementScreen(api);
   if (state.turnPhase === 'resolve') { screen.append(h('div', { class: 'prompt' }, h('h3', {}, 'Resolving'), h('p', { class: 'muted ital' }, `${tileLabel(state.map?.hexes?.[c.pos]?.type || '')} is working…`), h('button', { class: 'ghost', onClick: () => dispatch('TURN_END', {}) }, 'End turn anyway'))); return; }

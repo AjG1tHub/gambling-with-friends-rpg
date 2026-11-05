@@ -61,6 +61,14 @@ const itemName = (state, id, attackerId) => { const c = state.characters[attacke
 const gameName = (gameId) => gameMeta(gameId).name;
 
 // ── the rail's fight panel ──────────────────────────────────────────
+// Side bets riding on a fight or challenge, for the TV panel: "Side bets · 6 on Marrow · 3 on the Croupier".
+export function ridingLine(state, refId) {
+  const open = (state.sideBets || []).filter(b => !b.settled && b.refId === refId); if (!open.length) return null;
+  const by = {}; for (const b of open) by[b.onId] = (by[b.onId] || 0) + b.amount;
+  const name = (id) => state.monsters?.[id]?.name || nameOf(state, id);
+  return `Side bets · ${Object.entries(by).map(([id, n]) => `${n} on ${name(id)}`).join(' · ')}`;
+}
+
 export function fightPanel(state, { now = Date.now() } = {}) {
   const f = state.fight; if (!f || f.kind === 'solo' && !f.game && !f.lastGame) return null;
   const m = state.monsters[f.monsterId] || null;
@@ -94,6 +102,7 @@ export function fightPanel(state, { now = Date.now() } = {}) {
   else panel.append(h('div', { class: 'small muted ital' }, `${pc?.name || 'The mover'} picks a weapon…`));
   if (pc) panel.append(h('div', { class: 'small ital muted tell' }, tellLine(state, pc)));
   if (f.done) panel.append(h('div', { class: 'small gold' }, f.result === 'won' ? `${m?.name || 'The monster'} is destroyed.` : f.result === 'fled' ? `${pc?.name || 'The mover'} backs away.` : f.result === 'lost' ? `${pc?.name || 'The mover'} falls.` : 'The fight is over.'));
+  { const r = ridingLine(state, f.id); if (r) panel.append(h('div', { class: 'small muted riding' }, r)); }
   return panel;
 }
 
@@ -250,6 +259,7 @@ export function challengePanel(state, { now = Date.now() } = {}) {
     if (ch.done) panel.append(h('div', { class: 'result hit' }, ch.winnerId ? `${nameOf(state, ch.winnerId)} WINS${ch.flawless ? ' · FLAWLESS' : ''}` : 'DRAW · BOTH TAKE 10'));
   }
   if (ch.series) panel.append(h('div', { class: 'small muted' }, `best of ${ch.series.target * 2 - 1} · round ${ch.series.round}`));
+  { const r = ridingLine(state, ch.id); if (r) panel.append(h('div', { class: 'small muted riding' }, r)); }
   return panel;
 }
 
