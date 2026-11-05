@@ -95,12 +95,14 @@ export function characterZero(state, ctx, c, info) {
   note(state, `${c.name} falls to ${nameOf(state, info.attackerId, info.attackerKind)}`, 'death', ctx.now);
   return zi;
 }
-function dealDamage(state, ctx, info, dmg) {
+// `onHit` runs once the damage figure is known and before a kill is processed, so the log reads "X hits Y" and then
+// "Y is destroyed", not the other way round (seen on the TV, 4 Nov).
+function dealDamage(state, ctx, info, dmg, onHit = null) {
   if (dmg <= 0) return 0;
   if (info.targetKind === 'monster') {
     const m = state.monsters[info.targetId]; if (!m) refuse('no such monster');
     const moved = -monsterHealth(state, m, -dmg, `${info.item?.name || info.gameId} hit`, ctx);
-    info.damage = moved;
+    info.damage = moved; onHit?.();
     if (m.health <= 0 && !m.dead) monsterDied(state, ctx, m, info.attackerId);
     return moved;
   }
@@ -108,10 +110,10 @@ function dealDamage(state, ctx, info, dmg) {
   for (const h of petHooks.beforeCharacterHit) h(state, ctx, info);
   if (info.redirectToPet) {
     const pet = (c.pets || []).find(p => p.id === info.redirectToPet);
-    if (pet) { const moved = -money.power(state, pet, -dmg, `${info.item?.name || info.gameId} hit (pet)`, ctx); info.damage = moved; info.petHit = pet.id; if (pet.power <= 0) pet.fainted = true; return moved; }
+    if (pet) { const moved = -money.power(state, pet, -dmg, `${info.item?.name || info.gameId} hit (pet)`, ctx); info.damage = moved; info.petHit = pet.id; onHit?.(); if (pet.power <= 0) pet.fainted = true; return moved; }
   }
   const moved = -money.health(state, c, -dmg, `${info.item?.name || info.gameId} hit by ${nameOf(state, info.attackerId, info.attackerKind)}`, ctx);
-  info.damage = dmg; info.healthLost = moved;
+  info.damage = dmg; info.healthLost = moved; onHit?.();
   const ts = statsOf(state, c.id); if (ts) ts.damageTaken += dmg;
   if (c.health <= 0) characterZero(state, ctx, c, info);
   return dmg;
@@ -148,11 +150,10 @@ export function resolveHit(state, ctx, { attackerId, attackerKind = 'character',
     return info;
   }
   if (won) {
-    dealDamage(state, ctx, info, payout);
+    dealDamage(state, ctx, info, payout, () => note(state, `${who} hits ${nameOf(state, targetId, targetKind)} with ${item?.name || info.gameId}: ${label} — ${info.petHit ? 'the pet takes ' : ''}${info.damage}${info.crit ? ' CRIT' : ''}`, 'fight', ctx.now));
     const s = attackerKind === 'character' ? statsOf(state, attackerId) : null;
     if (s) { s.hits += 1; if (info.crit) s.crits += 1; s.damageDealt += info.damage || 0; }
     if (attackerKind === 'character') { const c = state.characters[attackerId]; if (c) c.streak = (c.streak || 0) + 1; xp(state, ctx, attackerId, ctx.B('xp').hit + (info.crit ? ctx.B('xp').crit : 0), info.crit ? 'crit' : 'hit'); }
-    note(state, `${who} hits ${nameOf(state, targetId, targetKind)} with ${item?.name || info.gameId}: ${label} — ${info.petHit ? 'the pet takes ' : ''}${info.damage}${info.crit ? ' CRIT' : ''}`, 'fight', ctx.now);
     for (const h of damageHooks.afterHit) h(state, ctx, info);
   } else if (lost) {
     info.loss = info.lost = r0(info.lost * info.lossMult);

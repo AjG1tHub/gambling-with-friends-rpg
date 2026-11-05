@@ -40,8 +40,8 @@ export async function playRoundButtons(ph) {
 }
 // Play the mover's turn from their phone by clicking the real screens until the turn ends (or a challenge /
 // the end of the run takes over). Monster hexes are avoided unless asked for.
-export async function playTurn(ph, { label = 'turn', timeoutMs = 60000, avoidMonsters = true } = {}) {
-  const t0 = Date.now(); let idle = 0, last = null;
+export async function playTurn(ph, { label = 'turn', timeoutMs = 60000, avoidMonsters = true, attacks = 0 } = {}) {
+  const t0 = Date.now(); let idle = 0, last = null, swung = 0;
   while (Date.now() - t0 < timeoutMs) {
     const v = last = await turnView(ph);
     if (v.phase !== 'playing') return v;
@@ -52,6 +52,8 @@ export async function playTurn(ph, { label = 'turn', timeoutMs = 60000, avoidMon
     if (v.fight && v.fight.playerId === v.me) {
       if (v.fight.turn === 'monster') { await sleep(300); continue; }
       if (v.fight.game) { await playRoundButtons(ph); await sleep(300); continue; }
+      // Swing a weapon up to `attacks` times per turn (the real fight screen: tap an item row, then the minigame), then back away.
+      if (swung < attacks) { const w = ph.locator('.ph-sect button.item-row:not([disabled])').first(); if (await w.count()) { await w.click(); swung++; console.log(`  · ${label}: attacks`); await sleep(400); continue; } }
       const back = ph.locator('button:has-text("Back away")').first();
       if (await back.isEnabled().catch(() => false)) await back.click(); else await clickWhen(ph, 'button:has-text("End turn")');
       await sleep(300); continue;

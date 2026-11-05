@@ -297,3 +297,16 @@ test('resolveHit directly: a monster attacker pays its own misses from its Healt
   finally { damageHooks.incoming.splice(damageHooks.incoming.indexOf(cancel), 1); }
   assert.throws(() => resolveHit(st, ctx, { attackerId: 'm1', attackerKind: 'monster', targetId: c.id, targetKind: 'character', item: m.items[0], stake: 10, mult: 'x' }));
 });
+
+test('resolveHit: the "X hits Y" line is logged before the kill it causes (TV log read backwards, 4 Nov)', () => {
+  const r = playingRoom(); const st = r.state, c = r.char(0); const m = mkMonster({ id: 'm9', items: [makeItem(st, { gameId: 'fifty' })] }); st.monsters.m9 = m;
+  m.health = 1; const w = makeItem(st, { gameId: 'fifty' }); c.items[w.id] = w;
+  const ctx = { now: r.now(), B: (g) => B[g], isGm: true, actor: 'tv', payload: {} };
+  const n0 = st.log.length;
+  const hit = resolveHit(st, ctx, { attackerId: c.id, attackerKind: 'character', targetId: 'm9', targetKind: 'monster', item: w, stake: 10, mult: 2, label: 'WIN' });
+  assert.ok(hit.damage > 0 && m.dead, 'precondition: the hit killed the monster');
+  const lines = st.log.slice(n0).map(l => l.text);
+  const iHit = lines.findIndex(l => /hits .* with/.test(l)), iDead = lines.findIndex(l => /destroyed|is dead|dies/.test(l));
+  assert.ok(iHit >= 0 && iDead >= 0, lines.join(' | '));
+  assert.ok(iHit < iDead, `hit line (${iHit}) must come before the kill line (${iDead}): ${lines.join(' | ')}`);
+});
