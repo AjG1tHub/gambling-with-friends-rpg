@@ -25,6 +25,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run test:browser
+      - run: node test/browser/qa.mjs
       - run: node test/browser/lab.mjs
       - run: node test/browser/tutorial.mjs
       - run: node test/browser/small-phone.mjs
