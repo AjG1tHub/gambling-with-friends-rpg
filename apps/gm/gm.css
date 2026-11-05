@@ -1,7 +1,8 @@
 /* GM console: dense, two columns, works on a tablet. */
 body.gm { font-size: 15px; }
 .boot { display: grid; place-items: center; min-height: 100vh; text-align: center; padding: 24px; gap: 10px; }
-.gm-shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.gm-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }   /* minmax(0,…): a wide table scrolls inside its panel instead of widening the page */
+.gm-main > * { min-width: 0; } .gm-main .panel { min-width: 0; overflow-x: auto; } .gm-main table.gm { max-width: 100%; }
 .gm-nav { border-right: 1px solid var(--line); background: var(--velvet-2); padding: 16px 10px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .gm-nav h1 { font-size: .95rem; padding: 0 8px 10px; } .gm-nav .code { font-family: var(--font-display); letter-spacing: .3em; color: var(--gold-2); font-size: 1.3rem; padding: 0 8px 8px; }
 .gm-nav button { justify-content: flex-start; min-height: 44px; border-color: transparent; background: transparent; font-size: .75rem; }
