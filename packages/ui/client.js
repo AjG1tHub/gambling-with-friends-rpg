@@ -34,8 +34,12 @@ export async function attach({ backend, roomId, code, role, view, onEvent, creat
   const offline = () => banner('Connection lost — the game goes on without you until you are back', 'bad');
   const online = () => { banner(''); session.refresh().catch(() => {}); };
   window.addEventListener('offline', offline); window.addEventListener('online', online);
+  // The socket itself can drop while the browser still thinks it is online (wifi hiccup, the dev server restarting,
+  // a sleeping tab): say so the same way, and clear it when the socket is back (the room back-fills on its own).
+  const unDrop = backend.onDisconnect?.(() => { if (navigator.onLine !== false) banner('Connection lost — reconnecting…', 'bad'); });
+  const unBack = backend.onReconnect?.(() => { if (navigator.onLine !== false) banner(''); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') session.refresh().catch(() => {}); });
-  const close = () => { leave?.(); session.close(); window.removeEventListener('offline', offline); window.removeEventListener('online', online); };
+  const close = () => { leave?.(); unDrop?.(); unBack?.(); session.close(); window.removeEventListener('offline', offline); window.removeEventListener('online', online); };
   return { session, close, setPresence };
 }
 

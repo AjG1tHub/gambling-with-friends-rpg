@@ -95,3 +95,12 @@ test('shouldReclaimSeat: only a seat proxied for silence, and PLAYER_RECONNECT c
   assert.equal(shouldReclaimSeat(r.state, pid), false);
   assert.equal(shouldReclaimSeat(r.state, 'nobody'), false);
 });
+
+// 5. The GM nav's TV pill.
+import { tvStatus } from '../../packages/ui/presence.js';
+test('tvStatus: no TV, live, dropped', () => {
+  const now = 1_800_000_300_000;
+  assert.deepEqual(tvStatus(0, now), { cls: 'bad', text: 'No TV' });
+  assert.deepEqual(tvStatus(now - 4000, now), { cls: 'ok', text: 'TV live' });
+  assert.deepEqual(tvStatus(now - 60000, now), { cls: 'bad', text: 'TV dropped 60s ago' });
+});

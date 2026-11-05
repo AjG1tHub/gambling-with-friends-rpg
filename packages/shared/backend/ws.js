@@ -12,7 +12,7 @@ function identityFromStorage() {
 export function createWsBackend({ url, WebSocketImpl = globalThis.WebSocket } = {}) {
   const identity = typeof localStorage !== 'undefined' ? identityFromStorage() : { deviceId: uuid() };
   let ws = null, ready = null, seq = 0, backoff = 300, opened = 0;
-  const pending = new Map(), listeners = new Map(), presenceListeners = new Map(), subscribed = new Set(), reconnectListeners = new Set();
+  const pending = new Map(), listeners = new Map(), presenceListeners = new Map(), subscribed = new Set(), reconnectListeners = new Set(), disconnectListeners = new Set();
   function connect() {
     ready = new Promise((ok, fail) => {
       ws = new WebSocketImpl(url);
@@ -23,7 +23,7 @@ export function createWsBackend({ url, WebSocketImpl = globalThis.WebSocket } = 
         if (msg.event) for (const fn of listeners.get(msg.roomId) || []) fn(msg.event);
         if (msg.presence) for (const fn of presenceListeners.get(msg.roomId) || []) fn(msg.presence);
       };
-      ws.onclose = () => { for (const { rej } of pending.values()) rej(new Error('socket closed')); pending.clear(); setTimeout(connect, backoff); backoff = Math.min(5000, backoff * 2); };
+      ws.onclose = () => { for (const { rej } of pending.values()) rej(new Error('socket closed')); pending.clear(); if (opened > 0 && backoff === 300) for (const fn of disconnectListeners) { try { fn(); } catch { /* ignore */ } } setTimeout(connect, backoff); backoff = Math.min(5000, backoff * 2); };
       ws.onerror = () => { fail(new Error('socket error')); };
     });
     ready.catch(() => {});
@@ -56,6 +56,8 @@ export function createWsBackend({ url, WebSocketImpl = globalThis.WebSocket } = 
     seasons: proxyGroup('seasons', ['current', 'save']),
     // Fires after every re-open (not the first): the room session back-fills what was missed while the socket was down.
     onReconnect(fn) { reconnectListeners.add(fn); return () => reconnectListeners.delete(fn); },
+    // Fires once when an open socket drops (not on every failed retry); the UI shows a reconnecting banner.
+    onDisconnect(fn) { disconnectListeners.add(fn); return () => disconnectListeners.delete(fn); },
     close() { ws.onclose = null; ws.close(); },
   };
 }

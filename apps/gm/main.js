@@ -1,6 +1,7 @@
 // The GM console. Creates rooms (mode, tier, size, PIN), gates itself behind the room's PIN, and offers the
 // panels: Table (players, pause, start), Run (end, undo, restore points, broadcast), Config (balance.json),
 // Rig, Challenge lists, Spotlight, Ledger, Recap, Hall of Fame, Export. Panels live in ./panels/*.js.
+import { tvStatus } from '../../packages/ui/presence.js';
 import { h, render, $, qs, toast, store, lenient } from '../../packages/ui/dom.js';
 import { boot, attach, dispatchOrToast } from '../../packages/ui/client.js';
 import { roomCode, seed32, hashPin } from '../../packages/shared/ids.js';
@@ -49,7 +50,7 @@ function startScreen(error = '') {
     store.set('gwfrpg:gm:defaults', defaults);
     const balance = store.get('gwfrpg:gm:balance', null);
     try {
-      const { session } = await attach({ backend: ctx.backend, role: 'gm', view, create: { code, seed: seed32(), mode: defaults.mode, tier: defaults.tier, size: defaults.size, gmPinHash: await hashPin(pin), balance, challengePreset: defaults.preset, fogOfWar: defaults.fog, ramp: defaults.ramp, gmDeviceId: ctx.deviceId } });
+      const { session } = await attach({ backend: ctx.backend, role: 'gm', view, presence: { role: 'gm' }, create: { code, seed: seed32(), mode: defaults.mode, tier: defaults.tier, size: defaults.size, gmPinHash: await hashPin(pin), balance, challengePreset: defaults.preset, fogOfWar: defaults.fog, ramp: defaults.ramp, gmDeviceId: ctx.deviceId } });
       ctx.session = session; ctx.code = code; ctx.pinOk = true; store.set(`gwfrpg:gm:pin:${code}`, await hashPin(pin));
       history.replaceState(null, '', `?code=${code}`);
       window.__gwf = { session, ctx };
@@ -87,12 +88,13 @@ function pinGate(state, session) {
   return h('div', { class: 'boot' }, h('h1', {}, `Room ${ctx.code}`), h('div', { class: 'panel gold col', style: { minWidth: '360px' } }, h('h3', {}, 'GM PIN'), input, h('button', { class: 'primary big', onClick: go }, 'Unlock')));
 }
 
-const TV_STALE_MS = 45000;   // literal — presence pings every few seconds; a background tab pings slower
+const TV_STALE_MS = 45000;
+const tvPill = (session) => { const s = tvStatus(session.presence?.tv || 0); return h('span', { class: `pill ${s.cls} tv-pill`, title: 'Whether the table screen is open and pinging' }, s.text); };   // literal — presence pings every few seconds; a background tab pings slower
 function view(state, session) {
   if (!ctx.pinOk) return render(app, pinGate(state, session));
   const nav = h('nav', { class: 'gm-nav' }, h('h1', {}, 'GM console'), h('div', { class: 'code' }, state.code), h('div', { class: 'muted', style: { padding: '0 8px 10px' } }, `${state.mode} · tier ${state.tier} · ${state.size} · ${state.phase}${state.gm.paused ? ' · PAUSED' : ''}`),
     PANELS.map(([id, label]) => { const open = id === 'bugs' ? openBugCount(state) : 0; return h('button', { class: id === ctx.panel ? 'on' : '', onClick: () => { ctx.panel = id; view(session.state, session); } }, label, open ? h('span', { class: 'dot', title: `${open} open report${open === 1 ? '' : 's'}` }, open) : null); }),
-    h('div', { class: 'grow' }), gmReportLine({ h, gm, rerender: () => view(session.state, session) }), h('a', { href: '/', target: '_blank', class: 'btn ghost' }, 'Table screen ↗'), h('a', { href: '/lab/', target: '_blank', class: 'btn ghost' }, 'Game Lab ↗'));
+    h('div', { class: 'grow' }), gmReportLine({ h, gm, rerender: () => view(session.state, session) }), tvPill(session), h('a', { href: '/', target: '_blank', class: 'btn ghost' }, 'Table screen ↗'), h('a', { href: '/lab/', target: '_blank', class: 'btn ghost' }, 'Game Lab ↗'));
   const main = lenient(h('main', { class: 'gm-main' }));
   if (state.lastError && Date.now() - state.lastError.ts < 15000) main.append(h('div', { class: 'err-box' }, `${state.lastError.type} by ${state.lastError.actor}: ${state.lastError.message}`));
   // The TV is the table's hands: with no TV online, monsters never act, clocks never time out, challenge caps never
