@@ -40,6 +40,16 @@ try {
       ok(m.footBottom <= m.vh + 1, `${label}: the footer ends at ${m.footBottom} (screen ${m.vh})`);
       ok(m.ticks.length === 8 && m.ticks.every(t => t.in), `${label}: all ${m.ticks.length} standings visible in the footer${m.ticks.filter(t => !t.in).length ? ' — clipped: ' + m.ticks.filter(t => !t.in).map(t => t.name).join(', ') : ''}`);
     }
+    // Fog of war: no monster token is drawn in a region nobody has walked into (the final boss used to float in the dark).
+    const fog = await page.evaluate(() => {
+      const s = window.__gwf.session.state, map = s.map; if (s.gm?.fogOfWar === false) return { on: false };
+      const occupied = new Set(Object.values(s.characters).filter(c => c.pos && !c.dead).map(c => map.hexes[c.pos]?.regionId));
+      const shown = (r) => !!(map.revealed?.[r] || map.regions[r]?.revealed) || occupied.has(r);
+      const stray = [...document.querySelectorAll('.hm-monster')].map(g => s.monsters[g.dataset.id]).filter(m => m && !shown(map.hexes[m.pos]?.regionId)).map(m => `${m.name}@${m.pos}`);
+      const hidden = Object.values(map.regions).filter(r => !shown(r.id)).length;
+      return { on: true, stray, hidden, drawn: document.querySelectorAll('.hm-monster').length };
+    });
+    if (fog.on) ok(fog.stray.length === 0, `fog: no monster token drawn in a hidden region (${fog.hidden} hidden, ${fog.drawn} tokens drawn${fog.stray.length ? '; stray: ' + fog.stray.join(', ') : ''})`);
     await page.screenshot({ path: `${shotDir}tv-layout-${w}x${h}.png` });
     // The recap after the GM ends the run: eight seats used to push both charts below the fold (a TV has no scroll wheel).
     await page.evaluate(() => window.__gwf.session.dispatch('GM_END_RUN', { reason: 'the GM called it' }, 'gm'));

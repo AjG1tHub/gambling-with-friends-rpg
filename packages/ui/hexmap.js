@@ -238,8 +238,9 @@ export function renderHexMap(svg, state, { size = 26, onHexClick = null, highlig
   const seenM = new Set();
   for (const m of Object.values(state.monsters || {})) {
     if (!m.pos || m.dead || !L.px[m.pos] || m.dummy) continue;
-    const regionRevealed = !fogOn || map.revealed?.[map.hexes[m.pos]?.regionId];
-    if (!regionRevealed && !m.final) continue;
+    // Fog: nothing of a hidden region is drawn, the final boss included (it used to float as a lone BOSS token in the
+    // dark whenever the fitted view happened to reach its hex — QA, 4 Nov). Same reveal flags as the ground layer.
+    if (rec.fogState[map.hexes[m.pos]?.regionId] === false) continue;
     seenM.add(m.id);
     const p = L.px[m.pos];
     let g = rec.monsters.get(m.id);
