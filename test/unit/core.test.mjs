@@ -97,3 +97,15 @@ test('reducer: a refused event leaves the state untouched; replay rebuilds the s
   const a = replay(events, { strict: true }), b = replay(events.slice().reverse(), { strict: true });
   assert.equal(JSON.stringify(a), JSON.stringify(b)); assert.equal(a.mode, 'pvp'); assert.equal(a.phase, 'playing');
 });
+
+test('GM_UNDO: a restore point taken mid-turn comes back with the mover\'s clock restarted from now, not ten minutes gone', () => {
+  const r = room().join(names4); r.append('RUN_START');
+  const cur = currentPlayerId(r.state); const full = remainingMs(r.state, cur, r.now());
+  r.tick(20000); r.append('GM_RESTORE_POINT', { label: 'mid-turn' });
+  r.append('TURN_END', {}, cur); r.tick(10 * 60 * 1000);
+  r.append('GM_UNDO', {});
+  assert.equal(currentPlayerId(r.state), cur, 'back to the same mover');
+  const left = remainingMs(r.state, cur, r.now());
+  assert.ok(left > 0 && left >= full - 20000 - 1000, `the clock shows what it showed when the point was taken (${left} of ${full}), not zero`);
+  assert.match(r.try('TURN_TIMEOUT', {}, 'system').message, /not yet/, 'the TV cannot time the restored turn out at once');
+});

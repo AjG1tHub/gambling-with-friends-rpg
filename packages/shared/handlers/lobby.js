@@ -121,6 +121,10 @@ register({
     const snap = structuredClone(rp.snapshot);
     for (const k of Object.keys(state)) delete state[k];
     Object.assign(state, snap, keep);
+    // The restored clocks were running when the point was taken: restart the running one from now, or a point taken
+    // ten minutes ago comes back at zero and the TV ends the restored turn at once.
+    for (const c of Object.values(state.clocks || {})) if (c && c.runningSince != null) c.runningSince = ctx.now;
+    if (state.turnStartedAt) state.turnStartedAt = ctx.now;
     note(state, `Restored "${rp.label}"`, 'gm', ctx.now);
   },
   ROOM_IMPORT(state, ev, ctx) {
