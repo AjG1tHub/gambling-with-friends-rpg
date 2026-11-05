@@ -163,3 +163,5 @@ details.drawer > summary::after { content: '▸'; margin-left: auto; } details.d
 .intercept .letters { margin-top: 8px; }
 .stat-games summary { cursor: pointer; margin-top: 3px; } .stat-games-list { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 2px; } .stat-games-list .row { align-items: baseline; gap: 6px; }
 .stat-games-list .lever-delta { font-weight: 700; padding: 0 6px; border-radius: 10px; background: #2a2622; color: var(--bone-2); min-width: 34px; text-align: center; } .stat-games-list .lever-delta.up { background: #1f3a22; color: #9fe3a8; } .stat-games-list .lever-delta.down { background: #3f1d1d; color: #f0a0a0; }
+/* Narrow phones: the hero sprite (wider once a pet stands beside it) was squeezing the name column to ~50px. */
+@media (max-width: 420px) { .self-sprite { flex: 0 1 46%; min-width: 120px; max-width: 46%; } .self-canvas { height: auto; } }

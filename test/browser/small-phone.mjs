@@ -83,6 +83,7 @@ try {
       await ph.locator('.tabs button', { hasText: label }).first().click({ force: true }); await sleep(250);
       const m = await ph.evaluate(() => { const d = document.documentElement; const top = document.querySelector('.top')?.getBoundingClientRect(); return { sw: d.scrollWidth, cw: d.clientWidth, topRight: top ? Math.round(top.right) : 0 }; });
       ok(m.sw <= m.cw && m.topRight <= m.cw, `${chars[i]} · ${label}: page ${m.sw}px in a ${m.cw}px screen, header ends at ${m.topRight}`);
+      if (label === 'Self') { const idW = await ph.evaluate(() => Math.round(document.querySelector('.self-id')?.getBoundingClientRect().width || 0)); ok(idW >= 150, `${chars[i]} · Self: the name/level/Health column is ${idW}px wide (≥ 150 of 360; the sprite used to squeeze it to ~50px)`); }
       if (i === 0) { await ph.evaluate(() => window.scrollTo(0, 0)); await shot(ph, `${label.toLowerCase()}`); }
     }
     await ph.locator('.tabs button', { hasText: 'Play' }).first().click({ force: true });
