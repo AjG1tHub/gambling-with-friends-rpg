@@ -454,7 +454,10 @@ try {
     const next = await nextTurn('the turn before the dead seat');
     ok(next.mover !== victim, `${nameOfSeat[next.mover]} is up: the dead ${dc.name} was skipped`);
     const st3 = await stateOf(tv);
-    ok(st3.log.some(l => /lies in the Graveyard/.test(l.text)), 'the log says the character lies in the Graveyard');
+    // A seat still under a one-slot hold from step 4's challenge is skipped by the hold itself (currentPlayerId), not by
+    // the Graveyard hook, so the Graveyard line only appears when no hold was pending: the flake seen on 3 Nov.
+    const heldAtDeath = !!st2.held?.[victim];
+    ok(heldAtDeath || st3.log.some(l => /lies in the Graveyard/.test(l.text)), heldAtDeath ? `${dc.name}'s slot was skipped by a pending challenge hold (no Graveyard line expected)` : 'the log says the character lies in the Graveyard');
     ok(charOf(st3, victim).missTurns === 0 && charOf(st3, victim).dead, 'the missed turn is spent; they wake on their next slot');
   });
 

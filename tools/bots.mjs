@@ -73,7 +73,7 @@ export function runGame({ bots = 4, mode = 'ffa', tier = 1, size = 'regular', se
     deaths: chars.reduce((n, c) => n + (c.deaths || 0), 0), kills: chars.reduce((n, c) => n + (c.kills || 0), 0),
     monstersDead: Object.values(state.monsters).filter(m => m.dead).length, monstersTotal: Object.keys(state.monsters).length,
     items: chars.map(c => Object.keys(c.items || {}).length), levels: chars.map(c => c.level), stalls, stallWitness, counts, refusals, curve: curve.slice(0, 60),
-    legendaries: state.legendariesDropped || 0, challenges: state.challengeHistory?.length || 0, letters: state.letters.length,
+    legendaries: state.legendariesDropped || 0, challenges: Object.values(state.challengeHistory || {}).reduce((s, a) => s + a.length, 0),   // pair → entries played; it used to read .length of an object (always 0) letters: state.letters.length,
     ...(keepState ? { state } : {}),
   };
 }
