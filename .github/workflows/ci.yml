@@ -32,6 +32,7 @@ jobs:
       - run: node test/browser/reconnect.mjs
       - run: node test/browser/offline.mjs
       - run: node test/browser/sidebet.mjs
+      - run: node test/browser/modes.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: browser-shots, path: test/shots, if-no-files-found: ignore }

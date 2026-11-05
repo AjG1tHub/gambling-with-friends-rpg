@@ -46,12 +46,12 @@ export async function openTable() {
 export async function closeTable() { await browser?.close(); server?.close(); dev?.close?.(); }
 
 // A fresh room: GM, TV, three phones, creation done, run started, nobody has moved.
-export async function newRoom(tag) {
+export async function newRoom(tag, { mode = 'ffa', classes = ['Whale', 'Whale', 'Whale'], onDialog = null } = {}) {
   const gmCtx = await browser.newContext({ viewport: { width: 1600, height: 900 } }); gmCtx.setDefaultTimeout(15000);
-  const gm = await gmCtx.newPage(); watch(gm, tag + ' gm');
+  const gm = await gmCtx.newPage(); watch(gm, tag + ' gm'); gm.on('dialog', d => { onDialog?.(d.message()); d.accept(); });
   const tvCtx = await browser.newContext({ viewport: { width: 1920, height: 1080 } }); tvCtx.setDefaultTimeout(15000);   // its own context: the TV can go offline without the GM
   const tv = await tvCtx.newPage(); watch(tv, tag + ' tv');
-  await gm.goto(`${url}/gm/?${Q}`); await gm.fill('input[type=password]', '4242'); await gm.uncheck('input[name=ramp]').catch(() => {});
+  await gm.goto(`${url}/gm/?${Q}`); await gm.fill('input[type=password]', '4242'); await gm.uncheck('input[name=ramp]').catch(() => {}); if (mode !== 'ffa') await gm.locator('select').nth(0).selectOption(mode);
   await gm.click('button:has-text("Create room")'); await waitFor(gm, () => !!window.__gwf?.session, `${tag}: room created`);
   const code = await gm.evaluate(() => window.__gwf.session.code);
   await tv.setViewportSize({ width: 1920, height: 1080 }); await tv.goto(`${url}/?code=${code}&${Q}`); await waitFor(tv, () => !!window.__gwf?.session, 'TV opened');
@@ -65,7 +65,7 @@ export async function newRoom(tag) {
   await gm.click('button:has-text("Open character creation")'); await waitFor(tv, () => window.__gwf.session.state.phase === 'creation', 'creation open');
   for (let i = 0; i < 3; i++) {
     const ph = phones[i]; await ph.fill('input[placeholder="Character name"]', names[i] + ' the Bold'); await ph.click('button:has-text("That is me")');
-    await ph.locator('button.class-card', { hasText: 'Whale' }).first().click();
+    await ph.locator('button.class-card', { hasText: classes[i] }).first().click();
     await ph.getByRole('button', { name: /^Lock in( with .*)? →$/ }).first().click(); await ph.getByRole('button', { name: '🔒 Lock in' }).first().click();
     await waitFor(ph, () => !!Object.values(window.__gwf.session.state.characters).find(x => x.playerId === window.__gwf.ctx.me)?.locked);
     if (!(await ph.evaluate(() => window.__gwf.session.state.players[window.__gwf.ctx.me].ready))) await ph.click('button:has-text("Tap when ready")');

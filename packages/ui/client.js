@@ -13,6 +13,7 @@ export async function boot({ kind, ...opts } = {}) {
 }
 
 // Open (or create) a room and wire rendering. `view(state, session)` is called on every change and once at start.
+const PRESENCE_RENDER_MS = 10000;
 export async function attach({ backend, roomId, code, role, view, onEvent, create = null, presence = null }) {
   let session;
   const onError = (e) => { if (e?.code && e.code !== 'error') return; console.error(e); };
@@ -27,7 +28,16 @@ export async function attach({ backend, roomId, code, role, view, onEvent, creat
   // Only the GM console draws presence ("seen 5s ago"); the TV reads it from a ticker and the phone never shows it.
   // Every client pings every 5 s and the backend fans the map out to everyone, so re-rendering a phone on each ping
   // rebuilt its whole screen about once a second: the name field lost focus mid-word and the screen jumped to the top.
-  const onPresence = (map) => { Object.assign(session.presence, map); if (role !== 'gm') return; try { view(session.state, session, null); } catch { /* ignore */ } };
+  // The GM console does re-render on presence, but at most every 10 s and never while the GM is typing or mid-click
+  // (five clients pinging every 5 s would otherwise rebuild the console about once a second: focus lost in the Teach
+  // box, a Kick button replaced under the pointer).
+  let presenceRender = null, lastPresenceRender = 0;
+  const onPresence = (map) => {
+    Object.assign(session.presence, map); if (role !== 'gm') return;
+    const paint = () => { presenceRender = null; const a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) { presenceRender = setTimeout(paint, 3000); return; } lastPresenceRender = Date.now(); try { view(session.state, session, null); } catch { /* ignore */ } };
+    if (presenceRender) return;
+    presenceRender = setTimeout(paint, Math.max(0, PRESENCE_RENDER_MS - (Date.now() - lastPresenceRender)));
+  };
   if (presence && backend.presence) leave = backend.presence(session.roomId, presence, onPresence);
   // A phone that takes a seat after attaching re-registers under its player id, or the TV proxies it for silence.
   const setPresence = (meta) => { if (!backend.presence) return; leave?.(); leave = backend.presence(session.roomId, meta, onPresence); };

@@ -14,10 +14,10 @@ try {
   // The GM that created the room pings presence like everyone else: the TV knows a GM is online (it must not
   // decide challenges or hand seats to autopilot as if there were none) and the GM nav's pill knows the TV is up.
   await waitFor(R.tv, () => (window.__gwf.session.presence.gm || 0) > Date.now() - 15000, 'the TV sees the GM console online');
-  await waitFor(R.gm, () => document.querySelector('.tv-pill')?.textContent === 'TV live', 'the GM nav pill says "TV live"', undefined, 12000);
+  await waitFor(R.gm, () => document.querySelector('.tv-pill')?.textContent === 'TV live', 'the GM nav pill says "TV live"', undefined, 25000);
   ok((await R.gm.locator('.tv-warn').count()) === 0, 'no "no TV connected" warning on the GM console while the TV is up');
   let st = await stateOf(R.tv);
-  const order = st.seats, mi = R.ids.indexOf(st.moverId), bi = (mi + 1) % 3;
+  const order = st.seats, mi = R.ids.indexOf(st.moverId), bi = R.ids.indexOf(order[(order.indexOf(st.moverId) + 1) % order.length]);   // the seat after the mover in table order
   const mover = R.phones[mi], away = R.phones[bi], awayId = R.ids[bi], awayName = R.names[bi];
   ok(order.includes(awayId), `${awayName} is next after ${R.names[mi]}`);
   // Everyone has pinged at least once so the TV has a "seen" time for the seat that is about to go quiet.
@@ -70,7 +70,7 @@ try {
   await waitFor(R.tv, (n) => window.__gwf.session.lastSeq >= n, 'the TV caught up to the GM console (every missed event back-filled)', gmSeq, 20000);
   const [a, b] = [await stateOf(R.tv), await stateOf(R.gm)];
   await waitFor(R.tv, () => !/Connection lost/.test(document.body.innerText), 'the TV banner cleared', undefined, 8000);
-  await waitFor(R.gm, () => document.querySelector('.tv-pill')?.textContent === 'TV live', 'the GM console\'s TV pill says "TV live" once the TV pings again', undefined, 12000);
+  await waitFor(R.gm, () => document.querySelector('.tv-pill')?.textContent === 'TV live', 'the GM console\'s TV pill says "TV live" once the TV pings again', undefined, 25000);
   ok(a.turnIdx === b.turnIdx && a.moverId === b.moverId && a.round === b.round, `TV and GM agree: round ${a.round}, turn ${a.turnIdx}, ${a.moverId} to move`);
   await R.tv.screenshot({ path: `${shotDir}off-tv-back.png` }).catch(() => {});
   ok(pageErrors.length === 0, `no page errors (${pageErrors.slice(0, 3).join(' | ') || 'none'})`);
