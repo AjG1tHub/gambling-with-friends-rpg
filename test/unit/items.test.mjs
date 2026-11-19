@@ -271,7 +271,7 @@ test("Croupier: Rig the Deck stores the rig on the fight and hands it to the nex
   const croup = r.char(0), whale = r.char(1), cut = r.char(2);
   assert.match(err(r, 'CLASS_ACTIVE', { activeId: 'rigthedeck' }, 'p0').message, /fight/);
   r.state.monsters.m1 = mkMonster({ id: 'm1', items: [makeItem(r.state, { gameId: 'fifty' })] }); r.append('FIGHT_START', { monsterId: 'm1' }, 'p0');
-  r.append('CLASS_ACTIVE', { activeId: 'rigthedeck', outcome: 'win' }, 'p0'); assert.deepEqual(r.state.fight.rig, { outcome: 'win', by: croup.id, forId: null });
+  r.append('CLASS_ACTIVE', { activeId: 'rigthedeck', outcome: 'win' }, 'p0'); assert.deepEqual(r.state.fight.rig, { outcome: 'win', by: croup.id, forId: null, wheel: false });
   r.append('ITEM_USE', { itemId: r.itemOf(croup, 'coinblade').id, targetId: 'm1', targetKind: 'monster' }, 'p0');
   assert.deepEqual(r.state.fight.game.rig.outcome, 'win'); assert.equal(r.state.fight.rig, null, 'the rig is handed to the round');
   r.append('ITEM_RESOLVE', { mult: 2, label: 'WIN (rigged)' }, 'p0'); assert.equal(r.state.monsters.m1.health, B.monsters.healthCommon - 10);
