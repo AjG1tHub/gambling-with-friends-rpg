@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 332 tunables in 29 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 333 tunables in 29 groups.
 
 ## Changing a value
 
@@ -398,6 +398,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `legendaries.pedestalFullHealth` | 1 | fraction | Legendaries | Health fraction counted as full for the Pedestal Blade. |
 | `legendaries.busterDamage` | 0.5 | fraction | Legendaries | Oversized Buster Cleaver damage bonus. |
 | `legendaries.jokerCritMult` | 2 | multiplier | Legendaries | The Joker's five-of-a-kind crit multiplier. |
+| `legendaries.jokerCount` | 2 | cards | Legendaries | Wild jokers The Joker shuffles into its Video Poker deck. |
 | `legendaries.coatMinStake` | 20 | Health | Legendaries | The Croupier's Coat: opponents must stake at least this much against the wearer. |
 
 ## sets
