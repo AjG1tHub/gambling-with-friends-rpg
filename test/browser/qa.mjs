@@ -125,7 +125,10 @@ try {
     ok(tvState.log.some(l => /reports a bug/.test(l.text)), 'the TV log has the report line');
     ok(!tvState.log.some(l => l.text.includes(r.label) || /reward/i.test(l.text)), 'the TV log has no reward line');
     const tvText = await tv.evaluate(() => document.body.innerText);
-    ok(!tvText.includes(r.label) && !tvText.includes('secret reward') && !/Bug Reward/i.test(tvText), 'the TV DOM never shows the label or the message');
+    // The label itself ("Potion", "Reroll"…) can legitimately appear in a How-to-play card cycling on the TV during
+    // creation (CI flake, 19 Nov), so the label is checked against the TV's own log and ticker, the phrases everywhere.
+    const tvLogText = await tv.evaluate(() => [...document.querySelectorAll('.rail-log, .tv-log, #tvLog, .tv-foot')].map(e => e.innerText).join(' '));
+    ok(!tvLogText.includes(r.label) && !tvText.includes('secret reward') && !/Bug Reward/i.test(tvText), 'the TV never shows the reward: not the label in its log, not the message anywhere');
     ok((await tv.locator('.wheel, .wheel-overlay, .qa-reward').count()) === 0, 'the TV DOM has no wheel');
     await shot(tv, '08-tv');
     // The reward id was remembered: a reload shows the wheel already landed, no second animation.
