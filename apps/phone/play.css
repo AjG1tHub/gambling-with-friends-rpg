@@ -212,6 +212,7 @@
 /* lever widget: what your stat is worth on this game */
 .lever { margin: 4px 0 6px; padding: 6px 8px; border: 1px solid var(--line-2); border-radius: 6px; background: #17110f; }
 .lever.compact { padding: 2px 0; border: 0; background: none; margin: 0; }
+.lever-more > summary { cursor: pointer; font-size: .78rem; color: var(--bone-2); letter-spacing: .04em; padding: 4px 0 2px; min-height: 28px; display: flex; align-items: center; list-style: none; } .lever-more > summary::before { content: '▸'; margin-right: 6px; } .lever-more[open] > summary::before { content: '▾'; } .lever-more > summary::-webkit-details-marker { display: none; }
 .lever-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: .9rem; }
 .lever-stat { font-family: var(--font-display); color: var(--gold-2); letter-spacing: .04em; }
 .lever-delta { font-weight: 700; padding: 0 6px; border-radius: 10px; background: #2a2622; color: var(--bone-2); }

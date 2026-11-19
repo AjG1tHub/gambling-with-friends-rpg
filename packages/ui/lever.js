@@ -30,7 +30,7 @@ export function winLine(v, lines) {
   const yours = row ? row.yours : `${Math.round(v.yours.win * 100)}%`, base = row ? row.base : `${Math.round(v.base.win * 100)}%`;
   return `${v.text}. Wins ${yours} of rounds at your ${v.stat} (${base} at neutral).`;
 }
-export function leverBar({ gameId, statValue, compact = false } = {}) {
+export function leverBar({ gameId, statValue, compact = false, open = false } = {}) {
   const v = leverView(gameId, statValue); if (!v) return null;
   const sign = v.deltaPts > 0 ? '+' : '';
   const headline = h('div', { class: 'lever-head' },
@@ -43,5 +43,8 @@ export function leverBar({ gameId, statValue, compact = false } = {}) {
   const table = lines.length ? h('table', { class: 'lever-odds' },
     h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', {}, 'Base odds'), h('th', { class: 'yours' }, `Your odds (${cap(v.stat)} ${v.value})`))),
     h('tbody', {}, lines.map(l => h('tr', { class: l.changed ? 'changed' : '' }, h('td', {}, l.label), h('td', {}, l.base), h('td', { class: 'yours' }, l.yours))))) : null;
-  return h('div', { class: 'lever' }, headline, table, leverCurve(v), h('div', { class: 'lever-text muted' }, winLine(v, lines)));
+  // The headline is enough to play by; the table and the curve open on a tap (they crowded the round on a first night).
+  const more = h('details', { class: 'lever-more' }, h('summary', {}, `What ${cap(v.stat)} does here`), table, leverCurve(v), h('div', { class: 'lever-text muted' }, winLine(v, lines)));
+  if (open) more.open = true;
+  return h('div', { class: 'lever' }, headline, more);
 }

@@ -104,7 +104,7 @@ export function screenItems(ctx) {
   const leverSlot = h('div', { class: 'lever-slot' });
   const redrawLever = () => {
     const now = T.stats[def.stat], inRound = round && !round.settled && round.statValue !== now;
-    leverSlot.replaceChildren(leverBar({ gameId: def.gameId, statValue: now }) || '', inRound ? h('p', { class: 'muted small ital' }, `This round was dealt at ${def.stat} ${round.statValue}; the slider applies from the next round.`) : '');
+    leverSlot.replaceChildren(leverBar({ gameId: def.gameId, statValue: now, open: true }) || '', inRound ? h('p', { class: 'muted small ital' }, `This round was dealt at ${def.stat} ${round.statValue}; the slider applies from the next round.`) : '');
     drawPlayer();
   };
   const facts = h('div', { class: 'panel' }, h('h3', {}, 'Payout and facts'),
