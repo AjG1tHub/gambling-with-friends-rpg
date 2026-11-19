@@ -12,7 +12,10 @@ export const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 export async function waitFor(page, fn, msg, arg = undefined, timeout = 20000) { const t0 = Date.now(); while (Date.now() - t0 < timeout) { if (await page.evaluate(fn, arg).catch(() => false)) { if (msg) console.log('  ✓', msg); return true; } await sleep(120); } throw new Error(`TIMEOUT: ${msg}`); }
 export const pageErrors = [];
 export const watch = (page, tag) => page.on('pageerror', e => pageErrors.push(`${tag}: ${e.message.slice(0, 160)}`));
-export const click = async (page, sel, label, timeout = 15000) => { const l = typeof sel === 'string' ? page.locator(sel).first() : sel.first(); await l.waitFor({ state: 'visible', timeout }); await l.click(); if (label) console.log('  ·', label); };
+// A forced tap on a coach card's GOT IT can land on the ? beside it when the layout shifts under a slow runner (CI,
+// 19 Nov): the Help sheet then covers the screen and every later tap times out. Close it wherever it turns up.
+export const closeHelp = async (page) => { const x = page.locator('.help-sheet .help-close'); if (await x.count().catch(() => 0)) await x.first().click({ timeout: 2000 }).catch(() => {}); };
+export const click = async (page, sel, label, timeout = 15000) => { await closeHelp(page); const l = typeof sel === 'string' ? page.locator(sel).first() : sel.first(); await l.waitFor({ state: 'visible', timeout }); await l.click(); if (label) console.log('  ·', label); };
 export const meOf = (ph) => ph.evaluate(() => window.__gwf?.ctx?.me);
 export const stateOf = (p) => p.evaluate(() => JSON.parse(JSON.stringify(window.__gwf.session.state)));
 // A new character's first turn opens with the Triple Pet Wheel: tap a column until the Plod prompt is up.
@@ -21,7 +24,8 @@ export async function toPlod(ph) {
   while (Date.now() - t0 < 25000) {
     if (await ph.locator('.prompt button.primary.big:has-text("Plod")').count()) return;
     const wheel = ph.locator('.pet-wheel'); if (await wheel.count()) await wheel.first().click({ force: true }).catch(() => {});
-    const gotIt = ph.locator('button:has-text("GOT IT"), button:has-text("Got it")'); if (await gotIt.count()) await gotIt.first().click({ force: true }).catch(() => {});
+    const gotIt = ph.locator('button:has-text("GOT IT"), button:has-text("Got it")'); if (await gotIt.count()) await gotIt.first().click({ timeout: 1500 }).catch(() => {});
+    await closeHelp(ph);
     await sleep(400);
   }
 }
