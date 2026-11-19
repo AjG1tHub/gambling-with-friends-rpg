@@ -7,24 +7,49 @@ import { onAfter, register, refuse, requirePhase, requireActor, requireGm } from
 import { currentPlayerId, characterOf, playerOfCharacter, note, alive } from '../state.js';
 import { lootHooks, levelHooks, moveHooks } from '../hooks.js';
 import { hooks as runHooks } from './run.js';
-import { resolveHit, inReach, stripSecret } from './items.js';
+import { resolveHit, inReach, stripSecret, characterZero } from './items.js';
 import { startRound } from '../../games/adapter.js';
 import { makeRng } from '../rng.js';
 import { group } from '../balance.js';
 import { holdForMonster } from '../clock.js';
+import * as money from '../health.js';
+import { familyOf } from '../encounters/monsters.js';
+import { activePet, checkFaint } from './pets.js';
 
 // A ctx for callers outside the reducer (the TV, bots, tests): the clock they pass and the room's balance.
 export const headlessCtx = (state, now) => ({ now, actor: 'tv', isGm: false, payload: {}, B: (g) => group(state, g) });
 
-// Monster Health: floors at 0, caps at maxHealth; one ledger row per move (kind 'monsterHealth').
-export function monsterHealth(state, m, delta, why, ctx) {
-  const amount = Math.round(delta), before = m.health;
-  m.health = Math.max(0, Math.min(m.maxHealth || Infinity, before + amount));
-  const moved = m.health - before;
-  state.ledgerSeq = (state.ledgerSeq || 0) + 1;
-  state.ledger.push({ n: state.ledgerSeq, ts: ctx?.now ?? state.lastEventTs ?? 0, kind: 'monsterHealth', charId: m.id, monsterId: m.id, amount, moved, why });
+// The Litter (m.parts): five cats, each killed only by its own game family. A hit lands on the cat of its family and
+// goes no further: a dead cat, or a game no cat answers to, hurts nobody. The Litter's own missed stake (`self`)
+// comes off the cat that swung, or the first one standing, and never takes a cat's last point, or a run of bad
+// luck would kill a cat no player's game had touched. m.health stays the sum, for the TV bar.
+function partsHealth(state, m, amount, { family, self }, ts) {
+  if (amount > 0) { for (const p of m.parts) { if (p.dead) continue; const add = Math.min(amount, p.maxHealth - p.health); p.health += add; amount -= add; } }
+  else if (amount < 0) {
+    const p = m.parts.find(x => !x.dead && x.family === family) || (self ? m.parts.find(x => !x.dead) : null);
+    if (!p) note(state, `No cat of ${m.name} answers to ${family || 'that game'}: nothing is hurt`, 'fight', ts);
+    else { p.health = Math.max(self ? 1 : 0, p.health + amount); if (p.health <= 0) { p.dead = true; note(state, `${p.name} of ${m.name} is down (${m.parts.filter(x => !x.dead).length} left)`, 'fight', ts); } }
+  }
+  m.health = m.parts.reduce((s, p) => s + p.health, 0);
+}
+// Monster Health: floors at 0, caps at maxHealth; one ledger row per move (kind 'monsterHealth'). `family` is the
+// hit's game family and `self` marks the monster's own lost stake (both only matter to the Litter).
+// The Grey's mind-link (m.linkedTo) is one pool of Health in two bodies: whatever moves on one moves on the other,
+// and when either is emptied both are (the caller's usual `health <= 0` check then kills the one in the fight, and
+// tiles.js › dropFromMonster takes its link with it).
+export function monsterHealth(state, m, delta, why, ctx, { family = null, self = false, mirrored = false } = {}) {
+  const amount = Math.round(delta), before = m.health, ts = ctx?.now ?? state.lastEventTs ?? 0;
+  const row = (x, amt, moved, w) => { state.ledgerSeq = (state.ledgerSeq || 0) + 1; state.ledger.push({ n: state.ledgerSeq, ts, kind: 'monsterHealth', charId: x.id, monsterId: x.id, amount: amt, moved, why: w }); };
+  if (m.parts) partsHealth(state, m, amount, { family, self }, ts);
+  else m.health = Math.max(0, Math.min(m.maxHealth || Infinity, before + amount));
+  row(m, amount, m.health - before, why);
+  const o = !mirrored && m.linkedTo && m.health !== before ? state.monsters[m.linkedTo] : null;
+  if (o && !o.dead && !o.parts) {
+    monsterHealth(state, o, m.health - before, `mind-link: ${why}`, ctx, { mirrored: true });
+    if (o.health <= 0 && m.health > 0) { row(m, -m.health, -m.health, 'mind-link: the other body is empty'); m.health = 0; }
+  }
   if (state.ledger.length > 20000) state.ledger.splice(0, state.ledger.length - 20000);
-  return moved;
+  return m.health - before;
 }
 export function makeDummy(state, ctx, { id = 'dummy', health = null, items = [] } = {}) {
   const hp = health ?? ctx.B('monsters').healthCommon;
@@ -75,6 +100,16 @@ export function playMonsterTurn(state, ctx, rng, { pick = null, smart = true, it
   const items = (m.items || []).filter(it => it && it.gameId && it.kind !== 'spell' && it.kind !== 'area');
   if (!items.length) return null;
   const botRng = pick || makeRng((rng.getState ? rng.getState() : 1) ^ 0x9e3779b9);
+  // The Grey: once a fight, the first turn it finds a pet standing in front of the player, it spends its move
+  // making that pet attack its own trainer (a forced item, the GM's pick, is still the monster's own move).
+  const pet = m.special === 'mindlink' && !f.petTaken && !itemId ? activePet(c) : null;
+  const turned = pet && !pet.fainted && pet.power > 0 ? pet.attacks.map((a, i) => ({ a, i })).filter(x => bites(x.a)) : [];
+  if (turned.length) {
+    const { a, i } = turned[botRng.int(0, turned.length - 1)], stake = Math.max(1, Math.min(pet.power, a.stake));
+    const round = startRound(ctx, { gameId: a.gameId, mode: 'health', stake, attacker: { id: m.id, name: pet.name, stats: m.stats || {} }, target: { id: c.id, name: c.name, stats: c.stats || {} }, rng, now: now ?? ctx.now });
+    const o = round.play(botRng, smart);
+    if (o) return { itemId: null, petControl: { petId: pet.id, attackIndex: i }, mult: o.mult, label: o.label, crit: o.crit, stake, snapshot: round.snapshot(), rigUsed: false };
+  }
   const item = itemId ? items.find(it => it.id === itemId) : items[botRng.int(0, items.length - 1)];
   if (!item) return null;
   const stake = Math.max(1, Math.min(m.health, Math.round(item.stake * ctx.B('items').monsterStakeFraction)));
@@ -82,6 +117,42 @@ export function playMonsterTurn(state, ctx, rng, { pick = null, smart = true, it
   const o = round.play(botRng, smart);
   if (!o) return null;
   return { itemId: item.id, mult: o.mult, label: o.label, crit: o.crit, stake, snapshot: round.snapshot(), rigUsed: round.rigUsed };
+}
+
+// A pet attack that hurts what it is aimed at (heals and Gold attacks are no use to the Grey).
+const bites = (a) => !a.effect || a.effect === 'eatTurn';
+// After the monster's move.
+function handBack(state, ctx, f, m, c) {
+  // Back to the player: a new combat turn (one attack + one spell) inside the same table turn.
+  if (!f.done) { f.turn = 'player'; f.exchanges = (f.exchanges || 0) + 1; if (c.usedThisTurn) { c.usedThisTurn.attack = 0; c.usedThisTurn.spell = 0; } }
+  // A player who ended their turn mid-fight has walked away once the monster's parting blow lands.
+  if (!f.done && f.passed && currentPlayerId(state) !== f.playerId) { f.done = true; f.result = 'left'; f.endedAt = ctx.now; note(state, `${c.name} leaves ${m.name} behind`, 'fight', ctx.now); }
+}
+// The Grey's stolen attack (SPEC.md › Named Legendaries: "take control of your active pet for one attack"), simplest
+// reading: the pet plays one of its own attacks at its own stake, as PET_ATTACK would, but the trainer is the
+// target. A win costs the trainer stake × mult Health straight off (the pet is the one biting, so it cannot stand in
+// the way, and the gear and Chaos mods of a monster's hit do not apply to a pet's); a loss burns the pet's Power as
+// its own failed attack does. Once per fight.
+function petTurned(state, ctx, f, m, c, { petId, attackIndex, mult, label, crit, snapshot }) {
+  if (m.special !== 'mindlink') refuse(`${m.name} cannot take a pet`, 'special');
+  if (f.petTaken) refuse('it has already taken a pet this fight', 'used');
+  const pet = activePet(c); if (!pet || pet.id !== petId || pet.fainted || pet.power <= 0) refuse('no pet to take', 'pet');
+  const atk = pet.attacks[Number(attackIndex)]; if (!atk || !bites(atk)) refuse('no such attack', 'attack');
+  const stake = Math.max(1, Math.min(pet.power, atk.stake));
+  f.petTaken = true;
+  let damage = 0, loss = 0;
+  if (mult > 1) {
+    damage = Math.round(stake * mult) * (atk.doubling ? 2 : 1);
+    money.health(state, c, -damage, `${m.name} turns ${pet.name}: ${atk.name}`, ctx);
+    const s = state.stats[f.playerId]; if (s) s.damageTaken += damage;
+    note(state, `${m.name} takes ${pet.name}: its ${atk.name} hits ${c.name} for ${damage}${label ? ` (${label})` : ''}`, 'fight', ctx.now);
+  } else if (mult < 1) {
+    loss = Math.round(stake * (1 - mult)); money.power(state, pet, -loss, `${atk.name} fails (mind-link)`, ctx);
+    note(state, `${m.name} takes ${pet.name}, but its ${atk.name} fails: −${loss} Power`, 'fight', ctx.now); checkFaint(state, ctx, c, pet);
+  } else note(state, `${m.name} takes ${pet.name}: its ${atk.name} is a push`, 'fight', ctx.now);
+  f.log.push({ ts: ctx.now, by: m.id, itemId: null, petId: pet.id, gameId: atk.gameId, mult, label, crit, damage, loss });
+  f.lastGame = { itemId: null, gameId: atk.gameId, kind: 'attack', mode: 'health', stake, attackerId: m.id, targetId: c.id, targetKind: 'character', phase: 'done', petControl: pet.id, lastText: `${pet.name}: ${atk.name}`, result: { mult, label, crit, damage, loss }, legacy: snapshot ? stripSecret(snapshot) : null, startedTs: ctx.now };
+  if (c.health <= 0 && !c.dead) characterZero(state, ctx, c, { attackerId: m.id, attackerKind: 'monster', targetId: c.id, targetKind: 'character', gameId: atk.gameId });
 }
 
 register({
@@ -102,7 +173,8 @@ register({
     if (f.turn !== 'monster') refuse('not the monster\'s turn', 'turn');
     const m = state.monsters[f.monsterId]; if (!m || m.dead) refuse('the monster is gone', 'target');
     const c = characterOf(state, f.playerId); if (!c || c.dead) { f.done = true; f.result = 'lost'; return; }
-    const { itemId, mult, label = '', crit = false, snapshot = null, gmPick = null, rigUsed = false } = ctx.payload;
+    const { itemId, mult, label = '', crit = false, snapshot = null, gmPick = null, rigUsed = false, petControl = null } = ctx.payload;
+    if (petControl) { if (!Number.isFinite(Number(mult)) || Number(mult) < 0) refuse('bad multiplier', 'mult'); petTurned(state, ctx, f, m, c, { ...petControl, mult: Number(mult), label, crit: !!crit, snapshot }); handBack(state, ctx, f, m, c); return; }
     const item = (m.items || []).find(it => it.id === itemId) || (m.items || [])[0]; if (!item) refuse('the monster has no items', 'item');
     if (!Number.isFinite(Number(mult)) || Number(mult) < -8 || Number(mult) > 10001) refuse('bad multiplier', 'mult');
     const stake = Math.max(1, Math.min(m.health, Math.round(Number(ctx.payload.stake ?? item.stake * ctx.B('items').monsterStakeFraction))));
@@ -111,10 +183,7 @@ register({
     f.log.push({ ts: ctx.now, by: m.id, itemId: item.id, gameId: item.gameId, mult: Number(mult), label, crit: !!crit, damage: info.damage, loss: info.loss, gmPick: m.gmControlled ? gmPick : null });
     f.lastGame = { itemId: item.id, gameId: item.gameId, kind: item.kind, mode: 'health', stake, attackerId: m.id, targetId: c.id, targetKind: 'character', phase: 'done', result: { mult: Number(mult), label, crit: !!crit, damage: info.damage, loss: info.loss }, legacy: snapshot ? stripSecret(snapshot) : null, startedTs: ctx.now };
     if (m.health <= 0 && !m.dead) monsterDied(state, ctx, m, c.id);
-    // Back to the player: a new combat turn (one attack + one spell) inside the same table turn.
-    if (!f.done) { f.turn = 'player'; f.exchanges = (f.exchanges || 0) + 1; if (c.usedThisTurn) { c.usedThisTurn.attack = 0; c.usedThisTurn.spell = 0; } }
-    // A player who ended their turn mid-fight has walked away once the monster's parting blow lands.
-    if (!f.done && f.passed && currentPlayerId(state) !== f.playerId) { f.done = true; f.result = 'left'; f.endedAt = ctx.now; note(state, `${c.name} leaves ${m.name} behind`, 'fight', ctx.now); }
+    handBack(state, ctx, f, m, c);
   },
   FIGHT_FLEE(state, ev, ctx) {
     requirePhase(state, 'playing');

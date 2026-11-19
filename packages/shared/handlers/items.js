@@ -21,6 +21,7 @@ import * as hex from '../hex.js';
 import * as Q from '../map/query.js';
 import { FIVE_OF_A_KIND } from '../../games/adapter.js';
 import { monsterHealth, openFight, monsterDied } from './fight.js';
+import { familyOf } from '../encounters/monsters.js';
 import { hasUpgrade, effectiveStats } from '../characters/character.js';
 import { setCooldown, onCooldown, cooldownKeyFor } from './classes.js';
 
@@ -103,7 +104,7 @@ function dealDamage(state, ctx, info, dmg, onHit = null) {
   if (dmg <= 0) return 0;
   if (info.targetKind === 'monster') {
     const m = state.monsters[info.targetId]; if (!m) refuse('no such monster');
-    const moved = -monsterHealth(state, m, -dmg, `${info.item?.name || info.gameId} hit`, ctx);
+    const moved = -monsterHealth(state, m, -dmg, `${info.item?.name || info.gameId} hit`, ctx, { family: familyOf(info.item) });
     info.damage = moved; onHit?.();
     if (m.health <= 0 && !m.dead) monsterDied(state, ctx, m, info.attackerId);
     return moved;
@@ -159,7 +160,7 @@ export function resolveHit(state, ctx, { attackerId, attackerKind = 'character',
     for (const h of damageHooks.afterHit) h(state, ctx, info);
   } else if (lost) {
     info.loss = info.lost = r0(info.lost * info.lossMult);
-    if (attackerKind === 'monster') monsterHealth(state, attacker, -info.loss, `${item?.name || info.gameId} miss`, ctx);
+    if (attackerKind === 'monster') monsterHealth(state, attacker, -info.loss, `${item?.name || info.gameId} miss`, ctx, { family: familyOf(item), self: true });
     else { money.health(state, attacker, -info.loss, `${item?.name || info.gameId} miss`, ctx, { ignoreShield: true }); attacker.streak = 0; const s = statsOf(state, attackerId); if (s) s.damageTaken += info.loss; }
     note(state, `${who} misses with ${item?.name || info.gameId}: ${label} — loses ${info.loss}`, 'fight', ctx.now);
     for (const h of damageHooks.afterMiss) h(state, ctx, info);

@@ -20,7 +20,7 @@ export const lootHooks = { rarity: [], onDrop: [] };                       // ra
 export const levelHooks = { onLevel: [], onXp: [] };
 export const heldHooks = { onHold: [], onRelease: [] };
 export const seatHooks = { beforeKick: [] };                               // (state, ctx, player) — run.js ends a kicked mover's turn, challenge.js voids their challenge
-export const letterHooks = { onDeliver: [], onIntercept: [] };
+export const letterHooks = { onSend: [], onDeliver: [], onIntercept: [] };   // (state, ctx, { letter }); onSend may refuse (economy.js checks a trade sent by letter)
 export const petHooks = { beforeCharacterHit: [] };                        // pets fight first: may redirect a hit (info.redirectToPet = petId)
 export const classActives = {};     // { [activeId]: (state, ctx, character, payload) => void }
 export const consumables = {};      // { [consumableId]: (state, ctx, character, payload) => void }

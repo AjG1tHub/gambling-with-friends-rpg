@@ -309,7 +309,7 @@ export function tableDuties(state, rng, now) {
   const f = state.fight;
   if (f && !f.done && f.turn === 'monster' && state.monsters[f.monsterId] && !state.monsters[f.monsterId].dead && !state.monsters[f.monsterId].gmControlled) {
     const res = playMonsterTurn(state, { now, B: (g) => group(state, g) }, rng, { now });
-    if (res) out.push(act('MONSTER_ACT', { itemId: res.itemId, mult: res.mult, label: res.label, crit: !!res.crit, stake: res.stake, snapshot: res.snapshot || null }, 'system'));
+    if (res) out.push(act('MONSTER_ACT', { itemId: res.itemId, mult: res.mult, label: res.label, crit: !!res.crit, stake: res.stake, snapshot: res.snapshot || null, petControl: res.petControl || null }, 'system'));
     else out.push(act('FIGHT_END', { reason: 'monster has nothing to fight with' }, 'system'));
   }
   if (state.area && !state.area.done && now >= state.area.deadline) {

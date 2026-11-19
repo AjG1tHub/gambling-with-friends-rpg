@@ -2,6 +2,8 @@
 // emotes over the avatar, and side bets for the people not in the fight.
 //
 //   LETTER_SEND       { toId, text, kind?: 'letter'|'alliance' }   as many as you like on your turn, social.lettersOffTurn otherwise
+//                     { toId, text?, kind: 'trade', trade: { give, want } }   a trade offer by crow (pets, items, Gold; the
+//                     same sides as TRADE_OFFER): economy.js checks it at the send and opens the offer when it lands
 //   LETTER_INTERCEPT  { letterId, action: 'pass'|'destroy'|'forge', forgedText? }
 //   ALLIANCE_PROPOSE  { toId, text? }                               = LETTER_SEND with kind 'alliance'
 //   ALLIANCE_ANSWER   { letterId, accept } | { allianceId, accept: false }
@@ -54,16 +56,19 @@ export function interceptable(state, playerId) {
 export function inbox(state, playerId) { return state.letters.filter(l => l.toId === playerId && l.deliveredAt && !l.destroyed); }
 export function outbox(state, playerId) { return state.letters.filter(l => l.fromId === playerId).map(l => ({ ...l, intercepted: null, destroyed: undefined })); }
 
-function sendLetter(state, ctx, fromId, { toId, text, kind = 'letter' }) {
+const OPENING = { alliance: 'Shall we work together?', trade: 'A trade, if you will have it.' };
+function sendLetter(state, ctx, fromId, { toId, text, kind = 'letter', trade = null }) {
   requirePhase(state, 'playing'); requireActor(state, ctx, fromId);
   const from = requirePlayer(state, fromId), to = requirePlayer(state, toId);
   if (from.spectator) refuse('spectators have no crow'); if (to.spectator) refuse('that player is only watching');
   if (fromId === toId) refuse('a letter to yourself');
   const S = ctx.B('social'), body = String(text || '').trim().slice(0, S.letterMaxChars);
-  if (!body && kind !== 'alliance') refuse('an empty letter');
+  if (!body && !OPENING[kind]) refuse('an empty letter');
   state.offTurnLetters ||= {}; state.turnCounts ||= {};
   if (currentPlayerId(state) !== fromId) { if ((state.offTurnLetters[fromId] || 0) >= S.lettersOffTurn) refuse(`only ${S.lettersOffTurn} letter(s) off your turn`, 'limit'); state.offTurnLetters[fromId] = (state.offTurnLetters[fromId] || 0) + 1; }
-  const letter = { id: ctx.event?.id || `l${state.letters.length + 1}`, fromId, toId, text: body || 'Shall we work together?', kind, sentAt: ctx.now, sentTurnIdx: state.turnIdx, deliverAfterTurns: S.letterDelayTurns, recipientTurnsAtSend: state.turnCounts[toId] || 0, deliveredAt: null, intercepted: null, read: false, sealed: wearsVisor(charOf(state, fromId)), destroyed: false, answered: false };
+  const letter = { id: ctx.event?.id || `l${state.letters.length + 1}`, fromId, toId, text: body || OPENING[kind], kind, sentAt: ctx.now, sentTurnIdx: state.turnIdx, deliverAfterTurns: S.letterDelayTurns, recipientTurnsAtSend: state.turnCounts[toId] || 0, deliveredAt: null, intercepted: null, read: false, sealed: wearsVisor(charOf(state, fromId)), destroyed: false, answered: false };
+  if (kind === 'trade') letter.trade = trade;
+  runMods(letterHooks.onSend, state, ctx, { letter });
   state.letters.push(letter); stat(state, fromId, 'lettersSent');
   note(state, `A crow takes flight from ${nameOf(state, fromId)}`, 'letter', ctx.now);
   return letter;
@@ -126,7 +131,7 @@ onAfter((state, ev, ctx) => {
 
 // ---------------------------------------------------------------- handlers
 register({
-  LETTER_SEND(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.payload.playerId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: ctx.payload.kind === 'alliance' ? 'alliance' : 'letter' }); },
+  LETTER_SEND(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.payload.playerId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: ['alliance', 'trade'].includes(ctx.payload.kind) ? ctx.payload.kind : 'letter', trade: ctx.payload.trade }); },
   ALLIANCE_PROPOSE(state, ev, ctx) { sendLetter(state, ctx, ctx.payload.fromId || ctx.payload.playerId || ctx.actor, { toId: ctx.payload.toId, text: ctx.payload.text, kind: 'alliance' }); },
 
   LETTER_INTERCEPT(state, ev, ctx) {

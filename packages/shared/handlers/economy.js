@@ -12,6 +12,9 @@
 //   AUCTION_CLOSE {}                                    GM/TV after the window: highest pays, ties go to the earlier bid
 //   TRADE_OFFER   { toId, give: { gold, itemIds, petIds }, want: { gold, itemIds, petIds }, fromId? }
 //   TRADE_ANSWER  { tradeId, accept }                   settles at the next end of turn (turnEnd hook)
+//   A trade may also travel by letter (SPEC.md › Pets: "through the trade screen or by letter"): LETTER_SEND with
+//   kind 'trade' carries the same give/want; it is checked here when sent (letterHooks.onSend), becomes an ordinary
+//   offered trade when the crow lands (onDeliver), and never exists if the letter is destroyed on the way.
 //   BOUNTY_PLACE  { targetId, gold, playerId? }         on a Bounty Board (or GM); collected by whoever KOs the target
 //   GM_GOLD { playerId, amount } · GM_HEALTH { playerId, amount } · GM_ITEM { playerId, baseId, rarity, seed?, slot? }
 //   GM_TELEPORT { playerId, hex } · GM_SPAWN { speciesId, hex, name? }
@@ -30,6 +33,8 @@ import { pushLoot, collectorVisit, counter, isLandable, regionOf } from './wheel
 import { killCharacter, resolveCharacter, removeItem, isWorn } from './death.js';
 import { spawnMonster } from '../encounters/monsters.js';
 import { LEGENDARIES } from '../characters/generator.js';
+import { letterHooks } from '../hooks.js';
+import { teamCap } from './creation.js';
 
 const need = (state, pid) => { const c = characterOf(state, pid); if (!c) refuse(`no character for ${pid}`); return c; };
 const hexOf = (state, c) => state.map?.hexes?.[c.pos] || null;
@@ -88,13 +93,36 @@ function pactTick(state, ctx, pid) {
 runHooks.turnStart.push(pactTick);
 
 // ---- trades settle at the end of a turn -------------------------------------------------------------------
+const roomFor = (ctx, c, gets, gives) => !(gets.petIds || []).length || (c.pets || []).length - (gives.petIds || []).length + gets.petIds.length <= teamCap(ctx, c);
+// What an offer must pass when it is made, by TRADE_OFFER or by letter. Returns the cleaned sides.
+function checkOffer(state, ctx, fromId, toId, sides) {
+  const a = need(state, fromId); requirePlayer(state, toId); const b = need(state, toId); if (toId === fromId) refuse('trade with someone else');
+  const clean = (s = {}) => ({ gold: Math.max(0, Math.round(Number(s.gold) || 0)), itemIds: [...(s.itemIds || [])], petIds: [...(s.petIds || [])] });
+  const give = clean(sides?.give), want = clean(sides?.want);
+  if (!give.gold && !give.itemIds.length && !give.petIds.length && !want.gold && !want.itemIds.length && !want.petIds.length) refuse('an empty trade');
+  if (!canPay(a, give.gold)) refuse('not enough Gold', 'gold');
+  for (const id of give.itemIds) if (!a.items?.[id] || isWorn(a, id)) refuse(`you do not hold ${id} in your grid`, 'item');
+  for (const id of give.petIds) if (!(a.pets || []).some(p => p.id === id)) refuse(`no pet ${id}`, 'pet');
+  for (const id of want.itemIds) if (!b.items?.[id]) refuse(`${b.name} does not hold ${id}`, 'item');
+  for (const id of want.petIds) if (!(b.pets || []).some(p => p.id === id)) refuse(`${b.name} has no pet ${id}`, 'pet');
+  return { a, b, give, want };
+}
+const openTrade = (state, ctx, fromId, toId, give, want, extra = {}) => { const t = { id: `tr${seq(state, 'tradeSeq')}`, fromId, toId, give, want, status: 'offered', offeredAt: ctx.now, ...extra }; (state.trades ||= []).push(t); return t; };
+letterHooks.onSend.push((state, ctx, { letter }) => { if (letter.kind !== 'trade') return; const { give, want } = checkOffer(state, ctx, letter.fromId, letter.toId, letter.trade); letter.trade = { give, want }; });
+// The table log never names the sender: a letter is post, and what was in it shows only on the recipient's phone.
+letterHooks.onDeliver.push((state, ctx, { letter }) => {
+  if (letter.kind !== 'trade' || !letter.trade) return;
+  openTrade(state, ctx, letter.fromId, letter.toId, letter.trade.give, letter.trade.want, { letterId: letter.id });
+  note(state, `A crow brings ${state.players[letter.toId]?.name || letter.toId} a trade offer`, 'trade', ctx.now);
+});
 function settleTrades(state, ctx) {
   for (const t of state.trades || []) {
     if (t.status !== 'accepted') continue;
     const a = characterOf(state, t.fromId), b = characterOf(state, t.toId);
     const ok = a && b && !a.dead && !b.dead && canPay(a, t.give.gold || 0) && canPay(b, t.want.gold || 0)
       && (t.give.itemIds || []).every(id => a.items?.[id] && !isWorn(a, id)) && (t.want.itemIds || []).every(id => b.items?.[id] && !isWorn(b, id))
-      && (t.give.petIds || []).every(id => (a.pets || []).some(p => p.id === id)) && (t.want.petIds || []).every(id => (b.pets || []).some(p => p.id === id));
+      && (t.give.petIds || []).every(id => (a.pets || []).some(p => p.id === id)) && (t.want.petIds || []).every(id => (b.pets || []).some(p => p.id === id))
+      && roomFor(ctx, a, t.want, t.give) && roomFor(ctx, b, t.give, t.want);   // a traded pet needs a place on the team (six, seven for the Beastmaster's upgrade)
     if (!ok) { t.status = 'failed'; t.settledAt = ctx.now; note(state, `The trade between ${a?.name || t.fromId} and ${b?.name || t.toId} falls through`, 'trade', ctx.now); continue; }
     const move = (from, to, side) => {
       if (side.gold) { gold(state, from, -side.gold, `trade with ${to.name}`, ctx); gold(state, to, side.gold, `trade with ${from.name}`, ctx); }
@@ -220,16 +248,9 @@ register({
   },
   TRADE_OFFER(state, ev, ctx) {
     requirePhase(state, 'playing');
-    const fromId = ctx.payload.fromId || ctx.actor; requireActor(state, ctx, fromId); const a = need(state, fromId);
-    const toId = ctx.payload.toId; requirePlayer(state, toId); const b = need(state, toId); if (toId === fromId) refuse('trade with someone else');
-    const clean = (s = {}) => ({ gold: Math.max(0, Math.round(Number(s.gold) || 0)), itemIds: [...(s.itemIds || [])], petIds: [...(s.petIds || [])] });
-    const give = clean(ctx.payload.give), want = clean(ctx.payload.want);
-    if (!give.gold && !give.itemIds.length && !give.petIds.length && !want.gold && !want.itemIds.length && !want.petIds.length) refuse('an empty trade');
-    if (!canPay(a, give.gold)) refuse('not enough Gold', 'gold');
-    for (const id of give.itemIds) if (!a.items?.[id] || isWorn(a, id)) refuse(`you do not hold ${id} in your grid`, 'item');
-    for (const id of give.petIds) if (!(a.pets || []).some(p => p.id === id)) refuse(`no pet ${id}`, 'pet');
-    for (const id of want.itemIds) if (!b.items?.[id]) refuse(`${b.name} does not hold ${id}`, 'item');
-    (state.trades ||= []).push({ id: `tr${seq(state, 'tradeSeq')}`, fromId, toId, give, want, status: 'offered', offeredAt: ctx.now });
+    const fromId = ctx.payload.fromId || ctx.actor; requireActor(state, ctx, fromId);
+    const { a, b, give, want } = checkOffer(state, ctx, fromId, ctx.payload.toId, ctx.payload);
+    openTrade(state, ctx, fromId, ctx.payload.toId, give, want);
     note(state, `${a.name} offers ${b.name} a trade`, 'trade', ctx.now);
   },
   TRADE_ANSWER(state, ev, ctx) {
