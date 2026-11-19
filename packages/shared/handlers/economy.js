@@ -302,7 +302,7 @@ register({
     const legId = ctx.payload.legendaryId || (LEGENDARIES.some(l => l.id === ctx.payload.baseId) ? ctx.payload.baseId : null);
     const spec = { baseId: legId || ctx.payload.baseId || 'loot', rarity: legId ? 'legendary' : rarity, region: ctx.payload.region ?? regionOf(state, c), seed: (Number(ctx.payload.seed) || ctx.now) >>> 0, gm: true };
     if (ctx.payload.slot) spec.slot = ctx.payload.slot;
-    pushLoot(c, spec); note(state, `GM hands ${c.name} a ${rarity} ${spec.baseId}`, 'gm', ctx.now);
+    pushLoot(c, spec); note(state, `GM hands ${c.name} ${legId ? `the Legendary ${LEGENDARIES.find(l => l.id === legId)?.name || legId}` : `a ${rarity} ${spec.baseId}`}`, 'gm', ctx.now);
   },
   GM_TELEPORT(state, ev, ctx) {
     requireGm(ctx); const c = resolveCharacter(state, ctx.payload.playerId || ctx.payload.charId); if (!c) refuse('no such character');

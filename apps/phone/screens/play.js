@@ -61,12 +61,13 @@ function route(api) {
 }
 
 // ── movement ─────────────────────────────────────────────────────────────────────────────────────
+const isSkates = (it) => it?.unique === 'skates' || it?.legendaryId === 'skatesofthesixth';
 function bootsLine(state, c) {
   const item = bootsOf(c); if (!item) return { text: 'Barefoot · plod ' + group(state, 'movement').barefoot, mode: 'barefoot', item: null };
   let mode = 'dice'; try { mode = bootMode(item, {}); } catch { mode = 'choose'; }
   const die = mode === 'dice' ? bootDie(item, bootAffixes(item)) : null;
   const base = BOOTS.bases.find(b => b.id === item.baseId);
-  return { text: `${item.name} · ${mode === 'choose' ? 'choose your mode' : mode.toUpperCase()}${die ? ` · d${die}` : ''}${item.unique ? ` · ${BOOTS.uniques[item.unique]?.name || item.unique}` : ''}`, mode, item, die, base };
+  return { text: `${item.name} · ${mode === 'choose' ? 'choose your mode' : mode.toUpperCase()}${die ? ` · d${die}` : ''}${isSkates(item) ? ' · 2d6, no stopping' : item.unique && !item.legendaryId ? ` · ${BOOTS.uniques[item.unique]?.name || item.unique}` : ''}`, mode, item, die, base };
 }
 function movementScreen(api) {
   const { state, me, c, h, dispatch, screen } = api;

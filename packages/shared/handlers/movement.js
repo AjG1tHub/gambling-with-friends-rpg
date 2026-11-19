@@ -31,6 +31,9 @@ import * as H from '../hex.js';
 import { generateMap, REGION_ORDER } from '../map/generator.js';
 import * as Q from '../map/query.js';
 import bootsRaw from '../../../data/boots.json' with { type: 'json' };
+// The two Legendary boots carry their Legendary id as `unique`; the plain uniques in boots.json carry the short one.
+const isSkates = (it) => it?.unique === 'skates' || it?.legendaryId === 'skatesofthesixth';
+const isOctane = (it) => it?.unique === 'octane' || it?.legendaryId === 'octanetreads';
 
 export const BOOTS = bootsRaw;
 const BASES = Object.fromEntries(bootsRaw.bases.map(b => [b.id, b]));
@@ -51,8 +54,8 @@ export function bootAffixes(item) {
 export function bootMode(item, payload = {}) {
   if (!item) return 'barefoot';
   if (item.unique === 'choosemode') { if (!MODES.includes(payload.mode)) refuse('choose a mode: dice, wheel or card', 'mode'); return payload.mode; }
-  if (item.unique === 'skates') return 'dice';
-  if (item.unique === 'octane') return 'wheel';
+  if (isSkates(item)) return 'dice';
+  if (isOctane(item)) return 'wheel';
   return item.bootMode || baseOf(item)?.mode || 'dice';
 }
 const dieUp = (d) => DIE_SIZES[Math.min(DIE_SIZES.length - 1, Math.max(0, DIE_SIZES.indexOf(d)) + 1)] || d;
@@ -64,7 +67,7 @@ export function bootDie(item, affixes = bootAffixes(item)) {
 }
 // any | half | never, from the die size and the balance lists.
 export function stopRuleFor(die, item, affixes, MV) {
-  if (item?.unique === 'skates') return 'never';
+  if (isSkates(item)) return 'never';
   if (affixes.has('keepStop')) return 'any';
   if (MV.fullWalkDice.includes(die)) return 'never';
   if (MV.halfStopDice.includes(die)) return 'half';
@@ -73,8 +76,8 @@ export function stopRuleFor(die, item, affixes, MV) {
 // The movement wheel for these boots (Octane and the wheel affixes reshape it).
 export function wheelSegments(item, affixes, MV) {
   let segs = bootsRaw.wheel.segments.map(s => ({ ...s, steps: s.stepsKey ? MV[s.stepsKey] : s.steps }));
-  if (item?.unique === 'octane' || affixes.has('noStumble')) segs = segs.filter(s => s.id !== 'stumble');
-  if (item?.unique === 'octane') { const b = bootsRaw.wheel.boost; const boost = { ...b, steps: MV[b.stepsKey], label: `${b.label} ${MV[b.stepsKey]}` }; segs.push({ ...boost, id: 'boost1' }, { ...boost, id: 'boost2' }); }
+  if (isOctane(item) || affixes.has('noStumble')) segs = segs.filter(s => s.id !== 'stumble');
+  if (isOctane(item)) { const b = bootsRaw.wheel.boost; const boost = { ...b, steps: MV[b.stepsKey], label: `${b.label} ${MV[b.stepsKey]}` }; segs.push({ ...boost, id: 'boost1' }, { ...boost, id: 'boost2' }); }
   if (affixes.has('extraSprint')) { const s = segs.find(x => x.id === 'sprint'); segs.push({ ...s, id: 'sprint2' }); }
   return segs.map(s => (s.steps != null && !/\d/.test(s.label) ? { ...s, label: `${s.label} ${s.steps}` } : s));
 }
@@ -265,7 +268,7 @@ register({
       if (mode === 'barefoot') { dice = []; }
       else {
         die = bootDie(item, affixes); rule = stopRuleFor(die, item, affixes, MV);
-        if (item.unique === 'skates') dice = Array.from({ length: bootsRaw.defaults.skatesDice }, () => bootsRaw.defaults.skatesDie);
+        if (isSkates(item)) dice = Array.from({ length: bootsRaw.defaults.skatesDice }, () => bootsRaw.defaults.skatesDie);
         else if (affixes.has('twoDice')) dice = [dieDown(die), dieDown(die)];
         else dice = [die];
       }
@@ -273,7 +276,7 @@ register({
       let total = mode === 'barefoot' ? MV.barefoot : rolls.reduce((a, b) => a + b, 0);
       if (mode === 'dice' && affixes.has('homeBonus') && item.region && item.region === c.region) total += 1;
       total = Math.max(0, total + bonus - pen);
-      const s = state.moveSession = newSession(pid, c, mode, { roll: total, movesLeft: total, dice, rolls, die, stopRule: rule, slide: item?.unique === 'skates',
+      const s = state.moveSession = newSession(pid, c, mode, { roll: total, movesLeft: total, dice, rolls, die, stopRule: rule, slide: isSkates(item),
         mustWalk: rule === 'never', canStopAfter: rule === 'any' ? 0 : rule === 'half' ? Math.ceil(total / 2) : total });
       s.legal = legalKeys(state, c);
       note(state, mode === 'barefoot' ? `${who} plods ${total}` : `${who} rolls ${rolls.join('+')}${rolls.length > 1 ? ` = ${total}` : ''}`, 'move', ctx.now);
@@ -285,7 +288,7 @@ register({
       const segs = wheelSegments(item, affixes, MV);
       const i = rigAwareWeightedIndex(state, 'wheels', segs), seg = segs[i];
       state.lastSpin = { wheel: 'movement', outcomes: segs.map(x => x.label), weights: segs.map(x => Number(x.weight ?? 1) || 0), index: i, playerId: pid, ts: ctx.now };
-      const s = state.moveSession = newSession(pid, c, 'wheel', { wheel: seg.label, segment: seg.id, octane: item?.unique === 'octane' });
+      const s = state.moveSession = newSession(pid, c, 'wheel', { wheel: seg.label, segment: seg.id, octane: isOctane(item) });
       note(state, `${who} spins ${seg.label}`, 'wheel', ctx.now);
       if (seg.special === 'teleport') {
         const options = portalOptions(state, c);

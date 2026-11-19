@@ -409,3 +409,17 @@ test('determinism: the same seed and events replay to the same state, and the ma
   const fresh = room({ seed: 77 }).join(names4); fresh.append('RUN_START'); assert.equal(a.rng.map, fresh.state.rng.map, 'movement never draws from the map stream');
   assert.ok(a.round >= 2);
 });
+
+// 19 Nov: the two Legendary boots are generated with `unique` = their Legendary id, which the movement rules did not
+// recognise (the tests above build boots by hand with the short unique). Through the generator, they must still work.
+test('the generated Legendary boots move by their own rules: Skates slide on 2d6, Octane has no Stumble', async () => {
+  const { generateLegendary } = await import('../../packages/shared/characters/generator.js');
+  const { bootMode } = await import('../../packages/shared/handlers/movement.js');
+  const r = game({ boots: () => null }); const skates = generateLegendary(r.state, 'skatesofthesixth', { seed: 3 }); const c = r.me();
+  c.items[skates.id] = skates; c.worn.boots = skates; assert.equal(bootMode(skates), 'dice');
+  rig(r, 'dice', 1); rig(r, 'dice', 1); r.append('MOVE_ROLL', {}, r.cur);
+  const s = r.state.moveSession; assert.deepEqual(s.dice, [6, 6]); assert.equal(s.roll, 2); assert.equal(s.slide, true); assert.match(r.try('MOVE_STOP', {}, r.cur).message, /full 2/);
+  const oct = generateLegendary(r.state, 'octanetreads', { seed: 4 }); assert.equal(bootMode(oct), 'wheel');
+  const segs = wheelSegments(oct, bootAffixes(oct), shared.group(r.state, 'movement'));
+  assert.ok(!segs.some(x => x.id === 'stumble')); assert.equal(segs.filter(x => /Boost/.test(x.label)).length, 2);
+});
