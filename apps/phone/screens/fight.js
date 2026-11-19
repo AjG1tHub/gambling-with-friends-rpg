@@ -57,6 +57,7 @@ function monsterCard(api, f, m) {
       h('span', { class: 'meta' }, (m.items || []).map(it => `${gameMeta(it.gameId).icon} ${it.name} (${it.stake})`).join(' · ') || 'unarmed'),
       m.mood ? h('span', { class: 'meta ital' }, `Mood: ${m.mood.label || m.mood}`) : null, m.gmControlled ? h('span', { class: 'meta bad' }, 'The GM has taken over this monster') : null));
 }
+const PET_EFFECT = { healTrainer: 'heals you', healSelf: 'restores Power', gold: 'pays Gold', eatTurn: 'skips its turn' };
 const alsoText = (state, l) => { const nm = (x) => state.characters[x.id]?.name || state.monsters?.[x.id]?.name || 'someone'; return l.splashed?.length ? ` · also hits ${l.splashed.map(x => `${nm(x)} (${x.damage})`).join(', ')}` : l.pushed?.length ? ` · pushes ${l.pushed.map(nm).join(', ')} back` : ''; };
 const lastHitTextBase = (state, l, m) => { const by = state.characters[l.by]?.name || (m && l.by === m.id ? m.name : l.by); return `${by}: ${l.label || gameMeta(l.gameId).name}${l.damage ? ` — ${l.damage} damage` : l.loss ? ` — lost ${l.loss}` : l.healed ? ` — healed ${l.healed}` : l.shielded ? ` — shield ${l.shielded}` : ' — nothing'}${l.crit ? ' · CRIT' : ''}`; };
 const lastHitText = (state, l, m) => lastHitTextBase(state, l, m) + alsoText(state, l);   // Big Fancy Gun / Broadside splash, The Shout's push
@@ -81,7 +82,9 @@ export function attackMenu(api, f, m, { inFight = true } = {}) {
     else if (!isSpell && (used.attack || 0) >= I.attacksPerTurn) reason = 'attack used this turn';
     else if (isVersus && m) reason = 'a versus item needs a player';
     else if (!isSpell && !isArea && !m) reason = 'no monster here: challenge a player from the attack panel';
-    const goal = gameById(it.gameId)?.goal; const edge = leverView(it.gameId, c.stats?.[it.stat]); const meta = `${gameMeta(it.gameId).icon} ${gameMeta(it.gameId).name}${goal ? ` — ${goal}` : ''} · ${isSpell ? (it.spellEffect || 'spell') : it.kind} · stake ${stake}${edge ? ` · return ${Math.round(edge.yours.rtp * 100)}% (${edge.deltaPts >= 0 ? '+' : ''}${edge.deltaPts} from ${edge.stat})` : ''} · ${it.charges} charge${it.charges === 1 ? '' : 's'} · ${statLabel(it.stat)} ${c.stats?.[it.stat] ?? '?'}${it.inGrid ? ' · from the grid' : ''}`;
+    const edge = leverView(it.gameId, c.stats?.[it.stat]); // One short line: the game, what it costs, what it pays. The rules of the game and the stat arithmetic live in the Cage sheet and on the round itself.
+    const does = isSpell ? ({ heal: 'heals you', shield: 'shields you' }[it.spellEffect] || it.spellEffect || 'spell') : null;
+    const meta = `${gameMeta(it.gameId).icon} ${gameMeta(it.gameId).name}${does ? ` · ${does}` : ''} · stake ${stake}${edge ? ` · pays ${Math.round(edge.yours.rtp * 100)}%` : ''}${it.charges <= 3 ? ` · ${it.charges} charge${it.charges === 1 ? '' : 's'} left` : ''}${it.inGrid ? ' · in the grid' : ''}`;
     box.append(itemRow({ item: it, meta, action: isSpell ? 'CAST' : isArea ? 'OPEN' : 'ATTACK', disabled: !!reason, reason, hot: !isSpell && !reason,
       onTap: () => { if (isArea) dispatch('AREA_OPEN', { itemId: it.id }); else if (isSpell) dispatch('ITEM_USE', { itemId: it.id, targetKind: 'self' }); else dispatch('ITEM_USE', { itemId: it.id, targetId: m.id, targetKind: 'monster' }); } }));
   }
@@ -105,7 +108,7 @@ function petLine(api, f, m) {
   if (!pet) { box.append(why('No pet standing.')); screen.append(box); return; }
   box.append(h('div', { class: 'row between' }, h('b', {}, `${pet.name} · Power ${pet.power}/${pet.maxPower}`), h('span', { class: 'muted' }, pet.element)));
   const usedPet = c.usedThisTurn?.petAttack;
-  box.append(h('div', { class: 'btn-grid' }, (pet.attacks || []).map((a, i) => { const stake = a.perBody && pet.bodies ? Math.max(1, Math.round(a.stake * pet.bodies / group(state, 'pets').swarmBodies)) : a.stake; const no = usedPet ? 'pet attacked this turn' : pet.power < stake ? `needs ${stake} Power` : ''; return h('button', { class: `pet-atk ${no ? '' : 'primary'}`, disabled: !!no, title: no, onClick: () => startPetRound(api, f, pet, i, stake) }, h('b', {}, a.name), h('span', { class: 'meta' }, `${gameMeta(a.gameId).icon} ${gameMeta(a.gameId).name} · ${stake}${a.effect ? ` · ${a.effect}` : ''}`)); })));
+  box.append(h('div', { class: 'btn-grid' }, (pet.attacks || []).map((a, i) => { const stake = a.perBody && pet.bodies ? Math.max(1, Math.round(a.stake * pet.bodies / group(state, 'pets').swarmBodies)) : a.stake; const no = usedPet ? 'pet attacked this turn' : pet.power < stake ? `needs ${stake} Power` : ''; return h('button', { class: `pet-atk ${no ? '' : 'primary'}`, disabled: !!no, title: no, onClick: () => startPetRound(api, f, pet, i, stake) }, h('b', {}, a.name), h('span', { class: 'meta' }, `${gameMeta(a.gameId).icon} ${gameMeta(a.gameId).name} · ${stake}${a.effect ? ` · ${PET_EFFECT[a.effect] || a.effect}` : ''}`)); })));
   if (usedPet) box.append(why('Your pet has attacked this turn.'));
   const others = healthyPets(c).filter(p => p.id !== pet.id);
   if (others.length) box.append(h('div', { class: 'chips' }, others.map(p => h('button', { class: 'chip', disabled: !!c.usedThisTurn?.moved, title: c.usedThisTurn?.moved ? 'switching costs your move' : '', onClick: () => dispatch('PET_SWITCH', { petId: p.id }) }, `Switch to ${p.name}`))), c.usedThisTurn?.moved ? why('Switching the pet costs the move, which is spent.') : null);
