@@ -332,8 +332,9 @@ Object.assign(legendaryEffects, {
     const t = charOfInfo(state, payload.targetId);
     if (t) { c.flags.photos ||= {}; c.flags.photos[t.id] = { health: t.health, worn: Object.fromEntries(WORN_SLOTS.map(s => [s, t.worn[s]?.name || null])), ts: ctx.now }; note(state, `${c.name} photographs ${t.name}`, 'legendary', ctx.now); return; }
     const m = state.monsters[payload.targetId]; if (!m) refuse('pick a target', 'target');
-    const before = m.health; m.health = Math.max(0, m.health - L.cameraDamage); m.pinnedTurns = 1;
-    state.ledgerSeq = (state.ledgerSeq || 0) + 1; state.ledger.push({ n: state.ledgerSeq, ts: ctx.now, kind: 'monsterHealth', charId: m.id, amount: -L.cameraDamage, moved: m.health - before, why: 'Camera Obscura' });
+    m.pinnedTurns = 1;
+    // Through the one door monster Health moves by, so the Litter's cats and the Grey's linked body feel it too.
+    if (engine.monsterHealth) engine.monsterHealth(state, m, -L.cameraDamage, 'Camera Obscura', ctx); else m.health = Math.max(0, m.health - L.cameraDamage);
     if (m.health <= 0 && !m.dead) { if (engine.monsterDied) engine.monsterDied(state, ctx, m, c.id); else m.dead = true; }   // loot, XP, the kill and the fight closing, not just a flag
   } },
   resetcartridge: { onUse(state, ctx, c, payload, item) {

@@ -238,4 +238,4 @@ onAfter((state, ev) => {
   if (!f || !f.done) return;
   if (state.turnPhase === 'resolve' && !state.pendingPrompt && (f.playerId === pid || f.kind === 'solo')) state.turnPhase = 'action';
 });
-engine.monsterDied = monsterDied;
+engine.monsterDied = monsterDied; engine.monsterHealth = monsterHealth;

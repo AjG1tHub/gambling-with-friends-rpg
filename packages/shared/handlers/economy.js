@@ -93,11 +93,13 @@ function pactTick(state, ctx, pid) {
 runHooks.turnStart.push(pactTick);
 
 // ---- trades settle at the end of a turn -------------------------------------------------------------------
-const roomFor = (ctx, c, gets, gives) => !(gets.petIds || []).length || (c.pets || []).length - (gives.petIds || []).length + gets.petIds.length <= teamCap(ctx, c);
+const roomFor = (ctx, c, gets, gives) => (gets.petIds || []).length <= (gives.petIds || []).length || (c.pets || []).length + (c.hatching ? 1 : 0) - (gives.petIds || []).length + gets.petIds.length <= teamCap(ctx, c);   // an egg on the wheels has its place reserved
+// One open offer per item or pet: a second tap on Trade replaces nothing and stacks nothing.
+const onOffer = (state, fromId, give) => (state.trades || []).some(x => x.status === 'offered' && x.fromId === fromId && ((x.give.itemIds || []).some(id => give.itemIds.includes(id)) || (x.give.petIds || []).some(id => give.petIds.includes(id))));
 // What an offer must pass when it is made, by TRADE_OFFER or by letter. Returns the cleaned sides.
 function checkOffer(state, ctx, fromId, toId, sides) {
   const a = need(state, fromId); requirePlayer(state, toId); const b = need(state, toId); if (toId === fromId) refuse('trade with someone else');
-  const clean = (s = {}) => ({ gold: Math.max(0, Math.round(Number(s.gold) || 0)), itemIds: [...(s.itemIds || [])], petIds: [...(s.petIds || [])] });
+  const clean = (s = {}) => ({ gold: Math.max(0, Math.round(Number(s.gold) || 0)), itemIds: [...new Set(s.itemIds || [])], petIds: [...new Set(s.petIds || [])] });   // a repeated id is one thing, not two
   const give = clean(sides?.give), want = clean(sides?.want);
   if (!give.gold && !give.itemIds.length && !give.petIds.length && !want.gold && !want.itemIds.length && !want.petIds.length) refuse('an empty trade');
   if (!canPay(a, give.gold)) refuse('not enough Gold', 'gold');
@@ -108,10 +110,11 @@ function checkOffer(state, ctx, fromId, toId, sides) {
   return { a, b, give, want };
 }
 const openTrade = (state, ctx, fromId, toId, give, want, extra = {}) => { const t = { id: `tr${seq(state, 'tradeSeq')}`, fromId, toId, give, want, status: 'offered', offeredAt: ctx.now, offeredTurn: state.turnIdx || 0, ...extra }; (state.trades ||= []).push(t); return t; };
-letterHooks.onSend.push((state, ctx, { letter }) => { if (letter.kind !== 'trade') return; const { give, want } = checkOffer(state, ctx, letter.fromId, letter.toId, letter.trade); letter.trade = { give, want }; });
+letterHooks.onSend.push((state, ctx, { letter }) => { if (letter.kind !== 'trade') return; const { give, want } = checkOffer(state, ctx, letter.fromId, letter.toId, letter.trade); if (onOffer(state, letter.fromId, give)) refuse('that is already on offer', 'trade'); letter.trade = { give, want }; });
 // The table log never names the sender: a letter is post, and what was in it shows only on the recipient's phone.
 letterHooks.onDeliver.push((state, ctx, { letter }) => {
   if (letter.kind !== 'trade' || !letter.trade) return;
+  if (onOffer(state, letter.fromId, letter.trade.give)) return;   // offered again by hand while the crow was in the air
   openTrade(state, ctx, letter.fromId, letter.toId, letter.trade.give, letter.trade.want, { letterId: letter.id });
   note(state, `A crow brings ${state.players[letter.toId]?.name || letter.toId} a trade offer`, 'trade', ctx.now);
 });
@@ -134,8 +137,8 @@ function settleTrades(state, ctx, endingPid = null) {
     if (!ok) { t.status = 'failed'; t.settledAt = ctx.now; note(state, `The trade between ${a?.name || t.fromId} and ${b?.name || t.toId} falls through`, 'trade', ctx.now); continue; }
     const move = (from, to, side) => {
       if (side.gold) { gold(state, from, -side.gold, `trade with ${to.name}`, ctx); gold(state, to, side.gold, `trade with ${from.name}`, ctx); }
-      for (const id of side.itemIds || []) { const it = from.items[id]; removeItem(from, id); pushLoot(to, { item: it }); }
-      for (const id of side.petIds || []) { const i = from.pets.findIndex(p => p.id === id); const [pet] = from.pets.splice(i, 1); (to.pets ||= []).push(pet); if (from.activePetId === id) from.activePetId = from.pets[0]?.id ?? null; if (!to.activePetId) to.activePetId = pet.id; }
+      for (const id of side.itemIds || []) { const it = from.items[id]; if (!it) continue; removeItem(from, id); pushLoot(to, { item: it }); }
+      for (const id of side.petIds || []) { const i = from.pets.findIndex(p => p.id === id); if (i < 0) continue; const [pet] = from.pets.splice(i, 1); (to.pets ||= []).push(pet); if (from.activePetId === id) from.activePetId = from.pets[0]?.id ?? null; if (!to.activePetId) to.activePetId = pet.id; }
     };
     move(a, b, t.give); move(b, a, t.want);
     t.status = 'settled'; t.settledAt = ctx.now;
@@ -258,8 +261,7 @@ register({
     requirePhase(state, 'playing');
     const fromId = ctx.payload.fromId || ctx.actor; requireActor(state, ctx, fromId);
     const { a, b, give, want } = checkOffer(state, ctx, fromId, ctx.payload.toId, ctx.payload);
-    // One open offer per item: a second tap on Trade replaces nothing and stacks nothing.
-    if ((state.trades || []).some(x => x.status === 'offered' && x.fromId === fromId && x.give.itemIds.some(id => give.itemIds.includes(id)))) refuse('that item is already on offer', 'trade');
+    if (onOffer(state, fromId, give)) refuse('that is already on offer', 'trade');
     openTrade(state, ctx, fromId, ctx.payload.toId, give, want);
     note(state, `${a.name} offers ${b.name} a trade`, 'trade', ctx.now);
   },

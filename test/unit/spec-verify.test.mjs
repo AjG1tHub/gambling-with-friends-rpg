@@ -177,3 +177,39 @@ test('pet trading by letter: the offer rides the crow, opens when it lands, sett
   r.append('TRADE_ANSWER', { tradeId: t3.id, accept: true }, a); r.append('TURN_END', {}, currentPlayerId(r.state));
   assert.equal(t3.status, 'settled'); assert.ok(ca.pets.some(p => p.id === extra.id)); assert.deepEqual(cb.pets.map(p => p.id), ['full0']);
 });
+
+// ---- second review of the spec-verify merge (19 Nov) ------------------------------------------------------------
+test('a trade that names the same item or pet twice moves it once', () => {
+  const r = started(); const [a, b] = r.state.seats; const ca = characterOf(r.state, a), cb = characterOf(r.state, b);
+  const pet = givePet(r, ca); const other = givePet(r, cb);
+  r.append('TRADE_OFFER', { toId: b, give: { petIds: [pet.id, pet.id] }, want: { petIds: [other.id, other.id] } }, a);
+  const t = r.state.trades.at(-1); assert.deepEqual(t.give.petIds, [pet.id]); assert.deepEqual(t.want.petIds, [other.id]);
+  r.append('TRADE_ANSWER', { tradeId: t.id, accept: true }, b); r.append('TURN_END', {}, currentPlayerId(r.state));
+  assert.equal(t.status, 'settled'); assert.deepEqual(cb.pets.map(p => p.id), [pet.id]); assert.deepEqual(ca.pets.map(p => p.id), [other.id]);
+  const it = makeItem({ name: 'spare ring' }); ca.items[it.id] = it; const count = () => Object.keys(ca.items).length + Object.keys(cb.items).length + (ca.pendingLoot?.length || 0) + (cb.pendingLoot?.length || 0);
+  const n = count();
+  r.append('TRADE_OFFER', { toId: b, give: { itemIds: [it.id, it.id, it.id] }, want: {} }, a); const t2 = r.state.trades.at(-1); assert.deepEqual(t2.give.itemIds, [it.id]);
+  r.append('TRADE_ANSWER', { tradeId: t2.id, accept: true }, b); r.append('TURN_END', {}, currentPlayerId(r.state));
+  assert.equal(t2.status, 'settled'); assert.equal(count(), n, 'nothing minted'); assert.ok(!ca.items[it.id]);
+});
+
+test('one open offer per pet, by hand or by crow; an egg on the wheels holds its place on the team', () => {
+  const r = started(); const [a, b, c3] = r.state.seats; const ca = characterOf(r.state, a), cb = characterOf(r.state, b);
+  const pet = givePet(r, ca);
+  r.append('TRADE_OFFER', { toId: b, give: { petIds: [pet.id] }, want: { gold: 5 } }, a);
+  assert.match(r.try('TRADE_OFFER', { toId: c3, give: { petIds: [pet.id] }, want: { gold: 5 } }, a).message, /already on offer/);
+  assert.match(r.try('LETTER_SEND', { toId: c3, kind: 'trade', trade: { give: { petIds: [pet.id] }, want: { gold: 5 } } }, a).message, /already on offer/);
+  // b's team is one short of full and an egg is hatching: the pet has nowhere to go
+  const t = r.state.trades.at(-1); cb.pets = Array.from({ length: B.pets.teamMax - 1 }, (_, i) => ({ ...pet, id: `f${i}` })); cb.hatching = { wheels: [], regionId: 'strip' };
+  r.append('TRADE_ANSWER', { tradeId: t.id, accept: true }, b); r.append('TURN_END', {}, currentPlayerId(r.state));
+  assert.equal(t.status, 'failed'); assert.deepEqual(ca.pets.map(p => p.id), [pet.id]); assert.equal(cb.pets.length, B.pets.teamMax - 1);
+});
+
+test('Camera Obscura hurts a monster through monsterHealth: the Grey\'s other body feels it', async () => {
+  const { legendaryEffects } = await import('../../packages/shared/hooks.js');
+  const r = started(); const pid = currentPlayerId(r.state), c = characterOf(r.state, pid), ctx = ctxFor(r);
+  const [x, y] = Object.values(r.state.monsters).filter(m => m.regionId === 'docks' && !m.boss && !m.dead); x.linkedTo = y.id; y.linkedTo = x.id;
+  x.health = x.maxHealth = 500; y.health = y.maxHealth = 500; c.activeUses ||= {}; c.flags ||= {};
+  legendaryEffects.cameraobscura.onUse(r.state, ctx, c, { targetId: x.id }, null);
+  assert.equal(x.health, 500 - B.legendaries.cameraDamage); assert.equal(y.health, x.health, 'mirrored'); assert.equal(x.pinnedTurns, 1);
+});
