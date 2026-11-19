@@ -10,8 +10,9 @@ import { speciesDef, stageName } from '../../../packages/shared/handlers/pets.js
 import { teamCap } from '../../../packages/shared/handlers/creation.js';
 import { gameById } from '../../../packages/shared/characters/generator.js';
 import { store, toast } from '../../../packages/ui/dom.js';
+import { unlocked } from '../../../packages/shared/handlers/ramp.js';
 
-const petsUi = { renaming: null, reviving: null, confirmSwitch: null };
+const petsUi = { renaming: null, reviving: null, confirmSwitch: null, trading: null, tradeGold: 0 };
 const cap = (s) => String(s || '').charAt(0).toUpperCase() + String(s || '').slice(1);
 const ELEMENT_COLOUR = { Oxblood: '#c0262e', Bone: '#e9e1cf', Brass: '#c9a45c', Verdigris: '#6fd36a', Violet: '#8f6cff', Soot: '#9aa7b0' };
 const nickKey = (pet) => `gwfrpg:petnick:${pet.id}`;
@@ -77,6 +78,18 @@ function petCard({ pet, c, state, me, myTurn, active, revives, h, dispatch, P })
   if (pet.fainted) {
     if (revives.length) actions.append(h('button', { class: 'primary', disabled: state.phase !== 'playing', onClick: () => dispatch('CONSUMABLE_USE', { itemId: revives[0].id, petId: pet.id }) }, `Revive (${revives.length} Pet Revive)`));
     else actions.append(h('span', { class: 'muted small ital' }, 'Needs a Pet Revive (Rare, or a boss drop) or a level-20 Beastmaster’s Rally.'));
+  }
+  // Trade the pet (SPEC.md: "offer Gold, items or a pet"): a gift or for Gold; they answer on their phone, it settles
+  // at the next end of turn, and it is refused there if their team is full. Not your last pet standing in a fight.
+  if (state.phase === 'playing' && unlocked(state, me?.id ?? me, 'social') && !(state.fight && !state.fight.done && isActive)) {
+    actions.append(h('button', { class: 'ghost', onClick: () => { petsUi.trading = petsUi.trading === pet.id ? null : pet.id; rerenderSoon(); } }, 'Trade'));
+    if (petsUi.trading === pet.id) {
+      const myId = me?.id ?? me;
+      const others = Object.values(state.players).filter(p => p.id !== myId && !p.spectator && !p.kicked && state.characters[p.characterId] && !state.characters[p.characterId].dead);
+      card.append(h('div', { class: 'sheet-trade' }, h('div', { class: 'tag' }, `Offer ${nick} to`),
+        others.length ? h('div', { class: 'row' }, others.map(p => h('button', { class: 'mini', onClick: () => { petsUi.trading = null; dispatch('TRADE_OFFER', { toId: p.id, give: { petIds: [pet.id] }, want: { gold: petsUi.tradeGold || 0 } }); } }, p.crest || '🂠', ' ', p.name))) : h('p', { class: 'muted ital' }, 'Nobody to trade with.'),
+        h('div', { class: 'row trade-ask' }, h('span', { class: 'tag' }, 'Ask for'), [0, 25, 50, 100, 200].map(g => h('button', { class: `mini${(petsUi.tradeGold || 0) === g ? ' on' : ''}`, onClick: () => { petsUi.tradeGold = g; rerenderSoon(); } }, g ? `${g} Gold` : 'a gift')))));
+    }
   }
   if (actions.childElementCount) card.append(actions);
   return card;

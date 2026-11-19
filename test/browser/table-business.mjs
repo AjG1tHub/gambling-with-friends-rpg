@@ -56,6 +56,29 @@ try {
   const bc = Object.values(st.characters).find(c => c.playerId === buyer);
   ok(!!bc.items[packed.id] || (bc.pendingLoot || []).some(l => (l.item?.id || l.id) === packed.id), 'the item is with the buyer (in the grid or waiting to be placed)');
 
+  console.log('\n▶ 2b. a pet for Gold, from the Pets tab');
+  {
+    const ph = R.phones[sellerI]; st = await stateOf(R.tv);
+    const pet = Object.values(st.characters).find(c => c.playerId === seller).pets[0]; ok(!!pet, `the seller has a pet to offer (${pet?.name})`);
+    await ph.locator('.tabs button', { hasText: 'Pets' }).first().click(); await sleep(300);
+    await click(ph, ph.locator('.pet-card button', { hasText: /^Trade$/i }).first(), 'opens the pet\'s trade box');
+    await click(ph, ph.locator('.pet-card .trade-ask button', { hasText: '25 Gold' }).first(), 'asks 25 Gold');
+    await click(ph, ph.locator('.pet-card .sheet-trade button', { hasText: R.names[buyerI] }).first(), `offers it to ${R.names[buyerI]}`);
+    await ph.locator('.tabs button', { hasText: 'Play' }).first().click();
+    await R.phones[buyerI].locator('.tabs button', { hasText: 'Play' }).first().click().catch(() => {});
+    await waitFor(R.phones[buyerI], () => !!document.querySelector('.table-biz.trade button.primary'), 'the buyer sees the pet offer');
+    const ptxt = await R.phones[buyerI].evaluate(() => document.querySelector('.table-biz.trade').innerText);
+    ok(ptxt.includes(pet.name) && /25 Gold/.test(ptxt), `the offer names the pet and the price ("${ptxt.replace(/\n/g, ' ').slice(0, 70)}…")`);
+    await click(R.phones[buyerI], '.table-biz.trade button.primary', 'accepts');
+    st = await stateOf(R.tv); const m2 = R.ids.indexOf(st.moverId);
+    await stayPut(R.phones[m2], R.names[m2]);
+    await waitFor(R.phones[m2], () => window.__gwf.session.state.turnPhase === 'action', 'action phase', undefined, 20000);
+    await click(R.phones[m2], 'button:has-text("End turn")', `${R.names[m2]} ends the turn`);
+    await waitFor(R.tv, () => ['settled', 'failed'].includes(window.__gwf.session.state.trades.at(-1).status), 'the pet trade resolved at the end of the turn');
+    st = await stateOf(R.tv);
+    ok(st.trades.at(-1).status === 'settled' && Object.values(st.characters).find(c => c.playerId === buyer).pets.some(p => p.id === pet.id), 'the pet is on the buyer\'s team');
+  }
+
   console.log('\n▶ 3. a house auction');
   await click(R.gm, 'button:has-text("House auction: a rare item")', 'GM opens a house auction');
   await waitFor(R.tv, () => !!window.__gwf.session.state.auction && !window.__gwf.session.state.auction.done, 'the auction is open');
