@@ -57,7 +57,9 @@ function monsterCard(api, f, m) {
       h('span', { class: 'meta' }, (m.items || []).map(it => `${gameMeta(it.gameId).icon} ${it.name} (${it.stake})`).join(' · ') || 'unarmed'),
       m.mood ? h('span', { class: 'meta ital' }, `Mood: ${m.mood.label || m.mood}`) : null, m.gmControlled ? h('span', { class: 'meta bad' }, 'The GM has taken over this monster') : null));
 }
-const lastHitText = (state, l, m) => { const by = state.characters[l.by]?.name || (m && l.by === m.id ? m.name : l.by); return `${by}: ${l.label || gameMeta(l.gameId).name}${l.damage ? ` — ${l.damage} damage` : l.loss ? ` — lost ${l.loss}` : l.healed ? ` — healed ${l.healed}` : l.shielded ? ` — shield ${l.shielded}` : ' — nothing'}${l.crit ? ' · CRIT' : ''}`; };
+const alsoText = (state, l) => { const nm = (x) => state.characters[x.id]?.name || state.monsters?.[x.id]?.name || 'someone'; return l.splashed?.length ? ` · also hits ${l.splashed.map(x => `${nm(x)} (${x.damage})`).join(', ')}` : l.pushed?.length ? ` · pushes ${l.pushed.map(nm).join(', ')} back` : ''; };
+const lastHitTextBase = (state, l, m) => { const by = state.characters[l.by]?.name || (m && l.by === m.id ? m.name : l.by); return `${by}: ${l.label || gameMeta(l.gameId).name}${l.damage ? ` — ${l.damage} damage` : l.loss ? ` — lost ${l.loss}` : l.healed ? ` — healed ${l.healed}` : l.shielded ? ` — shield ${l.shielded}` : ' — nothing'}${l.crit ? ' · CRIT' : ''}`; };
+const lastHitText = (state, l, m) => lastHitTextBase(state, l, m) + alsoText(state, l);   // Big Fancy Gun / Broadside splash, The Shout's push
 function fightLog(api, f) { const { state, h, screen } = api; if (!f.log?.length) return; const m = f.monsterId ? state.monsters[f.monsterId] : null; screen.append(h('div', { class: 'log small fight-log' }, f.log.slice(-4).map(l => h('div', {}, lastHitText(state, l, m))))); }
 
 // ── the attack menu ─────────────────────────────────────────────────────────────────────────────
