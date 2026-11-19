@@ -3,7 +3,7 @@
 import { STREAMS } from '../../../packages/shared/rng.js';
 import { currentPlayerId } from '../../../packages/shared/state.js';
 
-export function panelRig({ state, h, gm, main }) {
+export function panelRig({ state, h, gm, main, redraw }) {
   const stream = h('select', {}, STREAMS.map(s => h('option', { value: s }, s)));
   const value = h('input', { placeholder: 'e.g. 6 for a die, a segment label for a wheel, an index' });
   const queued = Object.entries(state.rig || {}).flatMap(([s, vals]) => vals.map(v => `${s} → ${JSON.stringify(v)}`));
@@ -27,6 +27,30 @@ export function panelRig({ state, h, gm, main }) {
         h('button', { onClick: () => { const t = prompt('Quest text:'); if (t) gm('GM_QUEST', { playerId: target.value, text: t }); } }, 'Issue quest'),
         h('button', { class: 'danger', onClick: () => { if (confirm('Reset this character (clears curses, pools, pacts, Chaos effects; moves to the last safe hex)?')) gm('GM_RESET_CHAR', { playerId: target.value }); } }, 'Reset character')),
       h('div', { class: 'row', style: { marginTop: '10px' } },
+        h('button', { onClick: () => { const list = Object.values(state.monsters).filter(m => !m.dead && m.pos).map(m => `${m.id} (${m.name} @ ${m.pos})`).slice(0, 14).join('\n'); const id = prompt(`Move which monster? Type its id:\n${list}`); if (!id) return; const hex = prompt('To hex key (q,r):'); if (hex) gm('GM_MONSTER_MOVE', { monsterId: id.trim().split(' ')[0], hex: hex.trim() }); } }, 'Move a monster'),
         h('button', { onClick: () => { const id = prompt('Monster species id to spawn on the mover\'s hex (see data/monsters.json), or "boss":'); if (id) gm('GM_SPAWN', { speciesId: id, hex: state.characters[state.players[currentPlayerId(state)]?.characterId]?.pos }); } }, 'Spawn monster'),
-        h('button', { onClick: () => { const t = prompt('Chaos tier 1–5:'); if (t) gm('GM_CHAOS', { tier: Number(t) }); } }, 'Start Chaos tier'))));
+        h('button', { onClick: () => { const t = prompt('Chaos tier 1–5:'); if (t) gm('GM_CHAOS', { tier: Number(t) }); } }, 'Start Chaos tier'))),
+    inventoryPanel({ state, h, gm, seats, redraw }));
+}
+
+// Any player's inventory: what they wear and carry, remove an item, resize their grid (SPEC.md › Inventory:
+// "The GM console can open any player's inventory, add or remove items, and resize their grid"). Adding is the
+// Give item button above.
+let invFor = null;
+function inventoryPanel({ state, h, gm, seats, redraw }) {
+  if (!seats.some(p => p.id === invFor)) invFor = null;
+  const pick = h('div', { class: 'row' }, seats.map(p => h('button', { class: p.id === invFor ? 'primary' : '', onClick: () => { invFor = invFor === p.id ? null : p.id; redraw?.(); } }, p.name)));
+  const box = h('div', { class: 'panel inv-panel' }, h('h3', {}, 'Open a player\'s inventory'), pick);
+  const c = invFor && Object.values(state.characters).find(x => x.playerId === invFor);
+  if (!invFor) return box;
+  if (!c) { box.append(h('p', { class: 'muted ital' }, 'No character yet.')); return box; }
+  const wornIds = new Map(Object.entries(c.worn || {}).filter(([, it]) => it).map(([slot, it]) => [it.id, slot]));
+  const rows = Object.values(c.items || {}).map(it => ({ it, slot: wornIds.get(it.id) || null }));
+  box.append(h('p', { class: 'muted' }, `${c.name}: grid ${c.grid?.cols}×${c.grid?.rows} · ${rows.length} item(s)${(c.pendingLoot || []).length ? ` · ${(c.pendingLoot || []).length} waiting to be placed` : ''}`),
+    h('div', { class: 'gm-bar' },
+      h('button', { onClick: () => gm('GRID_RESIZE', { playerId: invFor, cols: (c.grid?.cols || 0) + 1 }) }, 'Grid: + column'), h('button', { onClick: () => gm('GRID_RESIZE', { playerId: invFor, cols: (c.grid?.cols || 0) - 1 }) }, '− column'),
+      h('button', { onClick: () => gm('GRID_RESIZE', { playerId: invFor, rows: (c.grid?.rows || 0) + 1 }) }, '+ row'), h('button', { onClick: () => gm('GRID_RESIZE', { playerId: invFor, rows: (c.grid?.rows || 0) - 1 }) }, '− row')),
+    rows.length ? h('div', { class: 'list' }, rows.map(({ it, slot }) => h('div', { class: 'item' }, h('span', { class: 'grow' }, `${it.name}${(it.qty || 1) > 1 ? ` ×${it.qty}` : ''}`), h('span', { class: 'pill' }, slot ? `worn: ${slot}` : it.slot || 'item'), h('span', { class: `pill r-${it.rarity}` }, it.rarity || ''),
+      h('button', { class: 'danger', onClick: async () => { if (!confirm(`Remove ${it.name} from ${c.name}? It leaves the run.`)) return; if (slot) await gm('GRID_UNEQUIP', { playerId: invFor, slot }); gm('GRID_DROP', { playerId: invFor, itemId: it.id, destroy: true }); } }, 'Remove')))) : h('p', { class: 'muted ital' }, 'Nothing carried.'));
+  return box;
 }

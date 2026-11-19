@@ -154,6 +154,8 @@ register({
     const item = findItem(c, ctx.payload.itemId);
     if (wornSlotOf(c, item.id)) refuse('unequip it first', 'worn');
     G.remove(c, item.id, { forget: true });
+    // The GM removing an item from the console (payload.destroy) takes it out of the run; a player's drop lands on the tile.
+    if (ctx.isGm && ctx.payload.destroy) { note(state, `GM removes ${item.name} from ${c.name}`, 'gm', ctx.now); return; }
     if (state.phase === 'playing' && c.pos) dropToTile(state, ctx, c, item, 'drops'); else note(state, `${c.name} discards ${item.name}`, 'loot', ctx.now);
   },
   GRID_SORT(state, ev, ctx) { const { c } = actingCharacter(state, ctx); materialisePendingLoot(state, ctx, c); G.autoSort(c); },

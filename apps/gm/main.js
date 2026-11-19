@@ -103,7 +103,7 @@ function view(state, session) {
   if (state.phase === 'playing' && !state.gm?.paused && Date.now() - tvSeen > TV_STALE_MS) main.append(h('div', { class: 'err-box tv-warn' }, h('b', {}, tvSeen ? 'The TV screen dropped off. ' : 'No TV screen is connected. '), 'Monster turns, the clock at zero and challenge time caps all run from the TV page — until it is open and in the foreground, fights sit waiting. ', h('a', { href: `/?code=${state.code}`, target: '_blank' }, 'Open the TV ↗')));
   render(app, h('div', { class: 'gm-shell' }, nav, main));
   const p = PANELS.find(x => x[0] === ctx.panel) || PANELS[0];
-  try { p[2]({ state, session, ctx, h, gm, main }); } catch (e) { console.error(e); main.append(h('p', { class: 'log error' }, e.message)); }
+  try { p[2]({ state, session, ctx, h, gm, main, redraw: () => view(session.state, session) }); } catch (e) { console.error(e); main.append(h('p', { class: 'log error' }, e.message)); }
 }
 
 main();
