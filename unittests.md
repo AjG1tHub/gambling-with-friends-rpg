@@ -23,7 +23,7 @@ editing that folder while you run, so **never run tests in it**. Work in your ow
    ```
    It runs, in order: `unit` (node --test, ~400 tests), `bots` (bot games in every mode), and the browser gates
    `gate`, `qa`, `tutorial`, `lab`, `small-phone`, `tv-layout`, `reconnect`, `offline`, `sidebet`, `modes`,
-   `gm-layout`, `clock`, `table-business`. Results land in `test/reports/<stamp>/`: `report.json`, `report.html`, **`report.png`**
+   `gm-layout`, `clock`, `table-business`, `ramp`. Results land in `test/reports/<stamp>/`: `report.json`, `report.html`, **`report.png`**
    (the screenshot of the results) and one `<suite>.log` each. Gate screenshots land in `test/shots/`.
 3. Open `report.png` with the Read tool and confirm it matches `report.json`.
 4. For every failed suite: read its `.log`, re-run that one suite once (`node test/browser/<id>.mjs`) to tell a

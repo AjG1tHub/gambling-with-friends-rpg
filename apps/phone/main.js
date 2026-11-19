@@ -8,6 +8,7 @@ import { readSet } from '../../packages/ui/letters.js';
 import { shortId } from '../../packages/shared/ids.js';
 import { currentPlayerId, characterOf } from '../../packages/shared/state.js';
 import { shouldReclaimSeat } from '../../packages/shared/handlers/lobby.js';
+import { unlocked } from '../../packages/shared/handlers/ramp.js';
 import { remainingMs } from '../../packages/shared/clock.js';
 import { group } from '../../packages/shared/balance.js';
 import { tabPlay } from './screens/play.js';
@@ -119,7 +120,13 @@ function view(state, session) {
   // The Coach (coach.js): one card for the situation, above the screen on every tab; never allowed to break the render.
   let coach = null;
   try { coach = coachCard({ state, session, me, c, myTurn, ctx, h, dispatch, rerender }); } catch (e) { console.error('coach', e); }
-  const tabs = h('nav', { class: 'tabs' }, TABS.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
+  // During a player's tutorial turns the bar only carries the tabs that have something in them yet: the Cage comes
+  // with gear (turn 2), Pets with the first pet (turn 3), Letters when the table opens. Nothing is greyed, it is just
+  // not there, and a new tab arrives with the turn that explains it.
+  const TAB_NEEDS = { cage: 'gear', pets: 'fight', letters: 'social' };
+  const shownTabs = state.phase === 'playing' && me && !me.spectator ? TABS.filter(([id]) => !TAB_NEEDS[id] || unlocked(state, me.id, TAB_NEEDS[id])) : TABS;
+  if (!shownTabs.some(t => t[0] === ctx.tab)) ctx.tab = 'play';
+  const tabs = h('nav', { class: 'tabs' }, shownTabs.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
   // QA: the bug-report sheet and the secret reward overlay sit above the tabs (feedback.js).
   let qa = [];
   try { qa = [bugSheet({ state, ctx, me, myTurn, dispatch, rerender }), rewardOverlay({ state, ctx, me, dispatch })]; } catch (e) { console.error('qa', e); }

@@ -46,12 +46,12 @@ export async function openTable() {
 export async function closeTable() { await browser?.close(); server?.close(); dev?.close?.(); }
 
 // A fresh room: GM, TV, three phones, creation done, run started, nobody has moved.
-export async function newRoom(tag, { mode = 'ffa', classes = ['Whale', 'Whale', 'Whale'], onDialog = null } = {}) {
+export async function newRoom(tag, { mode = 'ffa', classes = ['Whale', 'Whale', 'Whale'], onDialog = null, ramp = false } = {}) {
   const gmCtx = await browser.newContext({ viewport: { width: 1600, height: 900 } }); gmCtx.setDefaultTimeout(15000);
   const gm = await gmCtx.newPage(); watch(gm, tag + ' gm'); gm.on('dialog', d => { onDialog?.(d.message()); d.accept(); });
   const tvCtx = await browser.newContext({ viewport: { width: 1920, height: 1080 } }); tvCtx.setDefaultTimeout(15000);   // its own context: the TV can go offline without the GM
   const tv = await tvCtx.newPage(); watch(tv, tag + ' tv');
-  await gm.goto(`${url}/gm/?${Q}`); await gm.fill('input[type=password]', '4242'); await gm.uncheck('input[name=ramp]').catch(() => {}); if (mode !== 'ffa') await gm.locator('select').nth(0).selectOption(mode);
+  await gm.goto(`${url}/gm/?${Q}`); await gm.fill('input[type=password]', '4242'); if (ramp) await gm.check('input[name=ramp]').catch(() => {}); else await gm.uncheck('input[name=ramp]').catch(() => {}); if (mode !== 'ffa') await gm.locator('select').nth(0).selectOption(mode);
   await gm.click('button:has-text("Create room")'); await waitFor(gm, () => !!window.__gwf?.session, `${tag}: room created`);
   const code = await gm.evaluate(() => window.__gwf.session.code);
   await tv.setViewportSize({ width: 1920, height: 1080 }); await tv.goto(`${url}/?code=${code}&${Q}`); await waitFor(tv, () => !!window.__gwf?.session, 'TV opened');
