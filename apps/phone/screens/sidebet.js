@@ -4,6 +4,7 @@
 import { group } from '../../../packages/shared/balance.js';
 import { characterOf } from '../../../packages/shared/state.js';
 import { amountPicker, nameOf, redraw } from './prompts.js';
+import { unlocked } from '../../../packages/shared/handlers/ramp.js';
 
 const sideName = (state, id) => state.monsters?.[id]?.name || nameOf(state, id);
 
@@ -11,6 +12,7 @@ const sideName = (state, id) => state.monsters?.[id]?.name || nameOf(state, id);
 export function sideBetView(state, me, now = Date.now()) {
   const S = group(state, 'social'); if (!S.sideBetsOn) return null;
   if (state.phase !== 'playing') return null;
+  if (state.players?.[me] && !state.players[me].spectator && !unlocked(state, me, 'social')) return null;   // a seat still in its tutorial turns
   const f = state.fight && !state.fight.done ? state.fight : null, ch = state.challenge && !state.challenge.done ? state.challenge : null;
   let kind, refId, sides, title;
   if (ch) { kind = 'challenge'; refId = ch.id; sides = [ch.attackerId, ch.defenderId]; title = `${ch.call || 'challenge'}: ${sideName(state, ch.attackerId)} ⚔ ${sideName(state, ch.defenderId)}`; }

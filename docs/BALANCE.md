@@ -453,7 +453,7 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 
 | Key | Default | Unit | Spec section | What moving it does |
 | --- | --- | --- | --- | --- |
-| `ramp.steps` | [move, gear, fight, challenge, all] | steps | Tutorial opening | The tutorial opening: what each of a player's first turns unlocks, in order (move, gear, fight, challenge, social, class, pets, chaos, or all). Shorten the list for a quicker ramp; a room made with tier 1 has it on by default (ROOM_CREATED ramp, GM_CONFIG ramp). |
+| `ramp.steps` | [move, gear, fight, challenge, classpets, all] | steps | Tutorial opening | The tutorial opening: what each of a player's first turns unlocks, in order (move, gear, fight, challenge, social, class, pets, classpets, chaos, or all). Shorten the list for a quicker ramp; a room made with tier 1 has it on by default (ROOM_CREATED ramp, GM_CONFIG ramp). |
 
 ## quests
 

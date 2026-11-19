@@ -40,19 +40,20 @@ test('ramp: stages per own turn, the teaser line, the lock message, and the ramp
   const st = rampStage(t.state, s0);
   assert.equal(st.on, true); assert.equal(st.turn, 1); assert.equal(st.step, 'move'); assert.equal(st.index, 0); assert.equal(st.done, false);
   assert.deepEqual([...st.unlocked], ['move']); assert.deepEqual(st.next, { feature: 'gear', onTurn: 2 });
-  assert.deepEqual(st.locked.map(l => `${l.feature}@${l.onTurn}`), ['gear@2', 'fight@3', 'challenge@4', 'social@5', 'class@5', 'pets@5', 'chaos@5']);
+  assert.deepEqual(st.locked.map(l => `${l.feature}@${l.onTurn}`), ['gear@2', 'fight@3', 'challenge@4', 'social@6', 'class@5', 'pets@5', 'chaos@6']);
   assert.equal(rampLine(t.state, s0), 'Next turn: shops and your Cage unlock');
   assert.equal(lockMessage(t.state, s0, 'fight'), 'Fights unlock on your turn 3');
   // s1 has not had a turn yet: treated as turn 1
   assert.equal(rampStage(t.state, s1).turn, 1); assert.equal(unlocked(t.state, s1, 'gear'), false);
   lap(t); assert.equal(t.cur(), s0); assert.equal(t.state.turnCounts[s0], 2);
-  let s = rampStage(t.state, s0); assert.equal(s.step, 'gear'); assert.ok(s.unlocked.has('gear') && s.unlocked.has('move') && !s.unlocked.has('fight')); assert.equal(rampLine(t.state, s0), 'Next turn: fights unlock — the monsters wake');
+  let s = rampStage(t.state, s0); assert.equal(s.step, 'gear'); assert.ok(s.unlocked.has('gear') && s.unlocked.has('move') && !s.unlocked.has('fight')); assert.equal(rampLine(t.state, s0), 'Next turn: fights unlock — the monsters wake, and your first pet hatches');
   lap(t); s = rampStage(t.state, s0); assert.equal(s.step, 'fight'); assert.ok(s.unlocked.has('fight') && !s.unlocked.has('challenge'));
-  lap(t); s = rampStage(t.state, s0); assert.equal(s.step, 'challenge'); assert.deepEqual(s.next, { feature: 'all', onTurn: 5 }); assert.equal(rampLine(t.state, s0), 'Next turn: everything unlocks — letters, alliances, votes, pacts, pets, class actives');
+  lap(t); s = rampStage(t.state, s0); assert.equal(s.step, 'challenge'); assert.deepEqual(s.next, { feature: 'classpets', onTurn: 5 }); assert.equal(rampLine(t.state, s0), 'Next turn: your class active and pet battles unlock');
+  lap(t); s = rampStage(t.state, s0); assert.equal(s.step, 'classpets'); assert.ok(s.unlocked.has('class') && s.unlocked.has('pets') && !s.unlocked.has('social') && !s.unlocked.has('chaos')); assert.deepEqual(s.next, { feature: 'all', onTurn: 6 }); assert.equal(rampLine(t.state, s0), 'Next turn: everything unlocks — letters, alliances, votes, pacts, pets, class actives');
   lap(t); s = rampStage(t.state, s0); assert.equal(s.step, 'all'); assert.equal(s.done, true); assert.equal(s.unlocked.size, FEATURES.length); assert.equal(s.next, null); assert.equal(rampLine(t.state, s0), '');
-  lap(t); s = rampStage(t.state, s0); assert.equal(s.turn, 6); assert.equal(s.done, true);
+  lap(t); s = rampStage(t.state, s0); assert.equal(s.turn, 7); assert.equal(s.done, true);
   // the other seats ramp on their own turns, not the table's
-  assert.equal(rampStage(t.state, t.order[3]).turn, 5);
+  assert.equal(rampStage(t.state, t.order[3]).turn, 6);
 });
 
 test('ramp: every locked event is refused with code locked on turn 1 and no longer locked once its turn comes', () => {
@@ -67,7 +68,7 @@ test('ramp: every locked event is refused with code locked on turn 1 and no long
   assert.notEqual(code(t.r.try('VOTE_OPEN', { kind: 'table', question: 'q', options: [s0, s1] }, 'gm')), 'locked');
   // the GM proxying a phone is that seat
   assert.equal(code(t.r.try('GRID_SORT', { playerId: s0 }, 'gm')), 'locked');
-  for (let turn = 2; turn <= 5; turn++) {
+  for (let turn = 2; turn <= 6; turn++) {
     lap(t); assert.equal(t.cur(), s0); assert.equal(rampStage(t.state, s0).turn, turn);
     const now = samples(t, s0, s1);
     for (const [feature, list] of Object.entries(now)) for (const [type, payload] of list) {
@@ -78,7 +79,7 @@ test('ramp: every locked event is refused with code locked on turn 1 and no long
     const st = rampStage(t.state, s0);
     assert.deepEqual([...st.unlocked].sort(), [...new Set(B.ramp.steps.slice(0, turn).flatMap(s => STEP_FEATURES[s]))].sort());
   }
-  // a real action goes through once open: the Cage sorts on turn 2 and a letter flies on turn 5
+  // a real action goes through once open: the Cage sorts on turn 2 and a letter flies on turn 6
   assert.equal(code(t.r.try('GRID_SORT', {}, s0)), null); t.r.append('LETTER_SEND', { toId: s1, text: 'free at last' }, s0); assert.equal(t.state.letters.at(-1).text, 'free at last');
 });
 
@@ -95,7 +96,7 @@ test('ramp: the monsters are asleep until turn 3 — a step onto a monster hex i
   // the TV banner names the mover's step on the turn it unlocks
   assert.deepEqual(rampBanner(t.state), { playerId: s0, turn: 1, step: 'move', text: `${c.name}'s turn 1 — you move: roll, step, stop, end the turn` });
   t.place(s0, '0,0'); lap(t); lap(t); assert.equal(t.cur(), s0); assert.equal(rampStage(t.state, s0).step, 'fight');
-  assert.equal(rampBanner(t.state).text, `${c.name}'s turn 3 — fights unlock — the monsters wake`);
+  assert.equal(rampBanner(t.state).text, `${c.name}'s turn 3 — fights unlock — the monsters wake, and your first pet hatches`);
   t.r.append('MOVE_ROLL', {}, s0); assert.ok(legalSteps(t.state, s0).find(x => x.key === '1,0').legal);
   t.r.append('MOVE_STEP', { to: '1,0' }, s0);
   assert.ok(t.state.fight && !t.state.fight.done && t.state.fight.monsterId === 'm-1,0' && t.state.fight.playerId === s0, 'the monster wakes: the fight opens on the step');
@@ -124,7 +125,7 @@ test('ramp: Chaos spins at tier 1 for a ramp-locked spinner, the full wheel once
   const t = rampTable(); const [s0] = t.order; t.state.chaos.tier = 4;
   const low = segmentsFor(t.state, 'chaos', { playerId: s0 }).length, full = segmentsFor(t.state, 'chaos').length; assert.ok(low < full, `${low} < ${full}`);
   const r1 = spinWheel(t.state, ctxFor(t.r), 'chaos', s0); assert.equal(t.state.lastSpin.outcomes.length, low); assert.ok(r1.seg);
-  for (let i = 0; i < 4; i++) lap(t); assert.ok(unlocked(t.state, s0, 'chaos'));
+  for (let i = 0; i < 5; i++) lap(t); assert.ok(unlocked(t.state, s0, 'chaos'));
   t.state.chaos.tier = 4; spinWheel(t.state, ctxFor(t.r), 'chaos', s0); assert.equal(t.state.lastSpin.outcomes.length, full);
 });
 
@@ -187,10 +188,31 @@ test('ramp: the Coach shows the step card on the player\'s turn, the help sheet 
   assert.equal(coachStep(t.state, s0, { tab: 'play', dismissed: new Set(['ramp.move']), tutorial: true }).id, 'ramp.move', 'never dismissed in the practice run');
   assert.equal(coachStep(t.state, s1, { tab: 'play', dismissed: none }).id, 'waiting', 'not their turn: no ramp card');
   assert.equal(coachStep(t.state, s0, { tab: 'cage', dismissed: none }).id, 'tab.cage');
-  assert.deepEqual(rampLocks(t.state, s0).map(l => `${l.feature}@${l.onTurn}`), ['gear@2', 'fight@3', 'challenge@4', 'social@5', 'class@5', 'pets@5', 'chaos@5']);
+  assert.deepEqual(rampLocks(t.state, s0).map(l => `${l.feature}@${l.onTurn}`), ['gear@2', 'fight@3', 'challenge@4', 'social@6', 'class@5', 'pets@5', 'chaos@6']);
   assert.match(rampLocks(t.state, s0)[1].label, /Fights/);
   lap(t); lap(t); assert.equal(coachStep(t.state, s0, { tab: 'play', dismissed: none }).id, 'ramp.fight');
-  lap(t); lap(t); assert.equal(coachStep(t.state, s0, { tab: 'play', dismissed: none }).id, 'ramp.all'); assert.deepEqual(rampLocks(t.state, s0), []);
+  lap(t); lap(t); lap(t); assert.equal(coachStep(t.state, s0, { tab: 'play', dismissed: none }).id, 'ramp.all'); assert.deepEqual(rampLocks(t.state, s0), []);
   lap(t); assert.equal(coachStep(t.state, s0, { tab: 'play', dismissed: none }).id, 'move.roll', 'the ramp is over: plain cards');
   t.r.append('GM_RAMP_SKIP', { playerId: s1 }); t.until(s1); assert.equal(coachStep(t.state, s1, { tab: 'play', dismissed: none }).id, 'move.roll', 'a skipped seat gets no ramp card');
+});
+
+test('ramp: the starting pet waits for the turn fights unlock; with the ramp off it hatches at run start', async () => {
+  const { room, names4, currentPlayerId } = await import('./_helpers.mjs');
+  const charOfP = (r, pid) => Object.values(r.state.characters).find(c => c.playerId === pid);
+  const r = room({ ramp: true }).join(names4); r.append('RUN_START');
+  const s0 = currentPlayerId(r.state); const n = r.state.seats.length;
+  const lapR = () => { for (let i = 0; i < n; i++) r.append('TURN_END', {}, currentPlayerId(r.state)); };
+  assert.equal(charOfP(r, s0).hatching ?? null, null, 'turn 1: no Pet Wheel on the first screen'); assert.equal(charOfP(r, s0).flags.setupDeferred, true);
+  lapR(); assert.equal(currentPlayerId(r.state), s0); assert.equal(charOfP(r, s0).hatching ?? null, null, 'turn 2: still just gear');
+  lapR(); assert.equal(rampStage(r.state, s0).step, 'fight');
+  assert.equal(charOfP(r, s0).hatching?.source, 'setup', 'turn 3: the Pet Wheel arrives with fights');
+  assert.equal(charOfP(r, s0).flags.setupDeferred, undefined);
+  const off = room({ ramp: false }).join(names4); off.append('RUN_START');
+  assert.equal(charOfP(off, currentPlayerId(off.state)).hatching?.source, 'setup', 'no ramp: the wheel is there from the start');
+});
+test('ramp: side bets, auction bids and Legendary use sit behind it too', () => {
+  assert.equal(LOCKS.SIDE_BET, 'social'); assert.equal(LOCKS.AUCTION_BID, 'social'); assert.equal(LOCKS.LEGENDARY_USE, 'gear');
+  const t = rampTable(); const [s0] = t.order;
+  assert.equal(code(t.r.try('LEGENDARY_USE', { itemId: 'x' }, s0)), 'locked');
+  assert.equal(code(t.r.try('AUCTION_BID', { amount: 10 }, s0)), 'locked');
 });

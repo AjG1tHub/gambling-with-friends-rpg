@@ -64,7 +64,7 @@ function startScreen(error = '') {
       h('div', { class: 'panel gold col' }, h('h3', {}, 'Create a room'),
         h('div', { class: 'grid2' }, field('Mode', f.mode), field('Difficulty', f.tier), field('Map size', f.size), field('Challenge list', f.preset)),
         field('GM PIN', f.pin), h('label', { class: 'row' }, f.fog, ' Fog of war on the TV'),
-        h('label', { class: 'row', title: 'Each player\'s first turns unlock one mechanic at a time: move, gear, fight, challenge, then everything. Skip it per seat or for the table from the Table panel.' }, f.ramp, ' Tutorial opening — one new mechanic per turn for the first 5 turns'),
+        h('label', { class: 'row', title: 'Each player\'s first turns unlock one mechanic at a time: move, gear, fight (and your first pet), challenges, class and pets, then everything. Skip it per seat or for the table from the Table panel.' }, f.ramp, ' Tutorial opening — one new mechanic per turn for the first 6 turns'),
         h('button', { class: 'primary big', onClick: create }, 'Create room'), h('p', { class: 'muted' }, 'Then open ', h('a', { href: '/', target: '_blank' }, 'the table screen'), ' on the TV and enter the code.')),
       h('div', { class: 'panel col' }, h('h3', {}, 'Reopen a room'), codeIn, h('button', { class: 'big', onClick: reopen }, 'Open console'),
         h('div', { class: 'hr' }), h('h3', {}, 'Backend down?'), h('p', { class: 'muted' }, h('a', { href: '/classic/gm/' }, 'Run classic mode'), ' — the previous one-computer build, unchanged.'),

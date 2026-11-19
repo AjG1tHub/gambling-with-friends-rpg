@@ -26,16 +26,17 @@ import { note } from '../state.js';
 import { group } from '../balance.js';
 
 export const FEATURES = ['move', 'gear', 'fight', 'challenge', 'social', 'class', 'pets', 'chaos'];
-export const STEP_FEATURES = { move: ['move'], gear: ['gear'], fight: ['fight'], challenge: ['challenge'], social: ['social'], class: ['class'], pets: ['pets'], chaos: ['chaos'], all: FEATURES };
+export const STEP_FEATURES = { move: ['move'], gear: ['gear'], fight: ['fight'], challenge: ['challenge'], social: ['social'], class: ['class'], pets: ['pets'], chaos: ['chaos'], classpets: ['class', 'pets'], all: FEATURES };   // classpets: the two fight-adjacent extras share a turn, so the last step is not four things at once
 export const FEATURE_LABEL = { move: 'Moving', gear: 'Shops, the Inn, the Bank and your Cage', fight: 'Fights', challenge: 'Challenges, the Arena and bounties', social: 'Letters, alliances, votes, trades and auctions', class: 'Class actives', pets: 'Pet battles', chaos: 'Chaos' };
 // What the next step opens, for the phone's teaser line and the TV banner.
-export const STEP_TEASER = { move: 'you move: roll, step, stop, end the turn', gear: 'shops and your Cage unlock', fight: 'fights unlock — the monsters wake', challenge: 'challenges unlock — duels, wagers, robberies, the Arena', social: 'letters, alliances, votes and trades unlock', class: 'your class active unlocks', pets: 'pet battles unlock', chaos: 'Chaos rises as it should', all: 'everything unlocks — letters, alliances, votes, pacts, pets, class actives' };
+export const STEP_TEASER = { move: 'you move: roll, step, stop, end the turn', gear: 'shops and your Cage unlock', fight: 'fights unlock — the monsters wake, and your first pet hatches', challenge: 'challenges unlock — duels, wagers, robberies, the Arena', social: 'letters, alliances, votes and trades unlock', class: 'your class active unlocks', pets: 'pet battles unlock', chaos: 'Chaos rises as it should', classpets: 'your class active and pet battles unlock', all: 'everything unlocks — letters, alliances, votes, pacts, pets, class actives' };
 export const LOCKS = {
   SHOP_BUY: 'gear', SHOP_SELL: 'gear', INN_REST: 'gear', BANK_DEPOSIT: 'gear', BANK_WITHDRAW: 'gear', PACT_TAKE: 'gear', TILE_TAKE_LOOT: 'gear', CONSUMABLE_USE: 'gear',
   GRID_MOVE: 'gear', GRID_EQUIP: 'gear', GRID_UNEQUIP: 'gear', GRID_DROP: 'gear', GRID_SORT: 'gear', GRID_RESIZE: 'gear',
   ITEM_USE: 'fight', PET_ATTACK: 'fight', AREA_OPEN: 'fight', FIGHT_START: 'fight',
   CHALLENGE_CALL: 'challenge', BOUNTY_PLACE: 'challenge',
-  LETTER_SEND: 'social', ALLIANCE_PROPOSE: 'social', VOTE_OPEN: 'social', TRADE_OFFER: 'social', AUCTION_OPEN: 'social',
+  LETTER_SEND: 'social', ALLIANCE_PROPOSE: 'social', VOTE_OPEN: 'social', TRADE_OFFER: 'social', AUCTION_OPEN: 'social', AUCTION_BID: 'social', SIDE_BET: 'social',
+  LEGENDARY_USE: 'gear',
   PET_BATTLE_START: 'pets', CLASS_ACTIVE: 'class',
 };
 

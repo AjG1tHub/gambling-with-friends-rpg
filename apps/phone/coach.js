@@ -100,13 +100,14 @@ export const STEP_IDS = Object.keys(STEPS);
 export const RAMP_STEPS = {
   move: { title: 'Turn 1: the walk', text: (state, me, c) => `${bootsText(state, c)} The hex you stop on still does its thing, but the monsters are asleep for you and nothing else is open yet. Then END TURN.` },
   gear: { title: 'Turn 2: gear', text: (state) => `Shops, the Inn, the Bank and your Cage open. Stop on a Shop to BUY (a Common weapon is always on the shelf), on the Inn to Rest (+${g(state, 'health').innHeal}). Open the Cage to equip, bag or drop; potions and loot on the ground are yours to take.` },
-  fight: { title: 'Turn 3: fights', text: () => 'The monsters wake. Walk onto one, or ATTACK from the fight panel: you stake your weapon\'s Health cost on its game; win and the monster takes the hit, lose and you do. Spells and Area items open too. From now on a monster swings back.' },
+  fight: { title: 'Turn 3: fights', text: () => 'First, your starting pet hatches: three wheels stop, tap the one you want to keep. Then the monsters wake. Walk onto one, or ATTACK from the fight panel: you stake your weapon\'s Health cost on its game; win and the monster takes the hit, lose and you do. Spells and Area items open too. From now on a monster swings back.' },
   challenge: { title: 'Turn 4: challenges', text: () => 'Duels, wagers and robberies: call a player in reach from the Attack panel and the Challenge Wheel picks the game. The call ends your turn. The Arena and the Bounty Board open as well.' },
   social: { title: 'Turn 5: the table', text: () => 'Letters by crow, alliances, votes, trades and auctions are open. Plot.' },
   class: { title: 'Your class active', text: () => 'Your class active is open: find it under the attack panel, on a cooldown.' },
   pets: { title: 'Pet battles', text: () => 'Pet battles are open: your pets fight another player\'s pets for a Gold wager.' },
   chaos: { title: 'Chaos', text: () => 'Chaos rises as it should from here: the Chaos wheel spins at the table\'s tier for you.' },
-  all: { title: 'Turn 5: everything', text: () => 'Letters, alliances, votes, pacts, trades, pet battles and your class active are open, and Chaos rises as it should. The opening is over: it is the whole game from here.' },
+  classpets: { title: 'Turn 5: your class and your pets', text: () => 'Two extras for fights. Your class active is open: one button under the attack panel, on a cooldown. And pet battles: your pets can fight another player\'s pets for a Gold wager.' },
+  all: { title: 'The table opens', text: () => 'Letters by crow, alliances, trades, votes, auctions and side bets are open, and Chaos rises as it should. The opening is over: it is the whole game from here.' },
 };
 const RAMP_OVER = new Set(['move.roll', 'move.spent', 'action', 'resolve']);
 // The ramp card for this turn, or null when the ramp is off / over for the player, it is not their turn, or the

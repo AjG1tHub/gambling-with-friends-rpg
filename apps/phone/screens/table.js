@@ -4,6 +4,7 @@
 import { voteView } from '../../../packages/shared/handlers/social.js';
 import { amountPicker, nameOf, redraw } from './prompts.js';
 import { group } from '../../../packages/shared/balance.js';
+import { unlocked } from '../../../packages/shared/handlers/ramp.js';
 
 const itemName = (state, ownerId, id) => { const c = Object.values(state.characters).find(x => x.playerId === ownerId); return c?.items?.[id]?.name || 'an item'; };
 const petName = (state, ownerId, id) => { const c = Object.values(state.characters).find(x => x.playerId === ownerId); return (c?.pets || []).find(p => p.id === id)?.name || 'a pet'; };
@@ -23,7 +24,7 @@ export function tableBusiness(state, me) {
     if (t.status === 'offered' && t.toId === me) out.incoming.push(t);
     else if (t.fromId === me && (t.status === 'offered' || t.status === 'accepted')) out.outgoing.push(t);
   }
-  const a = state.auction; if (a && !a.done) out.auction = a;
+  const a = state.auction; if (a && !a.done && unlocked(state, me, 'social')) out.auction = a;   // not during a player's tutorial turns
   return out;
 }
 

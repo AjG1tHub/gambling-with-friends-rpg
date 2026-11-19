@@ -14,6 +14,7 @@
 // Hooks: petHooks.beforeCharacterHit → info.redirectToPet (the fight module moves the damage with power());
 //        damageHooks.afterHit checks the pet for a faint afterwards (Mucklings lose a body, Beastmaster's first
 //        faint is undone). classActives.rally, consumables.petrevive, legendaryEffects.tamersnare.onUse.
+import { rampOn, unlocked } from './ramp.js';
 import petsData from '../../../data/pets.json' with { type: 'json' };
 import { register, refuse, requirePhase, requireActor, requireGm } from '../reducer.js';
 import { characterOf, currentPlayerId, note, playerOfCharacter } from '../state.js';
@@ -273,6 +274,16 @@ runHooks.runStart.push((state, ctx) => {
     if (!state.players[c.playerId] || state.players[c.playerId].kicked) continue;
     for (const pet of c.pets) { gainPower(state, ctx, c, pet, P.sessionPowerBonus, 'session bonus'); if (speciesDef(pet.speciesId)?.stages?.[pet.stage]?.perk === 'potionOncePerRun') { const pot = makeConsumable(state, 'potion'); if (!insert(c, pot, { stackMax: Gb.stack })) delete c.items[pot.id]; } }
     if (c.classId === 'beastmaster') { const egg = makeConsumable(state, 'egg'); if (!insert(c, egg, { stackMax: Gb.stack })) { delete c.items[egg.id]; (state.tileLoot[c.pos || 'start'] ||= []).push({ ...egg, droppedAt: ctx.now, round: state.round }); } note(state, `${c.name} finds an egg in the pack (Beastmaster)`, 'pet', ctx.now); }
+    // With the tutorial opening on, the starting pet waits for the turn fights unlock (turnStart below): a new player's
+    // first screen is then "move, End turn", not a three-wheel pet choice they have no way to judge yet.
+    if (rampOn(state) && !unlocked(state, c.playerId, 'fight')) { if (!c.pets.length && !c.flags.setupHatched) c.flags.setupDeferred = true; continue; }
     if (!c.pets.length && !c.hatching && !c.flags.setupHatched) { c.flags.setupHatched = true; spinHatch(state, ctx, c, 'setup', c.region || null); }
   }
+});
+
+// The deferred starting pet (see runStart above): hatched at the start of the first turn on which fights are open.
+runHooks.turnStart.push((state, ctx, pid) => {
+  const c = Object.values(state.characters).find(x => x.playerId === pid); if (!c || !c.flags?.setupDeferred || c.dead || c.flags.setupHatched || c.pets.length || c.hatching) return;
+  if (rampOn(state) && !unlocked(state, pid, 'fight')) return;
+  c.flags.setupHatched = true; delete c.flags.setupDeferred; spinHatch(state, ctx, c, 'setup', c.region || null);
 });
