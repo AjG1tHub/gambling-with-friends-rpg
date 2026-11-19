@@ -92,6 +92,8 @@ function seatOf(state, ev, ctx) {
 onBefore((state, ev, ctx) => {
   const feature = LOCKS[ev.type]; if (!feature || state.phase !== 'playing' || !rampOn(state)) return;
   const pid = seatOf(state, ev, ctx); if (!pid) return;
+  if (state.players[pid]?.spectator) return;                                   // a spectator never takes a turn: the ramp is not theirs (side bets)
+  if (ctx.isGm && (ev.type === 'GRID_RESIZE' || ctx.payload?.destroy)) return;   // the GM's inventory panel is not a player shopping
   // Answering a "take a worn item" prompt is part of a kill, never gear shopping; it must not freeze the turn.
   if (ev.type === 'TILE_TAKE_LOOT' && state.pendingPrompt?.kind === 'takeWorn' && state.pendingPrompt.playerId === pid) return;
   if (!unlocked(state, pid, feature)) refuse(lockMessage(state, pid, feature), 'locked');

@@ -12,7 +12,7 @@
 // Level loss is applied here (c.level and c.maxHealth by health.maxPerLevel) and also counted in
 // c.levelLossPending for the characters module to reconcile XP thresholds / stat points.
 import { register, refuse, requireGm } from '../reducer.js';
-import { deathHooks } from '../hooks.js';
+import { deathHooks, engine } from '../hooks.js';
 import { characterOf, note } from '../state.js';
 import { health, maxHealth, gold } from '../health.js';
 import { streamRng } from '../rng.js';
@@ -160,3 +160,4 @@ register({
     resetCharacter(state, ctx, c);
   },
 });
+engine.killCharacter = killCharacter;

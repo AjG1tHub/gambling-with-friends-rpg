@@ -13,7 +13,7 @@
 import { register, refuse, requireGm, requirePhase, requireActor } from '../reducer.js';
 import { characterOf, note, livingCharacters, currentPlayerId } from '../state.js';
 import { hooks as runHooks } from './run.js';
-import { damageHooks, deathHooks, legendaryEffects, consumables } from '../hooks.js';
+import { damageHooks, deathHooks, legendaryEffects, consumables, engine } from '../hooks.js';
 import { health, maxHealth as moveMaxHealth, gold } from '../health.js';
 import { streamRng } from '../rng.js';
 import { group } from '../balance.js';
@@ -152,7 +152,9 @@ register({
     requirePhase(state, 'creation', 'playing');
     const { c } = actingCharacter(state, ctx); materialisePendingLoot(state, ctx, c);
     const item = findItem(c, ctx.payload.itemId);
-    if (wornSlotOf(c, item.id)) refuse('unequip it first', 'worn');
+    const wornIn = wornSlotOf(c, item.id);
+    if (wornIn && ctx.isGm && ctx.payload.destroy) { c.worn[wornIn] = null; delete c.items[item.id]; afterWornChange(state, ctx, c); note(state, `GM removes ${item.name} from ${c.name}`, 'gm', ctx.now); return; }
+    if (wornIn) refuse('unequip it first', 'worn');
     G.remove(c, item.id, { forget: true });
     // The GM removing an item from the console (payload.destroy) takes it out of the run; a player's drop lands on the tile.
     if (ctx.isGm && ctx.payload.destroy) { note(state, `GM removes ${item.name} from ${c.name}`, 'gm', ctx.now); return; }
@@ -233,10 +235,10 @@ damageHooks.afterMiss.push((state, ctx, info) => {
   const lost = Number(info.lost ?? info.stake) || 0; if (!lost) return;
   // Rail Lance lock: the loss becomes a push.
   const lock = a.effects.find(e => e.id === 'raillock' && e.data?.fightId === state.fight?.id && e.data?.targetId === info.targetId);
-  if (lock && info.item?.legendaryId === 'raillance') { health(state, a, lost, 'Rail Lance: a push', ctx); a.effects.splice(a.effects.indexOf(lock), 1); info.notes.push('Rail Lance: cannot miss'); return; }
+  if (lock && info.item?.legendaryId === 'raillance') { health(state, a, lost, 'Rail Lance: a push', ctx); info.refunded = (info.refunded || 0) + lost; a.effects.splice(a.effects.indexOf(lock), 1); info.notes.push('Rail Lance: cannot miss'); return; }
   const ward = wornAffixes(a).filter(x => x.kind === 'ward' && matches(x, info)).reduce((s, x) => s + Number(x.value || 0), 0);
-  if (ward) { const back = Math.round(lost * Math.min(1, ward)); if (back) { health(state, a, back, 'ward refund', ctx); info.notes.push(`ward refunds ${back}`); } }
-  const cap = a.passives?.stakeCap; if (cap && lost > cap) { health(state, a, lost - cap, 'stake cap', ctx); info.notes.push(`stake capped at ${cap}`); }
+  if (ward) { const back = Math.round(lost * Math.min(1, ward)); if (back) { health(state, a, back, 'ward refund', ctx); info.refunded = (info.refunded || 0) + back; info.notes.push(`ward refunds ${back}`); } }
+  const cap = a.passives?.stakeCap; if (cap && lost > cap) { health(state, a, lost - cap, 'stake cap', ctx); info.refunded = (info.refunded || 0) + (lost - cap); info.notes.push(`stake capped at ${cap}`); }
 });
 // Death: the pendant, the fairy, the toadstool. info = { charId, killerId, cause, prevented?, noDrops?, noMissTurns? }.
 deathHooks.onZero.push((state, ctx, info) => {
@@ -266,7 +268,7 @@ export function scoreOf(state, c) { return (c.gold || 0) + (c.kills || 0) * grou
 Object.assign(legendaryEffects, {
   pedestalblade: { onEquip(state, ctx, c) { recomputePassives(state, ctx, c); } },
   gravitygauntlet: { onUse(state, ctx, c, payload) {
-    const t = charOfInfo(state, payload.targetId); if (!t || t.id === c.id) refuse('pick a player', 'target');
+    const t = charOfInfo(state, payload.targetId); if (!t || t.id === c.id || t.dead) refuse('pick a living player', 'target');
     if (dist(c, t) > ctx.B('legendaries').gravityRange) refuse('out of range', 'range');
     onceUse(c, 'gravitygauntlet'); t.pos = c.pos; note(state, `${c.name}'s Gravity Gauntlet pulls ${t.name} in`, 'legendary', ctx.now);
   } },
@@ -297,7 +299,7 @@ Object.assign(legendaryEffects, {
   carapace: { onUse(state, ctx, c, payload, item) {
     const others = livingCharacters(state).filter(o => o.id !== c.id); if (!others.length) refuse('nobody to hit', 'target');
     const leader = others.slice().sort((a, b) => scoreOf(state, b) - scoreOf(state, a))[0];
-    health(state, leader, -ctx.B('legendaries').carapaceDamage, 'Spiny Blue Carapace', ctx, { ignoreShield: true }); if (item) consumeOne(state, c, item);
+    health(state, leader, -ctx.B('legendaries').carapaceDamage, 'Spiny Blue Carapace', ctx, { ignoreShield: true }); if (leader.health <= 0 && !leader.dead) engine.killCharacter?.(state, ctx, leader, { killerId: c.id, killerKind: 'player' }); if (item) consumeOne(state, c, item);
     note(state, `A blue shell finds ${leader.name}`, 'legendary', ctx.now);
   } },
   ocarina: { onUse(state, ctx, c, payload) {
@@ -324,7 +326,7 @@ Object.assign(legendaryEffects, {
     const m = state.monsters[payload.targetId]; if (!m) refuse('pick a target', 'target');
     const before = m.health; m.health = Math.max(0, m.health - L.cameraDamage); m.pinnedTurns = 1;
     state.ledgerSeq = (state.ledgerSeq || 0) + 1; state.ledger.push({ n: state.ledgerSeq, ts: ctx.now, kind: 'monsterHealth', charId: m.id, amount: -L.cameraDamage, moved: m.health - before, why: 'Camera Obscura' });
-    if (m.health <= 0) m.dead = true;
+    if (m.health <= 0 && !m.dead) { if (engine.monsterDied) engine.monsterDied(state, ctx, m, c.id); else m.dead = true; }   // loot, XP, the kill and the fight closing, not just a flag
   } },
   resetcartridge: { onUse(state, ctx, c, payload, item) {
     c.effects = []; c.flags.pactInterestCleared = true; c.wanted = 0; if (c.lastSafePos) c.pos = c.lastSafePos;
@@ -364,8 +366,17 @@ register({
     // On your own turn, or mid-challenge/fight you are part of; never from the waiting screen.
     const inFight = state.fight && !state.fight.done && (state.fight.playerId === pid || (state.fight.playerIds || []).includes(pid));
     if (!ctx.isGm && currentPlayerId(state) !== pid && !inFight) refuse('on your own turn', 'turn');
+    // Nothing is used across an open prompt or a half-walked move, and nothing that moves you is used mid-fight
+    // (the Inn song or a Reset would leave the fight open on a hex you are no longer on).
+    if (!ctx.isGm && state.pendingPrompt?.playerId === pid) refuse('answer the prompt on your screen first', 'busy');
+    if (!ctx.isGm && state.moveSession && !state.moveSession.done && state.moveSession.playerId === pid) refuse('finish your move first', 'busy');
+    const MOVES = (item.legendaryId === 'ocarina' && ctx.payload.song === 'inn') || item.legendaryId === 'resetcartridge';
+    if (MOVES && inFight) refuse('not in the middle of a fight', 'fight');
     c.activeUses ||= {}; c.effects ||= []; c.flags ||= {};
+    const before = c.pos, others = Object.values(state.characters).map(o => [o, o.pos]);
     fn(state, ctx, c, ctx.payload, item);
+    for (const [o, was] of others) if (o.pos !== was) o.region = state.map?.hexes?.[o.pos]?.regionId ?? o.region;   // anyone the effect moved (you, a Gauntlet's target)
+    if (c.pos !== before) c.lastSafePos = c.lastSafePos || c.pos;
     recomputePassives(state, ctx, c);
   },
 });

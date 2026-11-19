@@ -88,7 +88,15 @@ function pactTick(state, ctx, pid) {
 runHooks.turnStart.push(pactTick);
 
 // ---- trades settle at the end of a turn -------------------------------------------------------------------
-function settleTrades(state, ctx) {
+function settleTrades(state, ctx, endingPid = null) {
+  // An unanswered offer lapses when its offerer's own turn ends, or when either seat is gone: it does not sit on two
+  // phones all night.
+  const ending = endingPid || currentPlayerId(state);
+  for (const t of state.trades || []) {
+    if (t.status !== 'offered') continue;
+    const gone = [t.fromId, t.toId].some(id => !state.players[id] || state.players[id].kicked);
+    if (gone || (t.fromId === ending && (state.turnIdx || 0) > (t.offeredTurn ?? state.turnIdx ?? 0))) { t.status = 'expired'; t.answeredAt = ctx.now; }
+  }
   for (const t of state.trades || []) {
     if (t.status !== 'accepted') continue;
     const a = characterOf(state, t.fromId), b = characterOf(state, t.toId);
@@ -106,13 +114,13 @@ function settleTrades(state, ctx) {
     note(state, `${a.name} and ${b.name} trade`, 'trade', ctx.now);
   }
 }
-runHooks.turnEnd.push((state, ctx) => settleTrades(state, ctx));
+runHooks.turnEnd.push((state, ctx, pid) => settleTrades(state, ctx, pid));
 
 // ---- auctions ---------------------------------------------------------------------------------------------
 export function auctionWinner(state) {
   const a = state.auction; if (!a) return null;
   const bids = Object.entries(a.bids).map(([pid, b]) => ({ pid, ...b })).sort((x, y) => y.amount - x.amount || x.seq - y.seq);
-  for (const b of bids) { const c = characterOf(state, b.pid); if (c && canPay(c, b.amount)) return b; }
+  for (const b of bids) { const c = characterOf(state, b.pid); if (c && !c.dead && !state.players[b.pid]?.kicked && canPay(c, b.amount)) return b; }   // the lot does not go into a grave or an empty chair
   return null;
 }
 
@@ -229,7 +237,9 @@ register({
     for (const id of give.itemIds) if (!a.items?.[id] || isWorn(a, id)) refuse(`you do not hold ${id} in your grid`, 'item');
     for (const id of give.petIds) if (!(a.pets || []).some(p => p.id === id)) refuse(`no pet ${id}`, 'pet');
     for (const id of want.itemIds) if (!b.items?.[id]) refuse(`${b.name} does not hold ${id}`, 'item');
-    (state.trades ||= []).push({ id: `tr${seq(state, 'tradeSeq')}`, fromId, toId, give, want, status: 'offered', offeredAt: ctx.now });
+    // One open offer per item: a second tap on Trade replaces nothing and stacks nothing.
+    if ((state.trades || []).some(x => x.status === 'offered' && x.fromId === fromId && x.give.itemIds.some(id => give.itemIds.includes(id)))) refuse('that item is already on offer', 'trade');
+    (state.trades ||= []).push({ id: `tr${seq(state, 'tradeSeq')}`, fromId, toId, give, want, status: 'offered', offeredAt: ctx.now, offeredTurn: state.turnIdx || 0 });
     note(state, `${a.name} offers ${b.name} a trade`, 'trade', ctx.now);
   },
   TRADE_ANSWER(state, ev, ctx) {

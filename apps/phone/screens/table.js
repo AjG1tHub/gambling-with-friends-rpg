@@ -29,6 +29,7 @@ export function tableBusiness(state, me) {
   return out;
 }
 
+const bidDraft = new Map();   // auction id → the amount this phone has dialled
 export function tablePanels(api) {
   const { state, me, c, h, dispatch } = api; const biz = tableBusiness(state, me); const out = [];
   if (biz.vote) {
@@ -53,7 +54,8 @@ export function tablePanels(api) {
     if (a.sellerId === me) box.append(h('p', { class: 'muted ital' }, `Your lot. ${Object.keys(a.bids || {}).length} sealed bid(s) so far.`));
     else {
       const mine = a.bids?.[me]?.amount, gold = c.gold || 0;
-      const amt = amountPicker({ value: Math.max(a.minBid, Math.min(gold, mine || a.minBid)), min: a.minBid, max: Math.max(a.minBid, gold), step: 5, label: `Your bid in Gold (you hold ${gold}; minimum ${a.minBid})` });
+      // The dialled amount lives outside the render: every event (someone else sealing a bid) redraws this panel.
+      const amt = amountPicker({ value: Math.max(a.minBid, Math.min(gold, bidDraft.get(a.id) ?? mine ?? a.minBid)), min: a.minBid, max: Math.max(a.minBid, gold), step: 5, label: `Your bid in Gold (you hold ${gold}; minimum ${a.minBid})`, onChange: (n) => bidDraft.set(a.id, n) });
       box.append(amt, h('button', { class: 'primary big', disabled: gold < a.minBid, onClick: () => dispatch('AUCTION_BID', { amount: amt.value() }) }, mine ? `Change bid (now ${mine})` : 'Seal a bid'));
       if (gold < a.minBid) box.append(h('p', { class: 'muted ital' }, 'Not enough Gold for the minimum bid.'));
     }

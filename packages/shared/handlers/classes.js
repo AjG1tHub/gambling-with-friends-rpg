@@ -106,7 +106,7 @@ damageHooks.outgoing.push((state, ctx, info) => {
 damageHooks.afterMiss.push((state, ctx, info) => {
   if (info.attackerKind && info.attackerKind !== 'character') return;
   const a = charOf(state, info.attackerId); if (!a || a.freeRestakeUsed || a.dead) return;
-  const lost = Number(info.loss ?? info.lost) || 0; if (lost <= 0) return;
+  const lost = (Number(info.loss ?? info.lost) || 0) - (info.refunded || 0); if (lost <= 0) return;   // a Rail Lance push, a ward or a stake cap already gave it back
   let nerve = 0; try { nerve = effectiveStats(state, a).nerve || 0; } catch { nerve = a.stats?.nerve || 0; }
   if (nerve < ctx.B('health').nerveRestakeAt) return;
   a.freeRestakeUsed = true; health(state, a, lost, 'Nerve: free re-stake', ctx);

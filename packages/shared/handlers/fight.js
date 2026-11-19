@@ -5,7 +5,7 @@
 // path as a player's hit (handlers/items.js › resolveHit).
 import { onAfter, register, refuse, requirePhase, requireActor, requireGm } from '../reducer.js';
 import { currentPlayerId, characterOf, playerOfCharacter, note, alive } from '../state.js';
-import { lootHooks, levelHooks, moveHooks } from '../hooks.js';
+import { lootHooks, levelHooks, moveHooks, engine } from '../hooks.js';
 import { hooks as runHooks } from './run.js';
 import { resolveHit, inReach, stripSecret } from './items.js';
 import { startRound } from '../../games/adapter.js';
@@ -112,7 +112,7 @@ register({
     f.lastGame = { itemId: item.id, gameId: item.gameId, kind: item.kind, mode: 'health', stake, attackerId: m.id, targetId: c.id, targetKind: 'character', phase: 'done', result: { mult: Number(mult), label, crit: !!crit, damage: info.damage, loss: info.loss }, legacy: snapshot ? stripSecret(snapshot) : null, startedTs: ctx.now };
     if (m.health <= 0 && !m.dead) monsterDied(state, ctx, m, c.id);
     // Back to the player: a new combat turn (one attack + one spell) inside the same table turn.
-    if (!f.done) { f.turn = 'player'; f.exchanges = (f.exchanges || 0) + 1; if (c.usedThisTurn) { c.usedThisTurn.attack = 0; c.usedThisTurn.spell = 0; } }
+    if (!f.done) { f.turn = 'player'; f.exchanges = (f.exchanges || 0) + 1; if (c.usedThisTurn) { c.usedThisTurn.attack = 0; c.usedThisTurn.spell = 0; c.usedThisTurn.swungLast = false; } }   // swungLast: the Cleaver ends your exchange, not the whole fight
     // A player who ended their turn mid-fight has walked away once the monster's parting blow lands.
     if (!f.done && f.passed && currentPlayerId(state) !== f.playerId) { f.done = true; f.result = 'left'; f.endedAt = ctx.now; note(state, `${c.name} leaves ${m.name} behind`, 'fight', ctx.now); }
   },
@@ -169,3 +169,4 @@ onAfter((state, ev) => {
   if (!f || !f.done) return;
   if (state.turnPhase === 'resolve' && !state.pendingPrompt && (f.playerId === pid || f.kind === 'solo')) state.turnPhase = 'action';
 });
+engine.monsterDied = monsterDied;

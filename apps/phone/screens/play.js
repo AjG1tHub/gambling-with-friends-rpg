@@ -149,7 +149,7 @@ function actionScreen(api) {
   if (can('class')) classActiveRow(api, null, null);
   emoteRow(api);
   { const rv = can('gear') ? revivePanel(api) : null; if (rv) screen.append(rv); }
-  { const tv = can('challenge') ? tableVoteCall(api) : null; if (tv) screen.append(tv); }
+  { const tv = can('social') ? tableVoteCall(api) : null; if (tv) screen.append(tv); }
   const boots = bootsOf(c);
   if (boots?.unique === 'movetwice' && (c.usedThisTurn?.moves || 0) === 1) screen.append(h('button', { class: 'primary big', onClick: () => dispatch('MOVE_ROLL', {}) }, 'Move again'));
   const teaser = rampLine(state, me); if (teaser) screen.append(h('p', { class: 'center muted ital ramp-line' }, teaser));
