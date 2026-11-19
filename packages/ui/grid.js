@@ -347,8 +347,8 @@ export function itemSheet({ c, state, me, dispatch, myTurn = false } = {}) {
     h('div', { class: 'sheet-head' }, itemIcon(item, 52),
       h('div', { class: 'grow' }, h('div', { class: 'sheet-name' }, item.name), h('div', { class: 'muted small ital' }, `${cap(item.rarity)} · ${cap(item.slot === 'weapon' ? (item.twoHand ? 'two-hand weapon' : 'weapon') : item.slot)} · ${fp.w} × ${fp.h}${worn ? ` · worn (${SLOT_LABEL[worn] || worn})` : cell ? '' : ' · not placed'}${item.qty > 1 ? ` · ×${item.qty}` : ''}`)),
       h('span', { class: `pill r-${item.rarity}` }, cap(item.rarity))),
+    useBox, tradeBox,   // what you can do with it comes before the small print
     h('div', { class: 'sheet-lines' }, lines.length ? lines.map(l => h('div', { class: `line ${l.affix ? 'affix k-' + l.kind : ''}` }, l.k ? h('span', { class: 'k' }, l.k) : null, h('span', { class: 'v' }, l.v))) : h('p', { class: 'muted ital' }, 'No affixes. Plain, honest kit.')),
-    useBox, tradeBox,
     h('div', { class: 'sheet-buttons' }, buttons));
 }
 

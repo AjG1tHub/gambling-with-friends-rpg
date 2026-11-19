@@ -165,3 +165,5 @@ details.drawer > summary::after { content: '▸'; margin-left: auto; } details.d
 .stat-games-list .lever-delta { font-weight: 700; padding: 0 6px; border-radius: 10px; background: #2a2622; color: var(--bone-2); min-width: 34px; text-align: center; } .stat-games-list .lever-delta.up { background: #1f3a22; color: #9fe3a8; } .stat-games-list .lever-delta.down { background: #3f1d1d; color: #f0a0a0; }
 /* Narrow phones: the hero sprite (wider once a pet stands beside it) was squeezing the name column to ~50px. */
 @media (max-width: 420px) { .self-sprite { flex: 0 1 46%; min-width: 120px; max-width: 46%; } .self-canvas { height: auto; } }
+/* The sheet's buttons stay in reach while the description scrolls (on a 640px phone Equip / Use / Close sat below the fold). */
+.item-sheet .sheet-buttons { position: sticky; bottom: -12px; margin: 8px -14px -12px; padding: 10px 14px 12px; background: linear-gradient(180deg, rgba(17,13,12,.85), #110d0c 35%); border-top: 1px solid #3a2e1c; }
