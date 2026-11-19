@@ -183,7 +183,7 @@ function build(svg, state, size, manifest, onHexClick) {
   builds.set(svg, rec);
   return rec;
 }
-const mapSig = (map) => `${map.seed}:${Object.keys(map.hexes).length}:${map.courier}`;
+const mapSig = (map) => `${map.seed}:${Object.keys(map.hexes).length}:${map.courier}:${map.dug || 0}`;   // dug: a Blockbreaker Pick opened a void hex, so the ground layer is stale
 export const crowPath = (s) => `M${-s} ${s * 0.1} C${-s * 0.6} ${-s * 0.5} ${-s * 0.2} ${-s * 0.4} 0 ${-s * 0.1} C${s * 0.2} ${-s * 0.4} ${s * 0.6} ${-s * 0.5} ${s} ${s * 0.1} C${s * 0.6} ${s * 0.05} ${s * 0.3} ${s * 0.15} 0 ${s * 0.4} C${-s * 0.3} ${s * 0.15} ${-s * 0.6} ${s * 0.05} ${-s} ${s * 0.1} Z`;
 const flamePath = (k) => `M0 ${2 * k} C${4 * k} ${7 * k} ${6 * k} ${10 * k} ${6 * k} ${14 * k} A${6 * k} ${6 * k} 0 0 1 ${-6 * k} ${14 * k} C${-6 * k} ${10 * k} ${-4 * k} ${7 * k} 0 ${2 * k} Z`;
 

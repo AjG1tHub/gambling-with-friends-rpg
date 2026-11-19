@@ -95,6 +95,6 @@ export function hexInfo(state, key) {
   const hx = state?.map?.hexes?.[key]; if (!hx) return null;
   const region = state.map.regions?.[hx.regionId];
   const m = livingMonsterAt(state, key);
-  const who = Object.values(state.characters || {}).filter(x => x.pos === key && !x.dead).map(x => x.name);
-  return { hex: hx, region, label: tileLabel(hx.type), glyph: tileGlyph(hx.type), monster: m, who, loot: state.tileLoot?.[key] || [] };
+  const chars = Object.values(state.characters || {}).filter(x => x.pos === key && !x.dead), who = chars.map(x => x.name);
+  return { hex: hx, region, label: tileLabel(hx.type), glyph: tileGlyph(hx.type), monster: m, who, chars, loot: state.tileLoot?.[key] || [] };
 }

@@ -59,10 +59,14 @@ export function tollDue(c, hex) {
   return g.toll;
 }
 
+// Deep-Sea Suit (passives.waterWalk): water void is open ground for its wearer, and only for them. Everything that
+// walks (steps, paths, Card ranges, the slide) asks passable/blockReason with a charId, so this is the one switch.
+export const wades = (state, charId, h) => !!(h?.void && h.type === 'water' && charId && state.characters?.[charId]?.passives?.waterWalk);
+
 // May this character step onto the hex at all? (Monster hexes count as passable; they just end the move.)
 // Without a charId it is a terrain question: void and blockers are impassable, gates are ignored.
 export function passable(state, key, charId = null) {
-  const h = hexAt(state, key); if (!h || h.void || h.type === 'blocker') return false;
+  const h = hexAt(state, key); if (!h || (h.void && !wades(state, charId, h)) || h.type === 'blocker') return false;
   if (!charId) return true;
   const c = state.characters[charId]; if (!c) return true;
   if (h.gate || h.type === 'throne') { if (gateBlocks(state, c, h)) return false; }
@@ -71,7 +75,7 @@ export function passable(state, key, charId = null) {
 // Why a step onto `key` is refused, or null. Used by the phone to grey out directions with a reason.
 export function blockReason(state, key, charId = null) {
   const h = hexAt(state, key); if (!h) return 'off the map';
-  if (h.void) return tileLabel(h.type);
+  if (h.void && !wades(state, charId, h)) return tileLabel(h.type);
   if (h.type === 'blocker') return 'blocked';
   const c = charId ? state.characters[charId] : null;
   return gateBlocks(state, c, h);

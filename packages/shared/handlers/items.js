@@ -14,7 +14,7 @@
 //   set info.cancel, or (Double Down) info.lossMult.
 import { register, refuse, requirePhase, requireActor, requireGm } from '../reducer.js';
 import { currentPlayerId, characterOf, playerOfCharacter, allied, note, alive } from '../state.js';
-import { damageHooks, deathHooks, petHooks, levelHooks, classActives, consumables, runMods } from '../hooks.js';
+import { damageHooks, deathHooks, petHooks, levelHooks, classActives, consumables, runMods, legendaryEffects } from '../hooks.js';
 import * as money from '../health.js';
 import { bonusFor, group } from '../balance.js';
 import * as hex from '../hex.js';
@@ -196,6 +196,9 @@ register({
     if (stake > c.health && !canOverstake(c)) refuse(`stake ${stake} exceeds your Health (${c.health})`, 'stake');
     const used = c.usedThisTurn || (c.usedThisTurn = { attack: 0, spell: 0, moved: false });
     const spellCap = I.spellsPerTurn + (hasUpgrade(c, 'twospells') ? 1 : 0);
+    // Oversized Buster Cleaver (legendaryEffects.bustercleaver.swingsLast): simplest reading of "swings last in the
+    // turn" is that its swing is the turn's last item use, so cast your spells before you lift it.
+    if (used.swungLast) refuse('the Buster Cleaver swings last: nothing follows it this turn', 'limit');
     if (ATTACK_KINDS.has(item.kind) && used.attack >= I.attacksPerTurn) refuse('one attack per turn', 'limit');
     if (item.kind === 'spell' && used.spell >= spellCap) refuse(`${spellCap === 1 ? 'one spell' : spellCap + ' spells'} per turn`, 'limit');
     // Target rules per kind.
@@ -220,6 +223,7 @@ register({
     const rig = fight.rig || null; fight.rig = null;
     fight.game = { itemId, gameId: item.gameId, kind: item.kind, mode: 'health', stake, attackerId: c.id, attackerPlayerId: pid, targetId: targetKind === 'self' ? c.id : targetId, targetKind, phase: 'ready', view: {}, result: null, pending: null, pendingChoice: null, rig, startedTs: ctx.now, legacy: null, lastText: '' };
     if (ATTACK_KINDS.has(item.kind)) used.attack += 1; else used.spell += 1;
+    if (legendaryEffects[item.legendaryId]?.swingsLast) used.swungLast = true;
     note(state, `${c.name} readies ${item.name} (${stake} Health)${targetKind === 'self' ? '' : ' on ' + nameOf(state, fight.game.targetId, targetKind)}`, 'fight', ctx.now);
   },
   ITEM_STEP(state, ev, ctx) {
@@ -400,7 +404,10 @@ damageHooks.outgoing.push((state, ctx, info) => {
 damageHooks.incoming.push((state, ctx, info) => {
   if (info.targetKind === 'character') {
     const t = state.characters[info.targetId]; if (!t) return;
-    if (isCaldera(regionOf(state, t.pos))) { info.mult *= ctx.B('map').calderaDamageMult; info.notes.push('Caldera'); }
+    // Infernal Mantle (passives.calderaImmune): the wearer takes normal damage there. Their own hits on Caldera
+    // monsters still double. (SPEC and legendaries.json call this "the Caldera's damage doubling"; the Caldera has
+    // no damage over time in the engine.)
+    if (isCaldera(regionOf(state, t.pos)) && !t.passives?.calderaImmune) { info.mult *= ctx.B('map').calderaDamageMult; info.notes.push('Caldera'); }
   } else if (info.targetKind === 'monster') {
     const m = state.monsters[info.targetId]; if (m && isCaldera(regionOf(state, m.pos))) { info.mult *= ctx.B('map').calderaDamageMult; info.notes.push('Caldera'); }
   }
