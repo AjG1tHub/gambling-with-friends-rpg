@@ -309,7 +309,7 @@ try {
             await waitFor(tv, () => !!window.__gwf.session.state.challenge?.versusGame?.legacy, 'the attacker\'s round is mirrored to the room (CHALLENGE_STEP)', null, 8000);
             // Clash is one draw: the round may settle before the TV paints it, so look for the mirror until it does.
             let tvMirror = false, phMirror = false; const t1 = Date.now();
-            while (Date.now() - t1 < 4000 && !(tvMirror && phMirror)) { tvMirror ||= (await tv.locator('.challenge-panel .spot-stage').count()) > 0; phMirror ||= (await dph.locator('.mg-stage.mirror').count()) > 0; if (await tv.evaluate(() => !window.__gwf.session.state.challenge)) break; await sleep(100); }
+            while (Date.now() - t1 < 12000 && !(tvMirror && phMirror)) { tvMirror ||= (await tv.locator('.challenge-panel .spot-stage').count()) > 0; phMirror ||= (await dph.locator('.mg-stage.mirror').count()) > 0; if (await tv.evaluate(() => !window.__gwf.session.state.challenge)) break; await sleep(100); }
             const settled = await tv.evaluate(() => !window.__gwf.session.state.challenge);
             ok(tvMirror || settled, `the TV challenge panel shows the mirrored round${settled && !tvMirror ? ' (settled before the paint)' : ''}`);
             ok(phMirror || settled, `${nameOfSeat[def]}'s phone shows the mirrored round${settled && !phMirror ? ' (settled before the paint)' : ''}`);

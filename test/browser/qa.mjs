@@ -128,7 +128,9 @@ try {
     // The label itself ("Potion", "Reroll"…) can legitimately appear in a How-to-play card cycling on the TV during
     // creation (CI flake, 19 Nov), so the label is checked against the TV's own log and ticker, the phrases everywhere.
     const tvLogText = await tv.evaluate(() => [...document.querySelectorAll('.rail-log, .tv-log, #tvLog, .tv-foot')].map(e => e.innerText).join(' '));
-    ok(!tvLogText.includes(r.label) && !tvText.includes('secret reward') && !/Bug Reward/i.test(tvText), 'the TV never shows the reward: not the label in its log, not the message anywhere');
+    // If this ever fails, say where the TV had it (it failed once on a CI runner and passed everywhere else).
+    const where = await tv.evaluate((label) => [...document.querySelectorAll('body *')].filter(e => e.children.length === 0 && (e.textContent.includes(label) || /secret reward|Bug Reward/i.test(e.textContent))).map(e => `${e.tagName}.${e.className} in ${e.closest('[id],[class]')?.parentElement?.className || '?'}: "${e.textContent.slice(0, 80)}"`).slice(0, 4).join(' | '), r.label);
+    ok(!tvLogText.includes(r.label) && !tvText.includes('secret reward') && !/Bug Reward/i.test(tvText), `the TV never shows the reward: not the label in its log, not the message anywhere${where ? ' — FOUND: ' + where : ''}`);
     ok((await tv.locator('.wheel, .wheel-overlay, .qa-reward').count()) === 0, 'the TV DOM has no wheel');
     await shot(tv, '08-tv');
     // The reward id was remembered: a reload shows the wheel already landed, no second animation.
