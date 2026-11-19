@@ -36,7 +36,7 @@ const run = (s) => new Promise((resolve) => {
   p.on('close', (code) => {
     clearTimeout(kill); writeFileSync(`${dir}${s.id}.log`, out);
     const ok = code === 0 && (!s.pass || s.pass.test(out));
-    const fails = out.split('\n').filter(l => /^not ok|FAIL:|TIMEOUT:|Error:|✗/.test(l.trim())).slice(0, 6).map(l => l.trim().slice(0, 220));
+    const fails = out.split('\n').filter(l => /^not ok|FAIL:|TIMEOUT:|Error:|Timeout \d+ms|✗|waiting for locator/.test(l.trim())).slice(0, 6).map(l => l.trim().slice(0, 220));
     resolve({ id: s.id, ok, code, seconds: Math.round((Date.now() - t0) / 1000), count: s.count ? Number((out.match(s.count) || [])[1] || 0) : (out.match(/✓/g) || []).length, fails });
   });
 });
