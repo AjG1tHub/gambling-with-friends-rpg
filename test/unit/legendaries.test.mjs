@@ -98,3 +98,35 @@ test('legendaries owned here: pendant saves you once, fairy jar from the grid, t
   assert.equal(c.pets.length, petsBefore + 1); assert.ok(m.dead && m.caught); assert.ok(!c.items[snare.id]); assert.ok(st.fight.done);
   m.health = 50; m.dead = false; assert.throws(() => hooks.legendaryEffects.tamersnare.onUse(st, ctx, c, { monsterId: 'm1' }, null), /not weak enough/);
 });
+
+// 19 Nov: every onUse effect was unreachable (no event called it). LEGENDARY_USE is the way in.
+test('LEGENDARY_USE: reaches each use effect through the reducer, with the turn and ownership rules', async () => {
+  const { USE_SPECS, legendaryUse } = await import('../../packages/shared/handlers/inventory.js');
+  for (const id of Object.keys(USE_SPECS)) assert.ok(hooks.legendaryEffects[id]?.onUse, `${id} has a use effect behind its spec`);
+  for (const [id, fx] of Object.entries(hooks.legendaryEffects)) if (fx.onUse && id !== 'chickendinner') assert.ok(USE_SPECS[id], `${id}: a use effect with no spec is unreachable from a phone`);
+  const r = playingRoom(); const st = r.state; const [a, b] = st.seats; const ca = charOf(r, a), cb = charOf(r, b);
+  const mover = shared.currentPlayerId(st), other = mover === a ? b : a, cm = charOf(r, mover), co = charOf(r, other);
+  // Ember Flask: heals on your own turn; refused from the waiting seat and for an item you do not hold.
+  const flask = give(r, mover, gen.generateLegendary(st, 'emberflask', { seed: 2 }));
+  assert.ok(legendaryUse(flask) && legendaryUse(flask).needs === null);
+  cm.health = Math.max(1, cm.maxHealth - 40); const h0 = cm.health, charges = flask.charges;
+  r.append('LEGENDARY_USE', { itemId: flask.id }, mover);
+  assert.ok(cm.health > h0, 'the flask healed'); assert.equal(charOf(r, mover).items[flask.id].charges, charges - 1);
+  const flask2 = give(r, other, gen.generateLegendary(st, 'emberflask', { seed: 3 }));
+  assert.match(r.try('LEGENDARY_USE', { itemId: flask2.id }, other).message, /own turn/);
+  assert.ok(r.try('LEGENDARY_USE', { itemId: flask2.id }, mover), 'not your item');
+  // Gravity Gauntlet: pulls a player onto your hex, once per run.
+  const glove = give(r, mover, gen.generateLegendary(st, 'gravitygauntlet', { seed: 4 }));
+  cm.pos = st.map.start; const near = Object.keys(st.map.hexes).find(k => k !== st.map.start); co.pos = near;
+  r.append('LEGENDARY_USE', { itemId: glove.id, targetId: other }, mover);
+  assert.equal(charOf(r, other).pos, charOf(r, mover).pos, 'pulled onto the wielder\'s hex');
+  assert.match(r.try('LEGENDARY_USE', { itemId: glove.id, targetId: other }, mover).message, /spent/);
+  // Ocarina: a song by name; an unknown song is refused.
+  const oc = give(r, mover, gen.generateLegendary(st, 'ocarina', { seed: 5 }));
+  r.append('LEGENDARY_USE', { itemId: oc.id, song: 'chaos' }, mover);
+  assert.ok(charOf(r, mover).effects.some(e => e.id === 'skipchaos'));
+  assert.match(r.try('LEGENDARY_USE', { itemId: oc.id, song: 'chaos' }, mover).message, /sung/);
+  // A plain item has nothing to use.
+  const ring = give(r, mover, gen.makeGear(st, 'ring', { seed: 9 }));
+  assert.equal(legendaryUse(ring), null); assert.match(r.try('LEGENDARY_USE', { itemId: ring.id }, mover).message, /nothing to use/);
+});

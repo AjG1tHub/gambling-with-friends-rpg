@@ -19,7 +19,7 @@ import * as G from '../shared/characters/grid.js';
 import { itemIconUrl, frameUrl, rarityColour, loadManifest, manifestNow } from './sprite.js';
 import { gameById } from '../shared/characters/generator.js';
 import { leverSummary } from '../games/lever-view.js';
-import { slotsFor, wornSlotOf } from '../shared/handlers/inventory.js';
+import { slotsFor, wornSlotOf, legendaryUse } from '../shared/handlers/inventory.js';
 import { sellPriceOf } from '../shared/handlers/economy.js';
 import { group } from '../shared/balance.js';
 
@@ -310,7 +310,23 @@ export function itemSheet({ c, state, me, dispatch, myTurn = false } = {}) {
   if (worn) buttons.push(h('button', { class: 'primary', onClick: () => act('GRID_UNEQUIP', { slot: worn }) }, 'Unequip'));
   else if (slotsFor(item).length) buttons.push(h('button', { class: 'primary', onClick: () => act('GRID_EQUIP', { itemId: item.id }) }, 'Equip'));
   if (item.slot === 'egg') buttons.push(h('button', { class: 'primary', disabled: !playing, onClick: () => act('PET_HATCH', { source: 'egg', itemId: item.id }) }, 'Hatch'));
-  else if (item.slot === 'consumable' || item.slot === 'satchel') buttons.push(h('button', { class: 'primary', disabled: !playing, title: playing ? '' : 'Only during the run', onClick: () => act('CONSUMABLE_USE', { itemId: item.id }) }, 'Use'));
+  else if ((item.slot === 'consumable' || item.slot === 'satchel') && !legendaryUse(item)) buttons.push(h('button', { class: 'primary', disabled: !playing, title: playing ? '' : 'Only during the run', onClick: () => act('CONSUMABLE_USE', { itemId: item.id }) }, 'Use'));
+  // A Legendary with something to use: one button, or a small picker for what it needs (handlers/inventory.js USE_SPECS).
+  const use = legendaryUse(item); let useBox = null;
+  if (use && playing) {
+    const fire = (extra = {}) => act('LEGENDARY_USE', { itemId: item.id, ...extra });
+    const others = Object.values(state?.players || {}).filter(p => p.id !== me?.id && !p.spectator && !p.kicked && state.characters[p.characterId] && !state.characters[p.characterId].dead);
+    const f = state.fight && !state.fight.done ? state.fight : null, mon = f && state.monsters?.[f.monsterId];
+    const pick = (label, kids) => h('div', { class: 'sheet-trade sheet-use' }, h('div', { class: 'tag' }, label), h('div', { class: 'row' }, kids.length ? kids : h('span', { class: 'muted ital' }, 'Nothing to use it on right now.')), h('p', { class: 'muted small' }, use.hint));
+    const who = (extraKey) => others.map(p => h('button', { class: 'mini', onClick: () => fire({ [extraKey]: p.id }) }, p.crest || '🂠', ' ', p.name));
+    if (!use.needs) buttons.push(h('button', { class: 'primary', title: use.hint, onClick: () => fire() }, use.verb));
+    else if (use.needs === 'player') useBox = pick(`${use.verb}…`, who('targetId'));
+    else if (use.needs === 'song') useBox = pick('Play a song', [['inn', 'Back to the last Inn'], ['chaos', 'Skip the next Chaos'], ['pet', 'Wake a fainted pet']].filter(([s]) => !c.activeUses?.ocarina?.[s]).map(([s, label]) => h('button', { class: 'mini', onClick: () => fire({ song: s }) }, label)));
+    else if (use.needs === 'pool') { const pool = state.pools?.[c.pos]; useBox = pick('The ladder, on this hex', [!pool ? h('button', { class: 'mini', onClick: () => fire({ action: 'place', hexKey: c.pos }) }, 'Make it a pool') : null, pool?.open ? h('button', { class: 'mini', onClick: () => fire({ action: 'take', hexKey: c.pos }) }, 'Take the ladder away') : null, pool && !pool.open ? h('button', { class: 'mini', onClick: () => fire({ action: 'return', hexKey: c.pos }) }, 'Put the ladder back') : null].filter(Boolean)); }
+    else if (use.needs === 'photo') useBox = pick('Photograph…', [...who('targetId'), mon && !mon.dead ? h('button', { class: 'mini', onClick: () => fire({ targetId: mon.id }) }, '👹 ', mon.name) : null].filter(Boolean));
+    else if (use.needs === 'fightTarget') { const opp = f ? (mon && !mon.dead ? { id: mon.id, name: mon.name } : null) : null; useBox = pick(use.verb, opp ? [h('button', { class: 'mini', onClick: () => fire({ targetId: opp.id }) }, opp.name)] : []); }
+    else if (use.needs === 'fightMonster') useBox = pick(use.verb, mon && !mon.dead ? [h('button', { class: 'mini', onClick: () => fire({ monsterId: mon.id }) }, mon.name)] : []);
+  }
   if (cell && fp.w !== fp.h) buttons.push(h('button', { onClick: () => { const rot = ((cell.rot || 0) + 1) % 2; if (!G.fits(c, item, cell.x, cell.y, rot)) { toast('No room to turn it there', 'bad'); return; } act('GRID_MOVE', { itemId: item.id, x: cell.x, y: cell.y, rot }); } }, '↻ Rotate'));
   if (onShop && !worn && playing) buttons.push(h('button', { onClick: () => act('SHOP_SELL', { itemId: item.id }) }, `Sell${price != null ? ` ${price}` : ''}`));
   if (!worn) {
@@ -332,7 +348,7 @@ export function itemSheet({ c, state, me, dispatch, myTurn = false } = {}) {
       h('div', { class: 'grow' }, h('div', { class: 'sheet-name' }, item.name), h('div', { class: 'muted small ital' }, `${cap(item.rarity)} · ${cap(item.slot === 'weapon' ? (item.twoHand ? 'two-hand weapon' : 'weapon') : item.slot)} · ${fp.w} × ${fp.h}${worn ? ` · worn (${SLOT_LABEL[worn] || worn})` : cell ? '' : ' · not placed'}${item.qty > 1 ? ` · ×${item.qty}` : ''}`)),
       h('span', { class: `pill r-${item.rarity}` }, cap(item.rarity))),
     h('div', { class: 'sheet-lines' }, lines.length ? lines.map(l => h('div', { class: `line ${l.affix ? 'affix k-' + l.kind : ''}` }, l.k ? h('span', { class: 'k' }, l.k) : null, h('span', { class: 'v' }, l.v))) : h('p', { class: 'muted ital' }, 'No affixes. Plain, honest kit.')),
-    tradeBox,
+    useBox, tradeBox,
     h('div', { class: 'sheet-buttons' }, buttons));
 }
 

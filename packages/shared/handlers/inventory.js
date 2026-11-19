@@ -11,7 +11,7 @@
 //     the items module calls onUse for Legendary consumables and tools and passes the item.
 //   - consumables.satchel is registered here (adds a column).
 import { register, refuse, requireGm, requirePhase, requireActor } from '../reducer.js';
-import { characterOf, note, livingCharacters } from '../state.js';
+import { characterOf, note, livingCharacters, currentPlayerId } from '../state.js';
 import { hooks as runHooks } from './run.js';
 import { damageHooks, deathHooks, legendaryEffects, consumables } from '../hooks.js';
 import { health, maxHealth as moveMaxHealth, gold } from '../health.js';
@@ -332,6 +332,41 @@ Object.assign(legendaryEffects, {
   croupierscoat: {},
 });
 legendaryEffects.fairyjar.viaDeathHook = true;   // the pendant and the fairy act through deathHooks.onZero above
+
+// ── Using a Legendary ─────────────────────────────────────────────────────────────────────────────────────────
+// Every `onUse` above was unreachable until 19 Nov: no event called it. LEGENDARY_USE is that event, and USE_SPECS
+// tells a screen what the item needs from the player before it can be used (the phone's item sheet reads it).
+//   needs: null (just a button) | 'player' | 'song' | 'pool' | 'photo' | 'fightTarget' | 'fightMonster'
+export const USE_SPECS = {
+  gravitygauntlet: { verb: 'Pull in', needs: 'player', hint: 'Once per run: pull a player within range onto your hex.' },
+  emberflask: { verb: 'Drink', needs: null, hint: 'Heals; refills at every Inn.' },
+  toadstool: { verb: 'Eat', needs: null, hint: 'Banks an extra life.' },
+  impostorsvisor: { verb: 'Look like', needs: 'player', hint: 'The TV shows you as them for a while.' },
+  raillance: { verb: 'Lock on', needs: 'fightTarget', hint: 'One lock per fight: the next hit cannot miss.' },
+  carapace: { verb: 'Throw', needs: null, hint: 'Hits whoever leads on score, wherever they are.' },
+  ocarina: { verb: 'Play', needs: 'song', hint: 'Three songs, each once per run.' },
+  poolladder: { verb: 'Ladder', needs: 'pool', hint: 'Make this hex a pool, take the ladder away, or put it back.' },
+  cameraobscura: { verb: 'Photograph', needs: 'photo', hint: 'A player: their exact Health and gear. A monster in your fight: damage and a pin.' },
+  resetcartridge: { verb: 'Reset', needs: null, hint: 'Clears every curse, pool, pact interest and Chaos effect on you.' },
+  tamersnare: { verb: 'Throw', needs: 'fightMonster', hint: 'A monster under the threshold becomes your pet.' },
+};
+export const legendaryUse = (item) => (item?.legendaryId && legendaryEffects[item.legendaryId]?.onUse && USE_SPECS[item.legendaryId]) || null;
+register({
+  LEGENDARY_USE(state, ev, ctx) {
+    requirePhase(state, 'playing');
+    const { pid, c } = actingCharacter(state, ctx);
+    if (c.dead) refuse('the dead use nothing', 'dead');
+    if (state.gm?.paused && !ctx.isGm) refuse('the table is paused', 'paused');
+    const item = findItem(c, ctx.payload.itemId);
+    const fn = item?.legendaryId && legendaryEffects[item.legendaryId]?.onUse; if (!fn) refuse('that item has nothing to use', 'item');
+    // On your own turn, or mid-challenge/fight you are part of; never from the waiting screen.
+    const inFight = state.fight && !state.fight.done && (state.fight.playerId === pid || (state.fight.playerIds || []).includes(pid));
+    if (!ctx.isGm && currentPlayerId(state) !== pid && !inFight) refuse('on your own turn', 'turn');
+    c.activeUses ||= {}; c.effects ||= []; c.flags ||= {};
+    fn(state, ctx, c, ctx.payload, item);
+    recomputePassives(state, ctx, c);
+  },
+});
 
 // Which Legendary effects are implemented here vs. owned by another module (documented stubs).
 export const LEGENDARY_OWNERS = Object.fromEntries(LEGENDARIES.map(l => [l.id, l.effect.owner]));

@@ -29,6 +29,7 @@ import { ensureShopStock } from './tiles.js';
 import { pushLoot, collectorVisit, counter, isLandable, regionOf } from './wheels.js';
 import { killCharacter, resolveCharacter, removeItem, isWorn } from './death.js';
 import { spawnMonster } from '../encounters/monsters.js';
+import { LEGENDARIES } from '../characters/generator.js';
 
 const need = (state, pid) => { const c = characterOf(state, pid); if (!c) refuse(`no character for ${pid}`); return c; };
 const hexOf = (state, c) => state.map?.hexes?.[c.pos] || null;
@@ -264,7 +265,9 @@ register({
   GM_ITEM(state, ev, ctx) {
     requireGm(ctx); const c = resolveCharacter(state, ctx.payload.playerId || ctx.payload.charId); if (!c) refuse('no such character');
     const rarity = RARITIES.includes(ctx.payload.rarity) ? ctx.payload.rarity : 'common';
-    const spec = { baseId: ctx.payload.legendaryId || ctx.payload.baseId || 'loot', rarity: ctx.payload.legendaryId ? 'legendary' : rarity, region: ctx.payload.region ?? regionOf(state, c), seed: (Number(ctx.payload.seed) || ctx.now) >>> 0, gm: true };
+    // The console's "Give item" prompt takes one id: a Legendary id typed there is a Legendary (it used to come out as a common nothing).
+    const legId = ctx.payload.legendaryId || (LEGENDARIES.some(l => l.id === ctx.payload.baseId) ? ctx.payload.baseId : null);
+    const spec = { baseId: legId || ctx.payload.baseId || 'loot', rarity: legId ? 'legendary' : rarity, region: ctx.payload.region ?? regionOf(state, c), seed: (Number(ctx.payload.seed) || ctx.now) >>> 0, gm: true };
     if (ctx.payload.slot) spec.slot = ctx.payload.slot;
     pushLoot(c, spec); note(state, `GM hands ${c.name} a ${rarity} ${spec.baseId}`, 'gm', ctx.now);
   },
