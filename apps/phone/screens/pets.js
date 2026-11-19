@@ -1,7 +1,7 @@
 // Phone tab: Pets. The team as cards (species sprite, stage, element, Power, four attacks, held item, fainted),
 // set the active pet (PET_SWITCH, on your turn, costs the move), the Triple Pet Wheel when something is hatching
 // (PET_HATCH_PICK), the pet battle screen (PET_BATTLE_LOCK + reveal), revive with a Pet Revive (CONSUMABLE_USE),
-// and a nickname kept on this phone (there is no rename event in the engine).
+// and a nickname (PET_RENAME: the whole table sees it in the log).
 import { petElement } from '../../../packages/ui/sprite.js';
 import { onRerender, rerenderSoon, itemIcon } from '../../../packages/ui/grid.js';
 import { characterOf, currentPlayerId } from '../../../packages/shared/state.js';
@@ -15,7 +15,7 @@ const petsUi = { renaming: null, reviving: null, confirmSwitch: null };
 const cap = (s) => String(s || '').charAt(0).toUpperCase() + String(s || '').slice(1);
 const ELEMENT_COLOUR = { Oxblood: '#c0262e', Bone: '#e9e1cf', Brass: '#c9a45c', Verdigris: '#6fd36a', Violet: '#8f6cff', Soot: '#9aa7b0' };
 const nickKey = (pet) => `gwfrpg:petnick:${pet.id}`;
-export const petName = (pet) => store.get(nickKey(pet)) || pet.name;
+export const petName = (pet) => pet.nickname || store.get(nickKey(pet)) || pet.name;   // PET_RENAME is the real name (the log and other phones see it); the stored one is from older builds
 
 export function tabPets(args) {
   const { state, session, me, c, myTurn, h, dispatch, screen } = args;
@@ -67,7 +67,7 @@ function petCard({ pet, c, state, me, myTurn, active, revives, h, dispatch, P })
     pet.heldItem ? h('div', { class: 'row small' }, h('span', { class: 'tag' }, 'Holds'), itemIcon(pet.heldItem, 32), h('span', {}, pet.heldItem.name)) : null);
   if (petsUi.renaming === pet.id) {
     const input = h('input', { value: nick, maxlength: 18, placeholder: pet.name, 'aria-label': 'nickname' });
-    card.append(h('div', { class: 'row' }, h('div', { class: 'grow' }, input), h('button', { class: 'primary mini', onClick: () => { const v = input.value.trim(); if (v && v !== pet.name) store.set(nickKey(pet), v); else store.del(nickKey(pet)); petsUi.renaming = null; rerenderSoon(); } }, 'Keep')), h('p', { class: 'muted small ital' }, 'A nickname lives on this phone only; the table knows the pet by its species name.'));
+    card.append(h('div', { class: 'row' }, h('div', { class: 'grow' }, input), h('button', { class: 'primary mini', onClick: () => { const v = input.value.trim(); store.del(nickKey(pet)); petsUi.renaming = null; if (v && v !== petName(pet)) dispatch('PET_RENAME', { petId: pet.id, name: v }); else rerenderSoon(); } }, 'Keep')), h('p', { class: 'muted small ital' }, 'A nickname lives on this phone only; the table knows the pet by its species name.'));
   }
   const actions = h('div', { class: 'row' });
   if (!pet.fainted && !isActive) {
