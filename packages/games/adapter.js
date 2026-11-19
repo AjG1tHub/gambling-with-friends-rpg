@@ -292,6 +292,14 @@ class Round {
     const force = (target, winMult) => { const won = target.mult > 1; if (won === want) { this.useRig(); return; } target.mult = want ? winMult : 0; target.label = `${target.label} (rigged: ${want ? 'WIN' : 'LOSE'})`; if (res) { res.mult = target.mult; res.text = target.label; } this.useRig(); };
     if (id === 'fifty' && action === 'spin' && g.pending) { force(g.pending, 1 + Number(o.payout ?? 1)); if (this.mini.lastSpin) this.mini.lastSpin.index = g.pending.mult > 1 ? 0 : 1; }
     else if (id === 'roulette' && action === 'spin' && g.pending && (g.view.bet?.type === 'red' || g.view.bet?.type === 'black')) force(g.pending, 1 + Number(o.even ?? 1));
+    // Croupier level 20 (rigwheel): the Big Wheel too. A rigged WIN stops on the smallest paying segment, a rigged
+    // LOSE on a House segment; the picture (lastSpin.index) is moved with it so the TV shows what was paid.
+    else if (id === 'bigwheel' && action === 'spin' && g.pending && this.rig.wheel) {
+      const segs = o.segments || [], won = g.pending.mult > 1;
+      if (won !== want) { const cands = segs.map((sg, i) => ({ i, mult: Number(sg.mult), label: sg.label })).filter(x => want ? x.mult > 1 : x.mult === 0).sort((x, y) => x.mult - y.mult);
+        if (cands.length) { const c0 = cands[0]; g.pending.mult = c0.mult; g.pending.label = `${c0.label} (rigged)`; if (this.mini.lastSpin) { this.mini.lastSpin.index = c0.i; this.mini.lastSpin.effect = c0.mult > 0 ? `Pays ${c0.mult}× your stake` : 'House takes it'; } if (res) { res.text = `Big Wheel: ${g.pending.label}`; } } }
+      this.useRig();
+    }
     else if (id === 'underover7' && action === 'bet' && g.result && (payload.side === 'under' || payload.side === 'over')) force(g.result, 1 + Number(o.sidePay));
     else if (id === 'dragontiger' && action === 'bet' && g.result && (payload.side === 'dragon' || payload.side === 'tiger') && g.view.winner !== 'tie') force(g.result, 2);
     else if (id === 'hilo' && (action === 'higher' || action === 'lower')) {

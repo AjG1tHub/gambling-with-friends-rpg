@@ -360,7 +360,7 @@ const BUILTIN_ACTIVES = {
   rigthedeck(state, ctx, c, p) {
     const outcome = p.outcome === 'lose' ? 'lose' : 'win';
     const f = state.fight && !state.fight.done ? state.fight : null; if (!f) refuse('Rig the Deck needs a fight', 'active');
-    f.rig = { outcome, by: c.id, forId: p.targetId || null };
+    f.rig = { outcome, by: c.id, forId: p.targetId || null, wheel: hasUpgrade(c, 'rigwheel') };
     if (f.game && !f.game.result) f.game.rig = f.rig;
     note(state, `${c.name} rigs the deck: the next binary outcome is a ${outcome.toUpperCase()}`, 'class', ctx.now);
   },

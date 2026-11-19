@@ -150,6 +150,17 @@ test('the smart bot returns a sane band over 1,500 rounds for every item (no ite
   }
 });
 
+test("the Croupier's level-20 rig works on the Big Wheel, and only with the upgrade", () => {
+  let moved = 0;
+  for (let i = 0; i < 40; i++) for (const want of ['win', 'lose']) {
+    const r = begin('bigwheel', { seed: 500 + i, rig: { outcome: want, wheel: true } }); r.act('spin');
+    assert.equal(r.result.mult > 1, want === 'win', `seed ${500 + i} ${want}: ${r.result.label}`); assert.ok(r.rigUsed && !r.rig);
+    if (/rigged/.test(r.result.label)) { moved++; const segs = r.odds().segments; assert.equal(Number(segs[r.lastSpin.index].mult), r.result.mult, 'the wheel on the TV stops where the money says'); }
+  }
+  assert.ok(moved > 10, 'some spins had to be moved');
+  const plain = begin('bigwheel', { seed: 501, rig: { outcome: 'win' } }); plain.act('spin'); assert.ok(!plain.rigUsed, 'without the upgrade the rig waits for a binary moment');
+});
+
 test('stake and mode: the proxy player holds the stake in the right currency; chip rounds carry mode "chips"', () => {
   const r = begin('fifty', { mode: 'chips', stake: 3 }); assert.equal(r.mini.players[0].balances.Chips, 3); assert.equal(r.snapshot().mode, 'chips'); assert.equal(r.snapshot().stake, 3);
   const h = begin('fifty', { stake: 35 }); assert.equal(h.mini.players[0].balances.Health, 35); assert.equal(h.cur, 'Health');

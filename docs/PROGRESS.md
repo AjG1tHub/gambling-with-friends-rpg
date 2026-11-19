@@ -233,5 +233,5 @@ Three overnight sessions against the local ws backend in Chromium, then one live
   Also: a second review of the pet-trade merge (a trade naming an id twice minted an item or took a second pet;
   Camera Obscura bypassed `monsterHealth`); fight cards cut to one line; the round's odds table folded behind a
   tap; the lobby and creation show only Play and Self.
-- **Still not built:** Croupier `rigwheel` (level 20), crest image upload, `HOF_IMPORT`, `MOVE_WHEEL_NUDGE`. **Still placeholder:** all
+- **Still not built:** crest image upload, `HOF_IMPORT`, `MOVE_WHEEL_NUDGE`. **Still placeholder:** all
   art and sound. **Still untested:** real phones, a forced Realtime drop on the live backend.
