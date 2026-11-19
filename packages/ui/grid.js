@@ -24,7 +24,7 @@ import { sellPriceOf } from '../shared/handlers/economy.js';
 import { group } from '../shared/balance.js';
 
 export const CELL_MAX = 60, GAP = 2, PAD = 8, PRESS_MS = 250, SLOP = 8;
-export const gridUi = { drag: null, held: null, selected: null, dispatch: null, confirmDrop: null, trade: null, last: null };
+export const gridUi = { drag: null, held: null, selected: null, dispatch: null, confirmDrop: null, trade: null, tradeGold: 0, last: null };
 if (typeof window !== 'undefined') window.__gwfGrid = gridUi;   // for the browser tests
 
 const SLOT_GLYPH = { weapon: '⚔', offhand: '🛡', spell: '✦', helmet: '⛑', torso: '🧥', pants: '👖', gloves: '🧤', boots: '👢', ring: '💍', necklace: '📿', consumable: '🧪', egg: '🥚', satchel: '🎒', tool: '🔭', cape: '🧣' };
@@ -317,11 +317,14 @@ export function itemSheet({ c, state, me, dispatch, myTurn = false } = {}) {
     if (gridUi.confirmDrop === item.id) buttons.push(h('button', { class: 'danger', onClick: () => act('GRID_DROP', { itemId: item.id }) }, 'Really drop'));
     else buttons.push(h('button', { onClick: () => { gridUi.confirmDrop = item.id; rerenderSoon(); } }, 'Drop'));
     if (playing) buttons.push(h('button', { onClick: () => { gridUi.trade = gridUi.trade === item.id ? null : item.id; rerenderSoon(); } }, 'Trade'));
+    // On an Arena tile the item can go to a sealed auction instead (handlers/economy.js AUCTION_OPEN; the house keeps a cut).
+    if (playing && state?.map?.hexes?.[c?.pos]?.type === 'arena' && !(state.auction && !state.auction.done)) buttons.push(h('button', { onClick: () => act('AUCTION_OPEN', { itemId: item.id }) }, 'Auction it'));
   }
   buttons.push(h('button', { class: 'ghost', onClick: close }, 'Close'));
   const others = Object.values(state?.players || {}).filter(p => p.id !== me?.id && !p.spectator && !p.kicked && state.characters[p.characterId] && !state.characters[p.characterId].dead);
   const tradeBox = gridUi.trade === item.id ? h('div', { class: 'sheet-trade' }, h('div', { class: 'tag' }, 'Offer it to'),
-    others.length ? h('div', { class: 'row' }, others.map(p => h('button', { class: 'mini', onClick: () => act('TRADE_OFFER', { toId: p.id, give: { itemIds: [item.id] }, want: {} }) }, p.crest || '🂠', ' ', p.name))) : h('p', { class: 'muted ital' }, 'Nobody to trade with.'),
+    others.length ? h('div', { class: 'row' }, others.map(p => h('button', { class: 'mini', onClick: () => act('TRADE_OFFER', { toId: p.id, give: { itemIds: [item.id] }, want: { gold: gridUi.tradeGold || 0 } }) }, p.crest || '🂠', ' ', p.name))) : h('p', { class: 'muted ital' }, 'Nobody to trade with.'),
+    h('div', { class: 'row trade-ask' }, h('span', { class: 'tag' }, 'Ask for'), [0, 10, 25, 50, 100].map(g => h('button', { class: `mini${(gridUi.tradeGold || 0) === g ? ' on' : ''}`, onClick: () => { gridUi.tradeGold = g; rerenderSoon(); } }, g ? `${g} Gold` : 'a gift'))),
     h('p', { class: 'muted small' }, 'They answer on their phone; the swap settles at the next end of turn.')) : null;
   const lines = describeItem(item, c, state);
   return h('div', { class: 'item-sheet', role: 'dialog', 'aria-label': item.name },

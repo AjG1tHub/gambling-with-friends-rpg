@@ -320,6 +320,7 @@ export function tableDuties(state, rng, now) {
   if (ch && !ch.done && ch.spun && ch.deadline && now >= ch.deadline) out.push(act('CHALLENGE_TIMEOUT', {}, 'system'));
   if (ch && !ch.done && ch.gmPending) out.push(act('CHALLENGE_GM_DECIDE', { winnerId: rng.chance(0.5) ? ch.attackerId : ch.defenderId }, 'gm'));
   if (state.votes && !state.votes.closed && state.votes.deadline && now >= state.votes.deadline) out.push(act('VOTE_CLOSE', {}, 'system'));
+  if (state.auction && !state.auction.done && state.auction.deadline && now >= state.auction.deadline) out.push(act('AUCTION_CLOSE', {}, 'gm'));   // nobody else closes one (QA, 19 Nov)
   const pid = currentPlayerId(state);
   if (pid && !state.gm.paused && state.clocks[pid]?.runningSince != null && remainingMs(state, pid, now) <= 0) out.push(act('TURN_TIMEOUT', {}, 'system'));
   return out;

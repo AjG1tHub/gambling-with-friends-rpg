@@ -36,6 +36,7 @@ jobs:
       - run: node test/browser/modes.mjs
       - run: node test/browser/gm-layout.mjs
       - run: node test/browser/clock.mjs
+      - run: node test/browser/table-business.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: browser-shots, path: test/shots, if-no-files-found: ignore }

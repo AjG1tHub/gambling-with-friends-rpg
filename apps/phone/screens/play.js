@@ -18,6 +18,7 @@ import { creationScreen } from './creation.js';
 import { fightScreen, attackMenu, classActiveRow } from './fight.js';
 import { challengeScreen, challengeBanner } from './challenge.js';
 import { sideBetPanel } from './sidebet.js';
+import { tablePanels, tableVoteCall } from './table.js';
 import { renderPrompt, hatchingScreen, areaWindow, waitingScreen, sect, why, amountPicker, itemRow, nameOf, gridItems, weapons, consumables, playHooks, redraw } from './prompts.js';
 
 const B = (state) => ({ B: (g) => group(state, g), now: Date.now(), payload: {}, actor: 'phone', isGm: false });
@@ -40,6 +41,7 @@ function route(api) {
   if (player.spectator) { screen.append(waitingScreen(api, pid)); const sb = sideBetPanel(api); if (sb) screen.append(sb); else screen.append(h('p', { class: 'muted center ital' }, 'You are watching the table.')); return; }
   if (!c) { screen.append(h('div', { class: 'hero' }, h('h2', {}, 'No character'), h('p', { class: 'muted' }, 'The run started without you; the GM can seat you from the console.'))); return; }
   if (state.gm?.paused) screen.append(h('div', { class: 'ch-banner draw' }, h('b', {}, 'Paused'), h('span', { class: 'meta' }, 'The GM froze every clock.')));
+  for (const el of tablePanels(api)) screen.append(el);   // a vote to cast, a trade to answer, an auction to bid in: whoever's turn it is
   // A challenge you are in comes first: a defender who has not yet picked a starting pet must still be able to answer a Wager or Duel (QA, 3 Nov).
   if (challengeScreen(api)) return;
   if (c.hatching) return screen.append(hatchingScreen(api));
@@ -141,11 +143,11 @@ function actionScreen(api) {
   const can = (f) => unlocked(state, me, f);
   if (can('gear') || can('challenge')) tilePanel(api, here);
   if (can('gear')) lootPanel(api);
-  auctionPanel(api);
   attackPanel(api, here);
   if (can('gear')) consumablesPanel(api);
   if (can('class')) classActiveRow(api, null, null);
   emoteRow(api);
+  { const tv = can('challenge') ? tableVoteCall(api) : null; if (tv) screen.append(tv); }
   const boots = bootsOf(c);
   if (boots?.unique === 'movetwice' && (c.usedThisTurn?.moves || 0) === 1) screen.append(h('button', { class: 'primary big', onClick: () => dispatch('MOVE_ROLL', {}) }, 'Move again'));
   const teaser = rampLine(state, me); if (teaser) screen.append(h('p', { class: 'center muted ital ramp-line' }, teaser));

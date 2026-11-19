@@ -24,6 +24,7 @@ const SUITES = [
   { id: 'modes', cmd: 'node test/browser/modes.mjs', timeout: 600, pass: /PASSED/, slow: true },
   { id: 'gm-layout', cmd: 'node test/browser/gm-layout.mjs', timeout: 300, pass: /PASSED/ },
   { id: 'clock', cmd: 'node test/browser/clock.mjs', timeout: 300, pass: /PASSED/ },
+  { id: 'table-business', cmd: 'node test/browser/table-business.mjs', timeout: 300, pass: /PASSED/ },
 ].filter(s => !(quick && s.slow));
 
 const run = (s) => new Promise((resolve) => {

@@ -50,6 +50,7 @@ export function renderPlay({ state, session, stage, rail, clockEls, rerender = n
   rail.append(challengePanel(state, { now }));
   rail.append(areaPanel(state, { now }));
   if (state.votes && !state.votes.closed) rail.append(votePanel(state, now));
+  { const ap = auctionPanel(state, now); if (ap) rail.append(ap); }
   rail.append(h('div', { class: 'panel rail-log' }, h('div', { class: 'tag' }, 'THE NIGHT SO FAR'), h('div', { class: 'log' }, visibleLog(state, now).slice(-12).reverse().map(l => h('div', { class: l.kind || '' }, l.text)))));
   if (state.pendingPrompt && state.pendingPrompt.playerId === pid && !state.fight) rail.append(h('div', { class: 'panel prompt-panel' }, h('div', { class: 'tag' }, 'ON THE PHONE'), h('div', { class: 'small' }, promptText(state, state.pendingPrompt, c))));
   // ── overlays over the map ──
@@ -85,6 +86,24 @@ function phaseText(state, c) {
 function promptText(state, pr, c) {
   const n = c?.name || 'The mover';
   return { spin: `${n} taps the ${pr.wheel || ''} wheel…`, portal: `${n} chooses a portal destination…`, arena: `${n} may call someone out in the Arena…`, takeWorn: `${n} picks a worn item to take…`, callout: `${n} is called out!` }[pr.kind] || `${n} answers a prompt…`;
+}
+// A sealed auction: the lot and the countdown while it is open (bids stay sealed: only the count shows), then the
+// reveal — every bid, highest first — for twenty seconds after it closes. (SPEC.md: "revealed on the TV".)
+export function auctionReveal(a, players) {
+  if (!a?.done || !a.result) return null;
+  const bids = Object.entries(a.result.bids || {}).sort((x, y) => y[1] - x[1]).map(([pid, n]) => `${players[pid]?.name || pid} ${n}`);
+  return { headline: a.result.winnerId ? `SOLD to ${players[a.result.winnerId]?.name || a.result.winnerId} for ${a.result.amount} Gold` : 'No bids: the lot goes back', bids };
+}
+function auctionPanel(state, now) {
+  const a = state.auction; if (!a) return null;
+  const lot = a.lot?.item?.name || `a ${a.lot?.spec?.rarity || ''} item`, seller = a.sellerId ? (state.players[a.sellerId]?.name || 'a player') : 'The house';
+  if (!a.done) {
+    const t = h('div', { class: 'clock-big small' }, fmtTime(a.deadline - now)); t.update = (x) => { t.textContent = fmtTime(Math.max(0, a.deadline - x)); };
+    return h('div', { class: 'panel blood vote-panel auction-panel' }, h('div', { class: 'tag' }, 'SEALED AUCTION'), h('div', { class: 'display fight-name' }, lot), h('div', { class: 'small muted' }, `${seller} is selling · bids from ${a.minBid} Gold · ${Object.keys(a.bids || {}).length} sealed`), t);
+  }
+  if (now - (a.closedAt || 0) > 20000) return null;
+  const r = auctionReveal(a, state.players);
+  return r && h('div', { class: 'panel blood vote-panel auction-panel' }, h('div', { class: 'tag' }, 'AUCTION'), h('div', { class: 'display fight-name' }, lot), h('div', { class: 'small' }, r.headline), r.bids.length ? h('div', { class: 'small muted' }, `Bids: ${r.bids.join(' · ')}`) : null);
 }
 function votePanel(state, now) {
   const v = state.votes, cast = Object.keys(v.ballots || {}).length, of = (v.eligible || []).length;
