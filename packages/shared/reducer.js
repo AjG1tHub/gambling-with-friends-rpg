@@ -25,6 +25,22 @@ export const handlerTypes = () => [...HANDLERS.keys()];
 export class EventError extends Error { constructor(msg, code = 'refused') { super(msg); this.code = code; } }
 export const refuse = (msg, code) => { throw new EventError(msg, code); };
 
+// Ids from a phone index plain objects (state.players[id], c.items[id]). A hand-made payload that names
+// 'constructor' or '__proto__' would find Object's own machinery there instead of nothing, and a function written
+// into the state can never be cloned again: the room would stop taking events. No such string is ever a real id.
+const OBJ = Object.prototype;
+export function poisoned(v, depth = 0) {
+  if (typeof v === 'string') return v in OBJ;
+  if (!v || typeof v !== 'object' || depth > 6) return false;
+  if (Array.isArray(v)) return v.some(x => poisoned(x, depth + 1));
+  for (const k of Object.keys(v)) if (k in OBJ || poisoned(v[k], depth + 1)) return true;
+  return false;
+}
+// A field named ...Ids is a list everywhere in the handlers; a phone that sends anything else has sent an empty one.
+function listsAreLists(v, depth = 0) {
+  if (!v || typeof v !== 'object' || depth > 6) return;
+  for (const k of Object.keys(v)) { if (/Ids$/.test(k) && !Array.isArray(v[k])) v[k] = []; else listsAreLists(v[k], depth + 1); }
+}
 // Handlers are atomic: a refusal halfway through a handler (a tile hook that throws after the move was applied)
 // never leaves a half-applied room. With `clone: true` (the default for live clients) the reducer works on a copy
 // and returns it. With `clone: false` (tests, bots) it mutates the caller's object in place — object identity
@@ -36,6 +52,8 @@ export function applyEvent(state, event, { clone = true, strict = false } = {}) 
   const snapshot = clone ? null : structuredClone(state);
   const ctx = { now: Number(event.ts) || 0, actor: event.actor, isGm: event.actor === 'gm' || event.actor === 'system', payload: event.payload || {}, B: (g) => group(work, g), event };
   try {
+    if (!ctx.isGm && poisoned(ctx.payload)) refuse('that is not a thing at this table', 'bad-id');
+    if (!ctx.isGm) listsAreLists(ctx.payload);
     for (const h of BEFORE) h(work, event, ctx);
     fn(work, event, ctx);
     for (const h of AFTER) h(work, event, ctx);

@@ -226,7 +226,7 @@ register({
   },
   PET_TEAM(state, ev, ctx) {
     const { p, c } = seat(state, ctx);
-    const ids = [...new Set(ctx.payload.petIds || [])]; const pool = ownedPets(state, p);
+    const ids = [...new Set(Array.isArray(ctx.payload.petIds) ? ctx.payload.petIds : [])]; const pool = ownedPets(state, p);
     if (ids.length > teamCap(ctx, c)) refuse(`you may bring ${teamCap(ctx, c)} pets`, 'pets');
     const team = ids.map(id => pool.find(x => x.id === id) || refuse(`${id} is not on your roster`, 'pets'));
     c.pets = team.map(x => structuredClone(x)); c.activePetId = c.pets[0]?.id || null;

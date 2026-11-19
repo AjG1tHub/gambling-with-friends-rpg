@@ -13,6 +13,7 @@
     "test:unit": "node --test test/unit/*.test.mjs",
     "test:browser": "node test/browser/run.mjs",
     "test:bots": "node tools/bots.mjs --suite",
+    "fuzz": "node tools/fuzz.mjs --games 30 --per 3000",
     "serve": "node test/browser/serve.mjs 4180",
     "payout": "node tools/payout-report.mjs",
     "levers": "node tools/build-lever-curves.mjs",
