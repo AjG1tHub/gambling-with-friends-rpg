@@ -26,7 +26,7 @@ editing that folder while you run, so **never run tests in it**. Work in your ow
    `gm-layout`, `clock`, `table-business`, `features`, `ramp`. Results land in `test/reports/<stamp>/`: `report.json`, `report.html`, **`report.png`**
    (the screenshot of the results) and one `<suite>.log` each. Gate screenshots land in `test/shots/`.
 3. Open `report.png` with the Read tool and confirm it matches `report.json`.
-4. For every failed suite: read its `.log`, re-run that one suite once (`node test/browser/<id>.mjs`) to tell a
+4. For every failed suite: read its `.log`, re-run that one suite once (`node test/browser/<id>.mjs`; the `gate` suite is `node test/browser/run.mjs`, `unit` is `node --test test/unit/*.test.mjs`, `bots` is `node tools/bots.mjs --suite`) to tell a
    flake from a real failure, and open the most relevant screenshot in `test/shots/`.
 5. Copy the evidence where it survives the worktree:
    ```bash
