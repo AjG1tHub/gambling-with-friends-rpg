@@ -23,7 +23,7 @@ export const turnView = (ph) => ph.evaluate(() => {
 export async function answerPrompt(ph, pr) {
   if (pr.kind === 'spin') return clickWhen(ph, '.prompt button.primary.big:has-text("Spin")', 'spins the tile wheel');
   if (pr.kind === 'portal') { const stay = ph.locator('.prompt button:has-text("Stay here")'); if (await stay.count()) return clickWhen(ph, stay, 'stays off the portal'); return clickWhen(ph, '.prompt .col button', 'takes the portal'); }
-  if (pr.kind === 'arena') return clickWhen(ph, '.prompt button:has-text("Walk on")', 'walks past the Arena');
+  if (pr.kind === 'arena') return clickWhen(ph, '.prompt button:has-text("Walk on"), .prompt button:has-text("Leave the Arena")', 'walks past the Arena');   // "Leave the Arena" when everyone else is held or dead (hourly run 1, 19 Nov)
   if (pr.kind === 'takeWorn') return clickWhen(ph, '.prompt button:has-text("Take nothing")', 'takes nothing from the fallen');
   if (pr.kind === 'callout') { const b = ph.locator('.prompt button:has-text("Noted")'); if (await b.count()) return b.first().click(); return sleep(300); }
   return sleep(300);
