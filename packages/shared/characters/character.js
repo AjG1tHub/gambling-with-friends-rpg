@@ -9,6 +9,7 @@ import { group } from '../balance.js';
 import { levelHooks } from '../hooks.js';
 import { note, playerOfCharacter } from '../state.js';
 import { resize } from './grid.js';
+import * as hex from '../hex.js';
 
 export const STAT_IDS = ['luck', 'nerve', 'greed', 'grit'];
 export const WORN_SLOTS = ['mainhand', 'offhand', 'spell1', 'spell2', 'helmet', 'torso', 'pants', 'gloves', 'boots', 'ring1', 'ring2', 'ring3', 'ring4', 'necklace', 'cape'];
@@ -175,6 +176,16 @@ export function recomputePassives(state, ctx, c) {
   };
   if (c.passives.stakeCap === Infinity) c.passives.stakeCap = null;
   return c.passives;
+}
+
+// Pip-Buoy (passives.pipBuoy = its range in hexes, 0 without the ring): may this viewer's phone print the target's
+// exact Health instead of the thirds tell? Pure; hex distance ignores terrain, like reach. Your own Health is always
+// exact. The TV never calls this: the room only ever sees lanterns.
+export function exactHealthVisible(state, viewerCharId, targetCharId) {
+  const v = state?.characters?.[viewerCharId], t = state?.characters?.[targetCharId]; if (!v || !t) return false;
+  if (v.id === t.id) return true;
+  const range = v.passives?.pipBuoy || 0; if (!range || v.dead || t.dead || !v.pos || !t.pos) return false;
+  return hex.distance(hex.parse(v.pos), hex.parse(t.pos)) <= range;
 }
 
 // Titles (SPEC.md › Characters): earned from the recap counters in state.stats, kept forever on the character.

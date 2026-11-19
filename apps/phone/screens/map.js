@@ -3,6 +3,7 @@
 // lit); otherwise it opens the tile info sheet. Hex colours appear only through cardView (Card boots, in range).
 import { currentPlayerId } from '../../../packages/shared/state.js';
 import { cardView } from '../../../packages/shared/handlers/movement.js';
+import { exactHealthVisible } from '../../../packages/shared/characters/character.js';
 import { tileLabel, TILES } from '../../../packages/shared/map/query.js';
 import { hexMini, hexInfo } from '../../../packages/ui/hexmini.js';
 import { colourHex, colourInk } from '../../../packages/ui/cards.js';
@@ -36,7 +37,8 @@ function infoSheet(state, key, c, h, colours) {
     info.hex.bridge ? h('span', { class: 'meta' }, 'A bridge between regions.') : null,
     info.hex.gate ? h('span', { class: 'meta bad' }, `Gated: ${[info.hex.gate.level != null ? `level ${info.hex.gate.level}` : '', info.hex.gate.keyItem ? String(info.hex.gate.keyItem).replace(/_/g, ' ') : '', info.hex.gate.toll != null ? `${info.hex.gate.toll} Gold toll` : ''].filter(Boolean).join(' or ')}`) : null,
     info.monster ? h('span', { class: 'meta bad' }, `${info.monster.name} · ${info.monster.health}/${info.monster.maxHealth} Health${info.monster.boss ? ' · boss' : ''}`) : null,
-    info.who.length ? h('span', { class: 'meta' }, `Here: ${info.who.join(', ')}`) : null,
+    // Pip-Buoy: its wearer's phone prints the exact Health of players in range; everyone else reads names only.
+    info.chars.length ? h('span', { class: 'meta' }, `Here: ${info.chars.map(x => (c && x.id !== c.id && exactHealthVisible(state, c.id, x.id) ? `${x.name} (${x.health}/${x.maxHealth} Health)` : x.name)).join(', ')}`) : null,
     info.loot.length ? h('span', { class: 'meta' }, `On the ground: ${info.loot.map(l => (l.item || l).name).join(', ')}`) : null,
     colours?.[key] ? h('span', { class: 'meta', style: { color: colourHex(colours[key]) } }, `Colour: ${colours[key]}`) : null,
     key === c?.pos ? h('span', { class: 'meta ok' }, 'You are here.') : h('span', { class: 'meta faint' }, key));

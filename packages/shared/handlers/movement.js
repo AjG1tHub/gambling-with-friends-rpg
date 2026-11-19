@@ -79,6 +79,9 @@ export function wheelSegments(item, affixes, MV) {
   return segs.map(s => (s.steps != null && !/\d/.test(s.label) ? { ...s, label: `${s.label} ${s.steps}` } : s));
 }
 const broadsidePenalty = (c, ctx) => (c.worn?.mainhand?.unique === 'broadside' ? ctx.B('legendaries').broadsideMovePenalty : 0);
+// Extra hexes from passives.moveBonus (the Hide four-piece, anything else character.js folds in). The passive is
+// already net of the Broadside, which every mode subtracts itself as `pen`, so it is added back here to count once.
+const moveBonusOf = (c, ctx) => Math.max(0, (c.passives?.moveBonus || 0) + broadsidePenalty(c, ctx));
 
 // ---- the colour deck (Card boots) ----------------------------------------------------------------------------------
 
@@ -106,9 +109,20 @@ function drawCard(state, M, MV, affixes) {
 
 // A monster hex is closed to a player whose tutorial ramp has not reached 'fight' (the monsters are asleep for them).
 const asleepFor = (state, pid, key) => Q.stopsHere(state, key) && !unlocked(state, pid, 'fight');
+// Blockbreaker Pick (passives.digs): that many void hexes a turn may be stepped into; stepTo digs the hex open for
+// everyone. Only a deliberate step digs: paths, Card ranges and the Skates' slide never route through rock. Simplest
+// reading of "walk through": the dug hex is plain ground, so you may also stop on it. The pick is not a key: void
+// beside the throne stays shut (the Boss Gate is the only way in) and void inside a gated region obeys its gate.
+const digsLeft = (c) => (c.passives?.digs || 0) - (c.usedThisTurn?.digs || 0);
+function canDig(state, c, key) {
+  const h = Q.hexAt(state, key); if (!h || !h.void || Q.wades(state, c.id, h) || digsLeft(c) <= 0) return false;
+  if (H.neighbors(h).some(n => Q.hexAt(state, H.key(n))?.type === 'throne')) return false;
+  const gate = state.map.regions?.[h.regionId]?.gate; if (gate && Q.gateBlocks(state, c, { type: h.type, gate })) return false;
+  return true;
+}
 function legalKeys(state, c) {
   const out = [];
-  for (const n of H.neighbors(H.parse(c.pos))) { const k = H.key(n); if (Q.passable(state, k, c.id) && !asleepFor(state, c.playerId, k)) out.push(k); }
+  for (const n of H.neighbors(H.parse(c.pos))) { const k = H.key(n); if ((Q.passable(state, k, c.id) || canDig(state, c, k)) && !asleepFor(state, c.playerId, k)) out.push(k); }
   return out;
 }
 function newSession(pid, c, mode, extra = {}) {
@@ -146,12 +160,26 @@ function stepTo(state, ctx, pid, c, key) {
   const s = state.moveSession, from = c.pos, h = Q.hexAt(state, key);
   if (!h) refuse('off the map');
   if (H.distance(H.parse(from), H.parse(key)) !== 1) refuse('not adjacent');
-  if (h.void) refuse(`${Q.tileLabel(h.type)} is impassable`, 'void');
+  const dig = h.void && !Q.wades(state, c.id, h);
+  if (dig && !canDig(state, c, key)) refuse(`${Q.tileLabel(h.type)} is impassable`, 'void');
   if (h.type === 'blocker') refuse('the way is blocked', 'void');
   const why = Q.gateBlocks(state, c, h); if (why) refuse(why, 'gate');
   if (asleepFor(state, pid, key)) refuse(monstersAsleepMessage(state, pid), 'locked');
   if (s.movesLeft <= 0) refuse('no moves left');
   const toll = Q.tollDue(c, h); if (toll) gold(state, c, -toll, 'gate toll', ctx);
+  if (dig) {
+    // The hex becomes plain ground for the rest of the run (no secret colour: Card boots never light it). map.dug
+    // is the TV's cue to redraw its ground layer.
+    note(state, `${nameOf(state, pid)} digs through ${Q.tileLabel(h.type)}`, 'move', ctx.now);
+    h.void = false; h.type = 'plain'; c.usedThisTurn.digs = (c.usedThisTurn.digs || 0) + 1; state.map.dug = (state.map.dug || 0) + 1;
+    const r = state.map.regions?.[h.regionId]; if (r?.hexKeys && !r.hexKeys.includes(key)) r.hexKeys.push(key);
+  }
+  // Deep-Sea Suit: the first time its wearer climbs out of the water in a run they bring up a Rare item (a
+  // pendingLoot spec, materialised with the rest of the turn's loot).
+  if (!h.void && Q.wades(state, c.id, Q.hexAt(state, from)) && !c.flags?.deepSeaSurfaced) {
+    (c.flags ||= {}).deepSeaSurfaced = true; (c.pendingLoot ||= []).push({ baseId: 'loot', rarity: 'rare', region: h.regionId });
+    note(state, `${nameOf(state, pid)} surfaces with something from the deep`, 'loot', ctx.now);
+  }
   c.pos = key; c.region = h.regionId; s.path.push(key); s.movesLeft -= 1; s.stepsTaken += 1; s.lastDir = H.dirIndex(H.parse(from), H.parse(key));
   for (const hk of moveHooks.afterStep) hk(state, ctx, pid, h);
   if (Q.stopsHere(state, key)) return 'monster';
@@ -229,7 +257,7 @@ register({
     if (state.fight && !state.fight.done && (state.fight.playerIds || []).includes(pid)) refuse('finish the fight first', 'fight');
     if (state.pendingPrompt) refuse('answer the prompt first', 'prompt');
     const mode = bootMode(item, ctx.payload);
-    const who = nameOf(state, pid), pen = broadsidePenalty(c, ctx);
+    const who = nameOf(state, pid), pen = broadsidePenalty(c, ctx), bonus = moveBonusOf(c, ctx);
     state.turnPhase = 'move';
 
     if (mode === 'barefoot' || mode === 'dice') {
@@ -244,7 +272,7 @@ register({
       const rolls = dice.map(d => { let v = rigAwareInt(state, 'dice', 1, d); if (v === 1 && affixes.has('rerollOnes')) v = rigAwareInt(state, 'dice', 1, d); return v; });
       let total = mode === 'barefoot' ? MV.barefoot : rolls.reduce((a, b) => a + b, 0);
       if (mode === 'dice' && affixes.has('homeBonus') && item.region && item.region === c.region) total += 1;
-      total = Math.max(0, total - pen);
+      total = Math.max(0, total + bonus - pen);
       const s = state.moveSession = newSession(pid, c, mode, { roll: total, movesLeft: total, dice, rolls, die, stopRule: rule, slide: item?.unique === 'skates',
         mustWalk: rule === 'never', canStopAfter: rule === 'any' ? 0 : rule === 'half' ? Math.ceil(total / 2) : total });
       s.legal = legalKeys(state, c);
@@ -276,14 +304,15 @@ register({
         finishMove(state, ctx, pid, c, 'swap');
         return;
       }
-      const total = Math.max(0, seg.steps - pen);
+      // A Stumble stays a Stumble: the bonus lengthens a move, it does not rescue a spin of 0.
+      const total = Math.max(0, seg.steps + (seg.steps > 0 ? bonus : 0) - pen);
       s.roll = total; s.movesLeft = total; s.legal = legalKeys(state, c);
       if (total === 0 || !s.legal.length) finishMove(state, ctx, pid, c, total === 0 ? 'stay' : 'blocked');
       return;
     }
 
-    // Card boots
-    const range = affixes.has('range6') ? MV.cardRangeExtended : MV.cardRange;
+    // Card boots: the bonus widens the range the card looks in (and the no-match step below).
+    const range = (affixes.has('range6') ? MV.cardRangeExtended : MV.cardRange) + bonus;
     const draws = affixes.has('drawTwo') ? 2 : 1;
     const cards = [];
     for (let i = 0; i < draws; i++) {
@@ -299,7 +328,7 @@ register({
     note(state, `${who} draws a card`, 'move', ctx.now);
     if (!destinations.length) {
       // No hex of that colour in range: step cardNoMatchStep instead.
-      s.roll = Math.max(0, MV.cardNoMatchStep - pen); s.movesLeft = s.roll; s.legal = legalKeys(state, c); s.atomic = false; s.destinations = null;
+      s.roll = Math.max(0, MV.cardNoMatchStep + bonus - pen); s.movesLeft = s.roll; s.legal = legalKeys(state, c); s.atomic = false; s.destinations = null;
       if (s.movesLeft === 0 || !s.legal.length) finishMove(state, ctx, pid, c, 'stay');
     }
   },
@@ -327,7 +356,8 @@ register({
     const { to } = ctx.payload; if (!to) refuse('to required');
     if (s.atomic) { jumpTo(state, ctx, pid, c, to); return; }
     if (to === c.pos) refuse('already there');
-    const path = Q.pathTo(state, c.pos, to, c.id); if (!path) refuse('no path there', 'nopath');
+    // No walking path, but a tap on the rock next to you with the Blockbreaker Pick is a dig.
+    const path = Q.pathTo(state, c.pos, to, c.id) || (Q.hexAt(state, to) && Q.hexDistance(c.pos, to) === 1 && canDig(state, c, to) ? [to] : null); if (!path) refuse('no path there', 'nopath');
     const steps = Math.min(path.length, s.movesLeft);
     let end = null;
     for (let i = 0; i < steps && !end; i++) end = stepTo(state, ctx, pid, c, path[i]);
@@ -397,7 +427,7 @@ export function legalSteps(state, playerId) {
   const s = state.moveSession, active = !!s && !s.done && s.playerId === playerId && !s.atomic && !s.awaiting && s.movesLeft > 0;
   return H.DIRS.map((d, dir) => {
     const key = H.key(H.neighbor(H.parse(c.pos), dir)), h = Q.hexAt(state, key);
-    const reason = !active ? (s && !s.done ? 'tap a lit hex' : 'roll first') : (Q.blockReason(state, key, c.id) || (h && asleepFor(state, playerId, key) ? 'the monsters are asleep for you' : null));
+    const reason = !active ? (s && !s.done ? 'tap a lit hex' : 'roll first') : ((canDig(state, c, key) ? null : Q.blockReason(state, key, c.id)) || (h && asleepFor(state, playerId, key) ? 'the monsters are asleep for you' : null));
     return { dir, name: d.name, key, type: h?.type || null, label: h ? Q.tileLabel(h.type) : 'off the map', legal: active && !reason, reason, bridge: !!h?.bridge, stops: h ? Q.stopsHere(state, key) : false };
   });
 }
@@ -408,7 +438,7 @@ export function cardView(state, playerId) {
   const s = state.moveSession && state.moveSession.playerId === playerId ? state.moveSession : null;
   const isCard = s?.mode === 'card' || (item && (item.unique === 'choosemode' || bootMode(item, { mode: 'card' }) === 'card'));
   if (!isCard) return null;
-  const range = s?.range || (affixes.has('range6') ? MV.cardRangeExtended : MV.cardRange);
+  const range = s?.range || (affixes.has('range6') ? MV.cardRangeExtended : MV.cardRange) + moveBonusOf(c, { B: (g) => group(state, g) });
   const here = Q.hexAt(state, c.pos);
   const hexes = [{ key: c.pos, colour: here.colour, dist: 0, type: here.type }, ...Q.reachableFrom(state, c.pos, range, c.id).map(x => ({ key: x.key, colour: Q.hexAt(state, x.key).colour, dist: x.dist, type: Q.hexAt(state, x.key).type }))];
   return { range, hexes, card: s?.card || null, cards: s?.cards?.map(x => x.card) || null, destinations: s?.atomic ? s.destinations : [], peek: s?.peek || null, deckLeft: state.map.colourDeck.length, noMatch: !!s && s.mode === 'card' && !s.atomic };
