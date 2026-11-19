@@ -27,6 +27,7 @@ const CRESTS = ['🂡', '🂱', '🃁', '🃑', '🎴', '🀄', '🎲', '🃏'];
 const act = (type, payload = {}, actor) => ({ type, payload, actor });
 
 export function botName(i, state) {
+  i = Number.isInteger(i) && i >= 0 ? i : 0;   // a seat that is not in the order (a watcher) still gets a name
   const used = new Set([...(state?.wall || []), ...Object.values(state?.characters || {}).map(c => c.name)].map(n => String(n).toLowerCase()));
   for (let k = 0; k < NAMES.length; k++) { const n = NAMES[(i + k) % NAMES.length]; if (!used.has(n.toLowerCase())) return n; }
   return `${NAMES[i % NAMES.length]} ${i}`;
