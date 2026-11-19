@@ -39,7 +39,7 @@
       "effect": { "key": "impostorsvisor", "owner": "characters", "params": [], "socialKey": "impostorTurns" } },
     { "id": "thejoker", "name": "The Joker", "slot": "weapon", "gameId": "videopoker", "nodsTo": "Balatro", "footprint": { "w": 1, "h": 3 },
       "text": "Jokers count wild in your Video Poker hand; a five-of-a-kind is a double crit.",
-      "effect": { "key": "thejoker", "owner": "items", "params": ["jokerCritMult"], "wilds": true } },
+      "effect": { "key": "thejoker", "owner": "items", "params": ["jokerCritMult", "jokerCount"], "wilds": true } },
     { "id": "chickendinner", "name": "Chicken Dinner Platter", "slot": "consumable", "nodsTo": "PUBG", "footprint": { "w": 1, "h": 1 },
       "text": "Only usable by the last player standing in Royale: heals to full and vaults an extra item.",
       "effect": { "key": "chickendinner", "owner": "characters", "params": [], "mode": "royale" } },

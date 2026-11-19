@@ -13,11 +13,13 @@
 //   push / cancel: nothing moves.  Hooks scale info.mult (Whale, Chaos, affixes, Grit guards), add info.flat,
 //   set info.cancel, or (Double Down) info.lossMult.
 import { register, refuse, requirePhase, requireActor, requireGm } from '../reducer.js';
-import { currentPlayerId, characterOf, playerOfCharacter, allied, note, alive } from '../state.js';
+import { currentPlayerId, characterOf, playerOfCharacter, allied, sameTeam, note, alive } from '../state.js';
 import { damageHooks, deathHooks, petHooks, levelHooks, classActives, consumables, runMods } from '../hooks.js';
 import * as money from '../health.js';
 import { bonusFor, group } from '../balance.js';
 import * as hex from '../hex.js';
+import * as Q from '../map/query.js';
+import { FIVE_OF_A_KIND } from '../../games/adapter.js';
 import { monsterHealth, openFight, monsterDied } from './fight.js';
 import { hasUpgrade, effectiveStats } from '../characters/character.js';
 import { setCooldown, onCooldown, cooldownKeyFor } from './classes.js';
@@ -150,7 +152,7 @@ export function resolveHit(state, ctx, { attackerId, attackerKind = 'character',
     return info;
   }
   if (won) {
-    dealDamage(state, ctx, info, payout, () => note(state, `${who} hits ${nameOf(state, targetId, targetKind)} with ${item?.name || info.gameId}: ${label} — ${info.petHit ? 'the pet takes ' : ''}${info.damage}${info.crit ? ' CRIT' : ''}`, 'fight', ctx.now));
+    dealDamage(state, ctx, info, payout, () => note(state, `${who} hits ${nameOf(state, targetId, targetKind)} with ${item?.name || info.gameId}: ${label} — ${info.petHit ? 'the pet takes ' : ''}${info.damage}${info.crit ? (info.doubleCrit ? ' DOUBLE CRIT' : ' CRIT') : ''}`, 'fight', ctx.now));
     const s = attackerKind === 'character' ? statsOf(state, attackerId) : null;
     if (s) { s.hits += 1; if (info.crit) s.crits += 1; s.damageDealt += info.damage || 0; }
     if (attackerKind === 'character') { const c = state.characters[attackerId]; if (c) c.streak = (c.streak || 0) + 1; xp(state, ctx, attackerId, ctx.B('xp').hit + (info.crit ? ctx.B('xp').crit : 0), info.crit ? 'crit' : 'hit'); }
@@ -240,8 +242,8 @@ register({
     if (snap) g.legacy = stripSecret(snap);
     const info = resolveHit(state, ctx, { attackerId: c.id, attackerKind: 'character', targetId: g.targetId, targetKind: g.targetKind, item, stake: g.stake, mult: Number(mult), label, crit: !!crit });
     item.charges = Math.max(0, (item.charges || 0) - 1);
-    g.result = { mult: Number(mult), label, crit: !!crit, damage: info.damage, healed: info.healed, shielded: info.shielded, loss: info.loss }; g.phase = 'done'; g.resolvedTs = ctx.now;
-    f.log.push({ ts: ctx.now, by: c.id, itemId: item.id, gameId: item.gameId, mult: Number(mult), label, crit: !!crit, damage: info.damage, loss: info.loss, healed: info.healed, shielded: info.shielded });
+    g.result = { mult: Number(mult), label, crit: !!crit, damage: info.damage, healed: info.healed, shielded: info.shielded, loss: info.loss, ...alsoHit(info) }; g.phase = 'done'; g.resolvedTs = ctx.now;
+    f.log.push({ ts: ctx.now, by: c.id, itemId: item.id, gameId: item.gameId, mult: Number(mult), label, crit: !!crit, damage: info.damage, loss: info.loss, healed: info.healed, shielded: info.shielded, ...alsoHit(info) });
     f.lastGame = g; f.game = null;
     if (f.kind === 'solo') { f.done = true; f.result = 'resolved'; }
     else if (!f.done && f.monsterId && state.monsters[f.monsterId] && !state.monsters[f.monsterId].dead) f.turn = 'monster';
@@ -288,8 +290,11 @@ register({
       a.results[charId] = { mult, label: r.label || '', crit: !!r.crit, damage: 0, loss: 0 };
       if (mult > 1) {
         // Winners strike: the attacker and their allies hit every foe on the hex (and the fight's monster); foes hit the attacker back.
-        const targets = ally ? [...foes.map(x => ({ id: x.id, kind: 'character' })), ...(a.monsterId && state.monsters[a.monsterId] && !state.monsters[a.monsterId].dead ? [{ id: a.monsterId, kind: 'monster' }] : [])] : [{ id: a.attackerId, kind: 'character' }];
-        for (const t of targets) { if (t.kind === 'character' && !alive(state.characters[t.id])) continue; const info = resolveHit(state, ctx, { attackerId: charId, targetId: t.id, targetKind: t.kind, item, stake: s.stake, mult, label: r.label || '', crit: !!r.crit }); a.results[charId].damage += info.damage || 0; }
+        let targets = ally ? [...foes.map(x => ({ id: x.id, kind: 'character' })), ...(a.monsterId && state.monsters[a.monsterId] && !state.monsters[a.monsterId].dead ? [{ id: a.monsterId, kind: 'monster' }] : [])] : [{ id: a.attackerId, kind: 'character' }];
+        // Big Fancy Gun: the wielder's win lands on one target in the blast and the afterHit hook carries the same
+        // damage to everyone else on the hex and its six neighbours, so the gun fires even with nobody on the hex itself.
+        if (isAttacker && item.legendaryId === 'bigfancygun') { const blast = blastTargets(state, ch, null); const first = targets.find(t => blast.some(b => b.id === t.id)) || blast[0]; targets = first ? [first] : []; }
+        for (const t of targets) { if (t.kind === 'character' && !alive(state.characters[t.id])) continue; const info = resolveHit(state, ctx, { attackerId: charId, targetId: t.id, targetKind: t.kind, item, stake: s.stake, mult, label: r.label || '', crit: !!r.crit }); a.results[charId].damage += (info.damage || 0) + (info.splashed || []).reduce((n, x) => n + x.damage, 0); }
         if (!targets.length) note(state, `${ch.name} wins the ${item.name} round but nobody is in range`, 'fight', ctx.now);
       } else if (mult < 1) {
         const loss = r0(s.stake * (1 - mult)); a.results[charId].loss = loss;
@@ -395,6 +400,12 @@ damageHooks.outgoing.push((state, ctx, info) => {
     else if (hasUpgrade(c, 'healdouble')) { takeEffect(c, 'doubledown'); info.mult *= 2; info.lossMult *= 2; info.notes.push('Double Down (heal)'); }
   }
 });
+// The Joker: a five-of-a-kind (only possible with its wild jokers, see games/adapter.js) is a double crit. The
+// round reports it by its label, the same convention isCrit uses for a Blackjack natural.
+damageHooks.outgoing.push((state, ctx, info) => {
+  if (info.item?.legendaryId !== 'thejoker' || !info.crit || !(info.base > 1) || !String(info.label || '').startsWith(FIVE_OF_A_KIND)) return;
+  info.mult *= ctx.B('legendaries').jokerCritMult; info.doubleCrit = true; info.notes.push('The Joker: double crit');
+});
 // Grit, guard affixes and the class guards are applied by handlers/inventory.js and handlers/classes.js; here only
 // the Caldera, which doubles damage both ways for anyone standing in it.
 damageHooks.incoming.push((state, ctx, info) => {
@@ -410,6 +421,88 @@ deathHooks.onZero.push((state, ctx, zi) => {
   const c = state.characters[zi.charId]; if (!c || zi.prevented || !hasEffect(c, 'phoenix')) return;
   takeEffect(c, 'phoenix'); money.health(state, c, 1 - c.health, 'Phoenix Feather', ctx, { ignoreShield: true }); zi.prevented = true; zi.by = 'phoenix';
   note(state, `${c.name}'s Phoenix Feather burns: death cancelled`, 'item', ctx.now);
+});
+
+// ── Legendary weapons with a footprint on the map ────────────────────────────────────────────────
+// Big Fancy Gun (the wielder's hex and its six neighbours), Corvette Broadside (a line) and The Shout (a push) act
+// when their wielder wins a round, from damageHooks.afterHit. Simplest readings of SPEC.md › Named Legendaries:
+//   - the others in the blast take the hit's resolved damage as it stood (info.payout: after the wielder's bonuses and
+//     the primary target's guards), not a fresh roll through the pipeline each; pets and shields still soak it and
+//     kills go through the usual death paths;
+//   - "every player and monster" spares the wielder and, in teams mode, their teammates (the no-fighting-inside-a-team
+//     rule of handlers/challenge.js); allies by pact are hit like anyone else;
+//   - without positions (no map, the Lab) there is nobody to catch, so only the primary target is hit.
+const keyOf = (x) => { const p = posOf(x); return p ? hex.key(p) : null; };
+const seated = (state, c) => { const p = playerOfCharacter(state, c.id); return !!p && !p.kicked; };
+const teammates = (state, a, b) => { const pa = playerOfCharacter(state, a.id), pb = playerOfCharacter(state, b.id); return !!pa && !!pb && sameTeam(state, pa.id, pb.id); };
+// Every living player and monster standing on `keys`, except the wielder, their teammates and `skipId`.
+function standingOn(state, keys, wielder, skipId = null) {
+  const on = new Set(keys), out = [];
+  for (const c of Object.values(state.characters)) if (alive(c) && c.id !== wielder.id && c.id !== skipId && on.has(keyOf(c)) && seated(state, c) && !teammates(state, wielder, c)) out.push({ id: c.id, kind: 'character' });
+  for (const m of Object.values(state.monsters || {})) if (!m.dead && m.id !== skipId && on.has(keyOf(m))) out.push({ id: m.id, kind: 'monster' });
+  return out;
+}
+export function blastTargets(state, wielder, skipId = null) {
+  const a = posOf(wielder); return a ? standingOn(state, [a, ...hex.neighbors(a)].map(hex.key), wielder, skipId) : [];
+}
+// Corvette Broadside: `broadsideRange` hexes straight ahead, the direction being from the wielder's hex toward the
+// target's (the first step of the line between them when the target is not on one of the six axes). Sharing a hex
+// with the target there is no "ahead": the shot rakes the shared hex, and carries on the way the wielder last
+// stepped when this turn's move recorded a direction.
+export function broadsideHexes(state, ctx, wielder, target) {
+  const a = posOf(wielder), t = posOf(target); if (!a) return [];
+  const keys = []; let dir = -1;
+  if (t && !hex.eq(a, t)) dir = hex.dirIndex(a, hex.line(a, t)[1]);
+  else { keys.push(hex.key(a)); const s = state.moveSession; if (s && s.charId === wielder.id && s.lastDir != null) dir = s.lastDir; }
+  if (dir >= 0) for (let i = 0, h = a; i < ctx.B('legendaries').broadsideRange; i++) { h = hex.neighbor(h, dir); keys.push(hex.key(h)); }
+  return keys;
+}
+// The same resolved damage for everyone else caught in it, one log line each; info.splashed lists them for the fight log.
+function splash(state, ctx, info, victims) {
+  const who = nameOf(state, info.attackerId, info.attackerKind), s = statsOf(state, info.attackerId);
+  for (const v of victims) {
+    const x = v.kind === 'monster' ? state.monsters[v.id] : state.characters[v.id]; if (!x || x.dead) continue;
+    const sub = { ...info, targetId: v.id, targetKind: v.kind, splash: true, damage: 0, healthLost: 0, petHit: null, redirectToPet: null, notes: [] };
+    dealDamage(state, ctx, sub, info.payout, () => note(state, `${who}'s ${info.item.name} also hits ${nameOf(state, v.id, v.kind)} — ${sub.petHit ? 'the pet takes ' : ''}${sub.damage}`, 'fight', ctx.now));
+    (info.splashed ||= []).push({ id: v.id, kind: v.kind, damage: sub.damage || 0 });
+    if (s) s.damageDealt += sub.damage || 0;
+  }
+}
+const alsoHit = (info) => (info.splashed ? { splashed: info.splashed } : info.pushed ? { pushed: info.pushed } : {});
+// The Shout: every adjacent player and monster slides `shoutPush` hexes straight away from the caster, stopping
+// short of the map's edge, void, a blocker, a gate it may not pass or a hex a living monster holds (as Octane
+// Treads' bump does). Nobody lands on a tile's effect: a push is not a move. Those sharing the caster's hex have no
+// "away" and stay; bosses and blockers (the Dungheap) are part of their tile and do not budge. The Shout sits in a
+// spell slot but is generated as an attack (Coin Streak's kind), so the round is an ordinary one: the target takes
+// the hit, then everyone adjacent (the target included) is thrown back.
+function shout(state, ctx, info) {
+  const c = state.characters[info.attackerId], a = posOf(c); if (!a || !state.map) return;
+  const near = (x) => { const p = posOf(x); return !!p && hex.distance(a, p) === 1; };
+  const all = [...Object.values(state.characters).filter(o => alive(o) && o.id !== c.id && seated(state, o) && near(o)).map(o => ({ o, kind: 'character' })),
+    ...Object.values(state.monsters || {}).filter(m => !m.dead && !m.boss && !m.raid && !m.final && !m.blocker && near(m)).map(o => ({ o, kind: 'monster' }))];
+  for (const { o, kind } of all) {
+    const from = keyOf(o), dir = hex.dirIndex(a, posOf(o)); let k = from, moved = 0;
+    for (let i = 0; i < ctx.B('legendaries').shoutPush; i++) {
+      const nk = hex.key(hex.neighbor(hex.parse(k), dir));
+      if (!Q.passable(state, nk, kind === 'character' ? o.id : null) || Q.stopsHere(state, nk)) break;
+      k = nk; moved += 1;
+    }
+    if (!moved) { note(state, `${o.name} is braced against ${c.name}'s ${info.item.name}`, 'fight', ctx.now); continue; }
+    const h = Q.hexAt(state, k); o.pos = k;
+    if (kind === 'character') o.region = h.regionId;
+    else { const old = Q.hexAt(state, from); if (old && old.monsterId === o.id) old.monsterId = null; h.monsterId = o.id; o.regionId = h.regionId; }
+    (info.pushed ||= []).push({ id: o.id, kind, from, to: k });
+    note(state, `${c.name}'s ${info.item.name} throws ${o.name} back ${moved} hex${moved === 1 ? '' : 'es'}`, 'fight', ctx.now);
+  }
+}
+damageHooks.afterHit.push((state, ctx, info) => {
+  const id = info.item?.legendaryId; if (!id || info.attackerKind !== 'character' || info.splash) return;
+  const c = state.characters[info.attackerId]; if (!c) return;
+  const skip = info.targetKind === 'self' ? null : info.targetId;
+  if (id === 'theshout') shout(state, ctx, info);
+  else if (!(info.payout > 0)) return;
+  else if (id === 'bigfancygun') splash(state, ctx, info, blastTargets(state, c, skip));
+  else if (id === 'broadside') splash(state, ctx, info, standingOn(state, broadsideHexes(state, ctx, c, info.targetKind === 'monster' ? state.monsters[info.targetId] : state.characters[info.targetId]), c, skip));
 });
 
 export function stripSecret(obj) {

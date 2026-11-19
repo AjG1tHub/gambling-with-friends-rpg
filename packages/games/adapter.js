@@ -9,6 +9,10 @@ import * as G from './legacy/games.js';
 import { EXTRA, EXTRA_LIST } from './legacy/games-extra.js';
 import { colorSegments, scratchTiers, limboChance } from './legacy/games-quick.js';
 import { racePays, towerMult, chickenMult, pachMults, dealValues } from './legacy/games-show.js';
+import { vpKey, vpAdvice, VP_ROWS } from './legacy/games-table.js';
+import { RANK_ORDER } from './legacy/poker.js';
+import { shuffle } from './legacy/rng.js';
+import { x2 } from './legacy/xkit.js';
 import { ITEMS, byGame, GAME_IDS } from './items.js';
 import { LEVERS, leverDelta, applyLever, afterStartLever, beforeActLever, afterActLever, postLever } from './levers.js';
 import { controlsFor, publicControls, ROULETTE_TYPES } from './controls.js';
@@ -39,6 +43,33 @@ export function stripSecret(obj) {
   if (obj && typeof obj === 'object') { const out = {}; for (const [k, v] of Object.entries(obj)) { if (k === 'secret') continue; out[k] = stripSecret(v); } return out; }
   return obj;
 }
+
+// ── The Joker: wild jokers in Video Poker ────────────────────────────────────────────────────────
+// The legacy game is a byte-identical copy and knows no jokers, so the wild rule lives here: a Round started with
+// `wildJokers` (the default when the item is The Joker) shuffles `legendaries.jokerCount` jokers into the deck and
+// re-reads the final hand with each joker standing for whatever card pays best. Five of a kind (four of a rank and
+// a joker, or three and two) has no row in the pay table: simplest reading, it pays as four of a kind and is the
+// "double crit" (isCrit below; handlers/items.js doubles the hit by `legendaries.jokerCritMult`).
+export const FIVE_OF_A_KIND = 'Five of a kind';
+export const JOKER = Object.freeze({ r: '🃏', s: '', joker: true });
+const SUITS = ['♠', '♥', '♦', '♣'];
+const VP_ORDER = VP_ROWS.map(r => r[0]);                          // best row first
+// → { key: a pay-table row or null, five: true for five of a kind }. Without a joker it is the legacy vpKey.
+export function vpWildKey(cards) {
+  const wild = cards.map((c, i) => (c.joker ? i : -1)).filter(i => i >= 0);
+  if (!wild.length) return { key: vpKey(cards), five: false };
+  if (new Set(cards.filter(c => !c.joker).map(c => c.r)).size <= 1) return { key: 'quads', five: true };
+  let best = null;
+  const better = (k) => k && (!best || VP_ORDER.indexOf(k) < VP_ORDER.indexOf(best));
+  const fill = (hand, n) => {
+    if (n === wild.length) { const k = vpKey(hand); if (better(k)) best = k; return; }
+    for (const s of SUITS) for (const r of RANK_ORDER) { const next = hand.slice(); next[wild[n]] = { r, s }; fill(next, n + 1); }
+  };
+  fill(cards, 0);
+  return { key: best, five: false };
+}
+// The legacy hold advice plus every joker (never throw a wild card away).
+export const vpWildAdvice = (cards) => [...new Set([...vpAdvice(cards), ...cards.map((c, i) => (c.joker ? i : -1)).filter(i => i >= 0)])];
 
 // ── Top multiplier per game (what counts as a critical hit) ──────────────────────────────────────
 // Pragmatic table: the biggest total return the game can pay at the given odds (and, where it depends on the
@@ -92,6 +123,7 @@ export function isCrit(gameId, odds, g, result, threshold = 1) {
   if (gameId === 'blackjack') return /^BLACKJACK/.test(label);
   if (gameId === 'mines') return /^Cleared/.test(label);
   if (gameId === 'bus') return /^Rode the whole bus/.test(label);
+  if (gameId === 'videopoker' && label.startsWith(FIVE_OF_A_KIND)) return true;
   const top = topMult(gameId, odds, g);
   return Number.isFinite(top) && result.mult >= top * threshold - 1e-9;
 }
@@ -99,12 +131,13 @@ export function isCrit(gameId, odds, g, result, threshold = 1) {
 // ── Rounds ───────────────────────────────────────────────────────────────────────────────────────
 // ctx: { B(group) } (a reducer ctx works) or { state } (balance overrides read from the room) or nothing (defaults).
 // opts: { item | gameId, mode: 'health'|'chips', stake, attacker: {id,name,stats,classId,level}, target: {id,name,stats},
-//         odds (extra overrides), rng, now, holdPending, rig: {outcome:'win'|'lose'} (Croupier), statValue (override) }
+//         odds (extra overrides), rng, now, holdPending, rig: {outcome:'win'|'lose'} (Croupier), statValue (override),
+//         wildJokers (Video Poker only; defaults to true when the item is The Joker) }
 export function startRound(ctx, opts) {
   return new Round(ctx, opts);
 }
 class Round {
-  constructor(ctx, { item = null, gameId = null, mode = 'health', stake = null, attacker = null, target = null, odds = null, rng, now = 0, holdPending = false, rig = null, statValue = undefined } = {}) {
+  constructor(ctx, { item = null, gameId = null, mode = 'health', stake = null, attacker = null, target = null, odds = null, rng, now = 0, holdPending = false, rig = null, statValue = undefined, wildJokers = undefined } = {}) {
     if (!rng) throw new Error('startRound needs an rng');
     const Bf = typeof ctx?.B === 'function' ? ctx.B : (g) => group(ctx?.state || null, g);
     this.B = Bf;
@@ -132,10 +165,28 @@ class Round {
     if (patch && Object.keys(patch).length) this.mini.oddsOverrides[this.gameId] = { ...(this.mini.oddsOverrides[this.gameId] || {}), ...patch };
     Object.defineProperty(this.lx, 'odds', { get: () => this.odds(), configurable: true });
     this.g = G.startGame(CONFIG, this.mini, rng, this.gameId, this.mini.players[0], [{ amount: this.stake, cur }]);
+    this.wild = this.gameId === 'videopoker' && (wildJokers ?? this.item.legendaryId === 'thejoker');
+    if (this.wild) this.dealJokers(Bf('legendaries').jokerCount);
     const after = afterStartLever(this.gameId, this.statValue, this.g, this.lx.base, this.lx);
     if (after !== undefined) this.mini.oddsOverrides[this.gameId] = { ...(odds || {}), ...after };
     this.applyRigAtStart();
     if (this.g.phase === 'done' && this.g.result) this.finalize(this.g.result);
+  }
+  // The Joker: the legacy start() has already dealt five from a 52-card deck, so put them back, add the jokers,
+  // shuffle and deal the five again (same deal timings), which gives a joker the same odds in the first five as in the draw.
+  dealJokers(n) {
+    const g = this.g, v = g.view;
+    const deck = shuffle(this.rng, [...v.cards.map(c => ({ r: c.r, s: c.s })), ...g.secret.deck, ...Array.from({ length: n }, () => ({ ...JOKER }))]);
+    v.cards = v.cards.map(c => ({ ...deck.shift(), t: c.t })); g.secret.deck = deck; v.wild = true;
+  }
+  // Re-read the drawn hand with jokers wild and overwrite the legacy result (which saw the jokers as dead cards).
+  wildResult(res) {
+    const g = this.g, v = g.view, o = this.odds(), w = vpWildKey(v.cards);
+    if (!v.cards.some(c => c.joker)) return;
+    const name = w.five ? FIVE_OF_A_KIND : w.key ? VP_ROWS.find(r => r[0] === w.key)[1] : null;
+    v.win = w.key; v.five = w.five;
+    g.result = w.key ? { mult: Number(o[w.key]), label: `${name} — ${x2(o[w.key])} (jokers wild)` } : { mult: 0, label: `${g.result.label} (the joker could not save it)` };
+    Object.assign(res, { done: true, mult: g.result.mult, text: g.result.label });
   }
   get phase() { return this.g.phase; }
   get view() { return this.g.view; }
@@ -184,6 +235,8 @@ class Round {
     this.mini.game = g;
     let res = G.gameAction(CONFIG, this.mini, this.rng, action, payload) || { text: '' };
     res = { ...res };
+    if (this.wild && action === 'auto' && g.phase === 'hold') { const keep = vpWildAdvice(g.view.cards); g.view.held = g.view.held.map((_, i) => keep.includes(i)); }
+    if (this.wild && action === 'draw' && g.result) this.wildResult(res);
     afterActLever(this.gameId, this.statValue, g, action, payload, before, res, this.lx);
     this.applyRig(action, payload, res);
     if (res.text) { this.text = res.text; this.log.push(res.text); }
@@ -280,6 +333,7 @@ class Round {
     const g = this.g; if (this.settled) return null;
     if (g.forkOptions) return ['pickFork', { i: pick.int(0, 1) }];
     if (g.pending) return ['accept'];
+    if (this.wild && smart && g.phase === 'hold') { const keep = vpWildAdvice(g.view.cards), i = g.view.held.findIndex((h, k) => h !== keep.includes(k)); return i >= 0 ? ['hold', { i }] : ['draw']; }
     if (EXTRA[this.gameId]) return EXTRA[this.gameId].bot(g, pick, smart, this.x());
     const v = g.view, o = this.odds(), choose = (arr) => arr[pick.int(0, arr.length - 1)];
     switch (this.gameId) {

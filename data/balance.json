@@ -323,6 +323,7 @@
     "pedestalFullHealth": { "v": 1.0, "unit": "fraction", "spec": "Legendaries", "note": "Health fraction counted as full for the Pedestal Blade." },
     "busterDamage": { "v": 0.5, "unit": "fraction", "spec": "Legendaries", "note": "Oversized Buster Cleaver damage bonus." },
     "jokerCritMult": { "v": 2, "unit": "multiplier", "spec": "Legendaries", "note": "The Joker's five-of-a-kind crit multiplier." },
+    "jokerCount": { "v": 2, "unit": "cards", "spec": "Legendaries", "note": "Wild jokers The Joker shuffles into its Video Poker deck." },
     "coatMinStake": { "v": 20, "unit": "Health", "spec": "Legendaries", "note": "The Croupier's Coat: opponents must stake at least this much against the wearer." }
   },
   "sets": {
