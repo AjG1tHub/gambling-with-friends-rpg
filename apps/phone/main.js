@@ -124,7 +124,11 @@ function view(state, session) {
   // with gear (turn 2), Pets with the first pet (turn 3), Letters when the table opens. Nothing is greyed, it is just
   // not there, and a new tab arrives with the turn that explains it.
   const TAB_NEEDS = { cage: 'gear', pets: 'fight', letters: 'social' };
-  const shownTabs = state.phase === 'playing' && me && !me.spectator ? TABS.filter(([id]) => !TAB_NEEDS[id] || unlocked(state, me.id, TAB_NEEDS[id])) : TABS;
+  // Before the run there is no gear, pet, map or post to look at: the lobby and creation carry Play and Self (the
+  // roster code lives on Self) and the rest arrive with the run.
+  const BEFORE_RUN = ['play', 'self'];
+  const shownTabs = state.phase === 'lobby' || state.phase === 'creation' ? TABS.filter(([id]) => BEFORE_RUN.includes(id))
+    : state.phase === 'playing' && me && !me.spectator ? TABS.filter(([id]) => !TAB_NEEDS[id] || unlocked(state, me.id, TAB_NEEDS[id])) : TABS;
   if (!shownTabs.some(t => t[0] === ctx.tab)) ctx.tab = 'play';
   const tabs = h('nav', { class: 'tabs' }, shownTabs.map(([id, label]) => h('button', { class: id === ctx.tab ? 'on' : '', onClick: () => { ctx.tab = id; view(session.state, session); } }, label, id === 'letters' && unread(state) ? h('span', { class: 'dot' }) : null, id === 'play' && myTurn && ctx.tab !== 'play' ? h('span', { class: 'dot' }) : null)));
   // QA: the bug-report sheet and the secret reward overlay sit above the tabs (feedback.js).
