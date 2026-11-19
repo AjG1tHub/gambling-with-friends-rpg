@@ -25,6 +25,7 @@ const SUITES = [
   { id: 'gm-layout', cmd: 'node test/browser/gm-layout.mjs', timeout: 300, pass: /PASSED/ },
   { id: 'clock', cmd: 'node test/browser/clock.mjs', timeout: 300, pass: /PASSED/ },
   { id: 'table-business', cmd: 'node test/browser/table-business.mjs', timeout: 300, pass: /PASSED/ },
+  { id: 'features', cmd: 'node test/browser/features.mjs', timeout: 300, pass: /PASSED/ },
   { id: 'ramp', cmd: 'node test/browser/ramp.mjs', timeout: 540, pass: /PASSED/, slow: true },
 ].filter(s => !(quick && s.slow));
 
