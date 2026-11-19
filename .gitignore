@@ -15,3 +15,4 @@ art/cache/
 !art/inbox/midjourney/README.txt
 !art/inbox/suno/README.txt
 test/reports/
+.claude/
