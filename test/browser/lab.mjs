@@ -122,7 +122,9 @@ try {
   await waitFor(phone, () => window.__lab.current === 'minefield' && !!window.__lab.mount?.round, 'phone opened Minefield');
   const tap = await phone.evaluate(() => { const b = document.querySelector('.gwf-controls .grid button'); return b ? b.getBoundingClientRect().height : 0; });
   ok(tap >= 48, `phone grid buttons are ${Math.round(tap)}px tall`);
-  await phone.click('.gwf-controls .grid button >> nth=0'); await phone.click('.gwf-controls .btns button:has-text("STOP")');
+  await phone.click('.gwf-controls .grid button >> nth=0'); await sleep(300);
+  // The first reveal can be a mine (the round is then already settled and there is no STOP to press): CI flake, 19 Nov.
+  if (!(await phone.evaluate(() => !!window.__lab.mount?.settled))) await phone.click('.gwf-controls .btns button:has-text("STOP")');
   await waitFor(phone, () => window.__lab.mount?.settled, 'phone Minefield settles after a reveal and STOP');
   await phone.screenshot({ path: shotDir + 'lab-phone-01-minefield.png' });
   await phone.click('.lab-head button:has-text("Next")'); await waitFor(phone, () => window.__lab.current !== 'minefield', 'phone Next works');
