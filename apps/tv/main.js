@@ -14,7 +14,7 @@ import { B } from '../../packages/shared/balance.js';
 import { roomCode, seed32, hashPin } from '../../packages/shared/ids.js';
 import { healthThird } from '../../packages/shared/health.js';
 import { group } from '../../packages/shared/balance.js';
-import { SoundPlayer, cuesFor, DEFAULT_SOUND } from '../../packages/ui/sound.js';
+import { SoundPlayer, cuesFor, DEFAULT_SOUND, clockWarnDue } from '../../packages/ui/sound.js';
 import { loadManifest } from '../../packages/ui/sprite.js';
 import { startAutopilot, seatBots } from '../../packages/ui/autopilot.js';
 import { rampStage } from '../../packages/shared/handlers/ramp.js';
@@ -85,6 +85,11 @@ async function open(backend, code, { bots = 0, create = null } = {}) {
     const st = session.state; if (!st || st.phase !== 'playing' || st.gm.paused) return;
     const pid = currentPlayerId(st); if (!pid) return;
     const c = st.clocks[pid];
+    // The warning sound belongs to the ticker, not to state changes: an idle mover produces no event at the moment
+    // the clock crosses the line, which is exactly when the table needs to hear it. Once per turn.
+    if (c?.runningSince != null && clockWarnDue(remainingMs(st, pid, now), group(st, 'clock').warningSeconds * 1000, st.turnIdx, sound)) {
+      if (sound.settings.on !== false) sound.player?.play('clock_warning', sound.settings);
+    }
     if (c?.runningSince != null && remainingMs(st, pid, now) <= 0 && !session.__timeoutPending) {
       session.__timeoutPending = true;
       session.dispatch('TURN_TIMEOUT', {}, 'system').catch(() => {}).finally(() => setTimeout(() => { session.__timeoutPending = false; }, 1500));
@@ -102,7 +107,7 @@ async function open(backend, code, { bots = 0, create = null } = {}) {
 function onView(state, sess, ev) {
   const now = Date.now();
   if (sound.prev && sound.prev !== state) {
-    try { const cues = cuesFor(sound.prev, state, now); if (cues.length && sound.settings.on !== false) sound.player?.schedule(cues, sound.settings, now); } catch (e) { console.warn('sound', e); }
+    try { const cues = cuesFor(sound.prev, state, now).filter(c => c.cue !== 'clock_warning'); if (cues.length && sound.settings.on !== false) sound.player?.schedule(cues, sound.settings, now); } catch (e) { console.warn('sound', e); }
     maybeMusic(state);
   }
   sound.prev = state;

@@ -122,3 +122,28 @@ test('SoundPlayer picks a file only when the manifest has a real one', () => {
   const q = new SoundPlayer({ AudioCtx: fake });
   return q.unlock().then(ok => { assert.equal(ok, true); assert.equal(q.playNotes(renderCue('crit'), 0.5), renderCue('crit').length); assert.equal(made.length, renderCue('crit').length); });
 });
+
+test('a wheel-game round: the TV\'s hit/crit and the death bell wait for the wheel to land; the phone hears them at once', () => {
+  const a = base(); a.monsters = { m1: { id: 'm1', name: 'Croupier', dead: false } };
+  a.fight = { id: 'f1', monsterId: 'm1', playerId: 'p1', log: [], game: { startedTs: NOW - 100, itemId: 'w' }, lastGame: null };
+  const b = clone(a); b.fight.log = [{ damage: 7, crit: true }]; b.fight.game = null; b.monsters.m1.dead = true;
+  b.fight.lastGame = { startedTs: NOW - 100, itemId: 'w', result: { mult: 2 }, legacy: { spin: { outcomes: ['WIN', 'LOSE'], index: 0 } } };
+  const tv = cuesFor(a, b, NOW);
+  assert.ok(tv.length >= 2 && tv.every(c => c.at === NOW + WHEEL_SPIN_MS), `every result cue is delayed to the landing: ${JSON.stringify(tv)}`);
+  assert.deepEqual(names(tv).sort(), ['crit', 'death_bell']);
+  const phone = cuesFor(a, b, NOW, { viewer: 'p1' });
+  assert.ok(phone.every(c => c.at === NOW), 'the phone, which shows the result at once, is not delayed');
+  // A non-wheel game (no spin snapshot) is not delayed.
+  const c = clone(b); c.fight.lastGame.legacy = { view: {} };
+  assert.ok(cuesFor(a, c, NOW).every(x => x.at === NOW));
+});
+
+import { clockWarnDue } from '../../packages/ui/sound.js';
+test('clockWarnDue: once per turn, inside the window, never at zero', () => {
+  const memo = {};
+  assert.equal(clockWarnDue(20000, 15000, 3, memo), false, 'not yet');
+  assert.equal(clockWarnDue(14900, 15000, 3, memo), true, 'crossing the line');
+  assert.equal(clockWarnDue(9000, 15000, 3, memo), false, 'only once this turn');
+  assert.equal(clockWarnDue(0, 15000, 4, memo), false, 'not at zero');
+  assert.equal(clockWarnDue(5000, 15000, 4, memo), true, 'the next turn warns again');
+});

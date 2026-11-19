@@ -105,20 +105,26 @@ export function cuesFor(prev, next, now = Date.now(), { viewer = null, max = 4, 
   if (ms && pms && ms.playerId === pms.playerId && (ms.path?.length || 0) > (pms.path?.length || 0)) add('hex_step');
   // Fights: a boss appearing roars; each log line is a hit, a crit or a miss; a new item round plays its family.
   const f = next.fight, pf = prev.fight;
+  // A wheel-game round that just resolved: the TV holds its result back until the wheel lands (stage.js
+  // roundWheelHolding), so the hit / crit / miss, a death bell and the loot it causes must wait too, or the sound
+  // gives the result away four seconds early. Phones (viewer set) show the result at once and are not delayed.
+  const lg = f?.lastGame, plg = pf && pf.id === f?.id ? pf.lastGame : null;
+  const wheelLanded = !viewer && lg && lg.result && lg.legacy?.spin?.outcomes && lg.legacy.spin.index != null && !(plg && plg.startedTs === lg.startedTs && plg.result);
+  const resultAt = wheelLanded ? now + WHEEL_SPIN_MS : now;
   if (f && (!pf || pf.id !== f.id) && isBoss(next.monsters?.[f.monsterId])) add('boss_roar');
   if (f && (!pf || pf.id !== f.id) && f.kind === 'boss') add('boss_roar');
   if (f && pf && pf.id === f.id) {
-    for (const l of newRows(pf.log, f.log)) add(l.crit ? 'crit' : l.damage > 0 ? 'hit' : l.healed > 0 || l.shielded > 0 ? 'game_nerve_cashout' : l.loss > 0 ? 'miss' : 'card_draw');
+    for (const l of newRows(pf.log, f.log)) add(l.crit ? 'crit' : l.damage > 0 ? 'hit' : l.healed > 0 || l.shielded > 0 ? 'game_nerve_cashout' : l.loss > 0 ? 'miss' : 'card_draw', resultAt);
     if (f.game && f.game.startedTs !== pf.game?.startedTs) { const fam = familyOfGame(next, f.game); if (fam && FAMILY_START_CUE[fam]) add(FAMILY_START_CUE[fam]); }
   }
   // Characters: deaths ring the bell, a lantern guttering (dropping into the low third), new items by rarity.
   for (const [id, c] of Object.entries(next.characters || {})) {
     const pc = prev.characters?.[id]; if (!pc) continue;
-    if (c.dead && !pc.dead) add('death_bell');
-    else if (third(c) === 'low' && third(pc) !== 'low') add('lantern_gutter');
-    for (const itemId of Object.keys(c.items || {})) if (!pc.items?.[itemId]) { const r = c.items[itemId]?.rarity; add(r === 'legendary' ? 'loot_legendary' : r === 'epic' ? 'loot_epic' : r === 'rare' ? 'loot_rare' : 'loot_common'); }
+    if (c.dead && !pc.dead) add('death_bell', resultAt);
+    else if (third(c) === 'low' && third(pc) !== 'low') add('lantern_gutter', resultAt);
+    for (const itemId of Object.keys(c.items || {})) if (!pc.items?.[itemId]) { const r = c.items[itemId]?.rarity; add(r === 'legendary' ? 'loot_legendary' : r === 'epic' ? 'loot_epic' : r === 'rare' ? 'loot_rare' : 'loot_common', resultAt); }
   }
-  for (const [id, m] of Object.entries(next.monsters || {})) if (m.dead && prev.monsters?.[id] && !prev.monsters[id].dead) add('death_bell');
+  for (const [id, m] of Object.entries(next.monsters || {})) if (m.dead && prev.monsters?.[id] && !prev.monsters[id].dead) add('death_bell', resultAt);
   // Chaos, letters, challenges, Area windows, log kinds the handlers tag.
   if ((next.chaos?.tier || 0) > (prev.chaos?.tier || 0)) add('chaos_stinger');
   const letters = next.letters || [], pl = prev.letters || [];
@@ -131,8 +137,8 @@ export function cuesFor(prev, next, now = Date.now(), { viewer = null, max = 4, 
   for (const r of newRows(prev.log, next.log)) {
     if (r.kind === 'chaos' && !out.some(c => c.cue === 'chaos_stinger')) add('chaos_stinger');
     else if (r.kind === 'boss') add('boss_roar');
-    else if (r.kind === 'legendary') add('loot_legendary');
-    else if (r.kind === 'loot' && !out.some(c => c.cue.startsWith('loot_'))) add('loot_common');
+    else if (r.kind === 'legendary') add('loot_legendary', resultAt);
+    else if (r.kind === 'loot' && !out.some(c => c.cue.startsWith('loot_'))) add('loot_common', resultAt);
     else if (r.kind === 'letter' && !out.some(c => c.cue === 'letter_sent')) add('letter_sent');
     else if (r.kind === 'gold' || r.kind === 'shop' || r.kind === 'trade') add('ui_tap_4');
   }
@@ -147,6 +153,13 @@ export function cuesFor(prev, next, now = Date.now(), { viewer = null, max = 4, 
   const best = new Map(); for (const c of instant) if (!best.has(c.cue)) best.set(c.cue, c);
   const kept = [...best.values()].sort((a, b) => (CUES[b.cue]?.priority || 0) - (CUES[a.cue]?.priority || 0)).slice(0, max);
   return [...kept, ...timed].sort((a, b) => a.at - b.at);
+}
+
+// The TV ticker's clock warning: true exactly once per turn, the first tick the mover's clock is inside the warning
+// window (and still above zero). `memo` is any object the caller keeps (it remembers the turn it last warned for).
+export function clockWarnDue(leftMs, warnMs, turnIdx, memo) {
+  if (!(leftMs > 0) || leftMs > warnMs || memo.warnedTurn === turnIdx) return false;
+  memo.warnedTurn = turnIdx; return true;
 }
 
 // ── Player ────────────────────────────────────────────────────────
