@@ -4,6 +4,7 @@
 //
 // Presence is not an event (it would flood the log): the session pings the backend's presence channel and
 // exposes `presence` (playerId → lastSeenTs) so the TV can decide proxy mode after 30 seconds of silence.
+import { pack, unpack } from './snapshot.js';
 import { applyEvent } from './reducer.js';
 import { makeEvent } from './events.js';
 
@@ -11,7 +12,7 @@ export async function openRoom(backend, { roomId, code, role = 'phone', onChange
   const info = roomId ? await backend.getRoom(roomId) : await backend.findRoom(code);
   if (!info) throw new Error(roomId ? 'room not found' : `no room with code ${code}`);
   roomId = info.roomId;
-  let state = info.snapshot && info.snapshotSeq ? info.snapshot : null;
+  let state = info.snapshot && info.snapshotSeq ? unpack(info.snapshot) : null;
   let lastSeq = state ? info.snapshotSeq : 0;
   const buffer = new Map();            // seq → event, arrivals ahead of lastSeq
   const listeners = new Set([onChange]);
@@ -24,7 +25,7 @@ export async function openRoom(backend, { roomId, code, role = 'phone', onChange
     state = next; lastSeq = ev.seq;
     if (state.lastError && state.lastError.ts === ev.ts && state.lastError.type === ev.type) onError(Object.assign(new Error(state.lastError.message), { event: ev, code: state.lastError.code }));
     notify(ev);
-    if (role === 'tv' && snapshotEvery && lastSeq % snapshotEvery === 0) backend.saveSnapshot(roomId, lastSeq, state).catch(onError);
+    if (role === 'tv' && snapshotEvery && lastSeq % snapshotEvery === 0) backend.saveSnapshot(roomId, lastSeq, pack(state)).catch(onError);
   };
   const drain = () => { while (buffer.has(lastSeq + 1)) { const ev = buffer.get(lastSeq + 1); buffer.delete(ev.seq); applyOne(ev); } if (buffer.size && !gapTimer) gapTimer = setTimeout(fillGap, gapMs); };
   async function fillGap() {

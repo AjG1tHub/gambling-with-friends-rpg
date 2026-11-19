@@ -34,7 +34,7 @@ const action = (state) => { if (!state.fight && !state.pendingPrompt) state.turn
 
 function visit(state, ctx, c, hex) {
   c.region = hex.regionId ?? c.region ?? null;
-  (c.visitedRegions ||= {}); if (hex.regionId) c.visitedRegions[hex.regionId] = true;
+  if (!c.visitedRegions || Array.isArray(c.visitedRegions)) c.visitedRegions = { ...(c.visitedRegions || {}) }; if (hex.regionId) c.visitedRegions[hex.regionId] = true;
   if (SAFE.has(hex.type)) c.lastSafePos = hex.key;
 }
 function need(state, playerId) { const c = characterOf(state, playerId); if (!c) refuse(`no character for ${playerId}`); return c; }

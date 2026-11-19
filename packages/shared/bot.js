@@ -107,7 +107,7 @@ export function nextAction(state, pid, rng, now, opts = {}) {
       const goal = chooseGoal(state, c, rng); const goalRegion = goal ? hexAt(state, goal.key)?.regionId : null;
       const options = pr.options || (pr.to ? [pr.to] : []);
       if (goalRegion && options.includes(goalRegion) && goalRegion !== c.region) return act('PORTAL_PICK', { regionId: goalRegion }, me);
-      if (!goal && options.length) { const fresh = options.filter(r => !(c.visitedRegions || []).includes(r) && r !== c.region); const to = (fresh.length ? fresh : options)[rng.int(0, (fresh.length ? fresh : options).length - 1)]; if (to !== c.region) return act('PORTAL_PICK', { regionId: to }, me); }
+      if (!goal && options.length) { const fresh = options.filter(r => !c.visitedRegions?.[r] && r !== c.region); const to = (fresh.length ? fresh : options)[rng.int(0, (fresh.length ? fresh : options).length - 1)]; if (to !== c.region) return act('PORTAL_PICK', { regionId: to }, me); }
       return act('TILE_LEAVE', {}, me);
     }
     if (pr.kind === 'spin') return act('WHEEL_SPIN', { wheel: pr.wheel, playerId: pid }, me);

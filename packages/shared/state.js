@@ -86,7 +86,7 @@ export function ensureCharacterShape(c) {
   d('dead', false); d('missTurns', 0); d('deaths', 0); d('diedTo', null);
   d('cooldowns', { active: 0 }); d('activeUses', {}); d('effects', []); d('pactIds', []); d('wanted', 0); d('kills', 0);
   d('titles', []); d('quests', []); d('upgrades', []); d('usedThisTurn', { attack: 0, spell: 0, moved: false }); d('turnsTaken', 0); d('streak', 0);
-  d('setBonuses', {}); d('passives', {}); d('flags', {}); d('pendingLoot', []); d('gridEffects', []); d('questCounters', {}); d('visitedRegions', []);
+  d('setBonuses', {}); d('passives', {}); d('flags', {}); d('pendingLoot', []); d('gridEffects', []); d('questCounters', {}); d('visitedRegions', {});   // a map by region id (an array here lost its entries in every snapshot)
   d('freeSmokeBombs', 0); d('locked', true); d('crest', '🂠'); d('look', { body: 0, skin: 0, face: 0, hair: 0, coat: '#5a1218' });
   return c;
 }
