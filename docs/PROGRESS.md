@@ -216,5 +216,22 @@ Three overnight sessions against the local ws backend in Chromium, then one live
   table-business, features, ramp. `unittests.md` + `tools/test-report.mjs` run all of them and screenshot the result.
 - **Ops:** `.github/workflows/keepwarm.yml` pings Supabase daily. Live check 18 Nov: room QMKE end to end, ~110 ms
   per action.
-- **Still not built:** Croupier `rigwheel` (level 20), crest image upload, `HOF_IMPORT`. **Still placeholder:** all
+- **Second half of the night (19 Nov, after the merge).** Three new ways of looking, each of which found something
+  the gates had not:
+  - *Snapshot replay* (`test/unit/snapshot.test.mjs`): bot games replayed through a JSON snapshot every 25 events
+    and compared with the straight run. A phone that reloaded was drifting from the table: JSON split a worn weapon
+    from its copy in `c.items` (charges went out of step), wrote a monster's endless charges as `null`, and dropped
+    visited regions (kept as properties on an array). `packages/shared/snapshot.js` (`pack` / `unpack`) keeps shared
+    objects shared and non-finite numbers intact; `visitedRegions` is a map. The ws dev backend has no snapshots,
+    which is why the reconnect gate never saw this; Supabase and the local backend do.
+  - *Hostile phones* (`tools/fuzz.mjs`, `npm run fuzz`, `test/unit/fuzz.test.mjs`): garbage and one-field-wrong
+    events from every seat. A payload naming `constructor` wrote a function into the room (no client could clone
+    the state again); `PET_TEAM` and `VAULT_BANK` crashed on a non-list. The reducer now refuses Object's own
+    property names as ids and treats a non-list `...Ids` as empty.
+  - *Generated items instead of hand-built ones:* the Legendary boots (Skates of the Sixth, Octane Treads) never
+    used their rules because the generator tags them with the Legendary id and movement looked for the short one.
+  Also: a second review of the pet-trade merge (a trade naming an id twice minted an item or took a second pet;
+  Camera Obscura bypassed `monsterHealth`); fight cards cut to one line; the round's odds table folded behind a
+  tap; the lobby and creation show only Play and Self.
+- **Still not built:** Croupier `rigwheel` (level 20), crest image upload, `HOF_IMPORT`, `MOVE_WHEEL_NUDGE`. **Still placeholder:** all
   art and sound. **Still untested:** real phones, a forced Realtime drop on the live backend.
