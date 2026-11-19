@@ -1,0 +1,20 @@
+# Supabase's free tier pauses a project after a week with no traffic, and a paused project means no game night.
+# One tiny read a day keeps `gwf-rpg` awake. The key is the publishable (anon) key the site already ships.
+# Delete this file if the project moves to a paid tier.
+name: Keep Supabase warm
+on:
+  schedule:
+    - cron: '17 9 * * *'   # daily, 09:17 UTC
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: One read against the rooms table
+        env:
+          SUPABASE_URL: https://zzibezkvciucynangcyk.supabase.co
+          SUPABASE_KEY: sb_publishable_jRUVajtxqxP95dBImvM-wg_2RHjRX9U
+        run: |
+          code=$(curl -sS -o /tmp/out -w '%{http_code}' "$SUPABASE_URL/rest/v1/hall_of_fame?select=id&limit=1" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY")
+          echo "HTTP $code"; head -c 300 /tmp/out; echo
+          test "$code" = "200" || { echo "::error::Supabase did not answer 200. If the project is paused, restore it in the Supabase console."; exit 1; }
