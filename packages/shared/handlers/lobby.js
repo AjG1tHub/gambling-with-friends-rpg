@@ -11,6 +11,7 @@ export const cleanName = (s) => String(s || '').replace(/[^\p{L}\p{N} '._-]/gu, 
 
 const BROADCAST_MAX = 480;   // literal — a rule card from the Teach row is ~350 characters
 
+const own = (ctx, p) => { if (!ctx.isGm && ctx.actor !== p.id) refuse('not your seat', 'forbidden'); };
 register({
   ROOM_CREATED(state, ev, ctx) {
     // The reducer hands a placeholder for the first event; we replace every field.
@@ -43,11 +44,13 @@ register({
     state.stats[playerId] = { turns: 0, hits: 0, crits: 0, kills: 0, deaths: 0, damageDealt: 0, damageTaken: 0, bosses: 0, petsCaught: 0, goldEarned: 0, challengesWon: 0, challengesLost: 0, lettersSent: 0 };
     note(state, `${player.name} ${spectator ? 'is watching' : 'sat down'}`, 'join', ctx.now);
   },
-  SPECTATE(state, ev, ctx) { const p = requirePlayer(state, ctx.payload.playerId); p.spectator = true; state.seats = state.seats.filter(id => id !== p.id); },
-  PLAYER_SEEN(state, ev, ctx) { const p = state.players[ctx.payload.playerId]; if (p) { p.lastSeenTs = ctx.now; p.connected = true; } },
-  PLAYER_LEAVE(state, ev, ctx) { const p = state.players[ctx.payload.playerId]; if (p) { p.connected = false; p.lastSeenTs = ctx.now; } },
+  // A seat's own business: only that phone (or the GM / the table) may stand it up, mark it seen or gone, or take it
+  // back. These took any actor until the fuzzer walked through them (19 Nov): one phone could unseat another.
+  SPECTATE(state, ev, ctx) { const p = requirePlayer(state, ctx.payload.playerId); own(ctx, p); p.spectator = true; state.seats = state.seats.filter(id => id !== p.id); },
+  PLAYER_SEEN(state, ev, ctx) { const p = state.players[ctx.payload.playerId]; if (p) { own(ctx, p); p.lastSeenTs = ctx.now; p.connected = true; } },
+  PLAYER_LEAVE(state, ev, ctx) { const p = state.players[ctx.payload.playerId]; if (p) { own(ctx, p); p.connected = false; p.lastSeenTs = ctx.now; } },
   PLAYER_RECONNECT(state, ev, ctx) {
-    const p = requirePlayer(state, ctx.payload.playerId);
+    const p = requirePlayer(state, ctx.payload.playerId); own(ctx, p);
     p.connected = true; p.lastSeenTs = ctx.now;
     if (ctx.payload.deviceId) p.deviceId = ctx.payload.deviceId;
     // Reconnecting takes the seat back from the GM proxy without a GM action.

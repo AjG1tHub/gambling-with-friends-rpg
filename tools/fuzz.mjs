@@ -12,6 +12,14 @@ import { currentPlayerId, characterOf } from '../packages/shared/state.js';
 import { nextAction, tableDuties } from '../packages/shared/bot.js';
 import { hasHandler } from '../packages/shared/reducer.js';
 import { pack, unpack } from '../packages/shared/snapshot.js';
+import { readFileSync, readdirSync } from 'node:fs';
+
+// Which payload fields each handler reads, taken from the handler source: a hostile event with the right field
+// names gets past the first refusal and into the code that matters.
+const SHAPES = (() => { const out = {}; const dir = new URL('../packages/shared/handlers/', import.meta.url);
+  for (const f of readdirSync(dir)) { if (!f.endsWith('.js')) continue; const src = readFileSync(new URL(f, dir), 'utf8'); const re = /\n {2}([A-Z][A-Z0-9_]+)\(state[^)]*\) *\{/g; const marks = []; let m; while ((m = re.exec(src))) marks.push([m[1], m.index]);
+    marks.forEach(([type, at], i) => { const body = src.slice(at, marks[i + 1]?.[1] ?? src.length); const keys = new Set(); for (const k of body.matchAll(/payload\??\.([a-zA-Z_]+)/g)) keys.add(k[1]); if (keys.size) out[type] = [...keys]; }); }
+  return out; })();
 
 const GM_ONLY = /^(GM_|ROOM_|RUN_START|RUN_END|CREATION_OPEN|META_|BALANCE_|CHAOS_|MONSTER_ACT|TURN_TIMEOUT|PRESENCE|PLAYER_JOIN|PLAYER_LEAVE)/;
 export function fuzzGame({ seed = 1, mode = 'ffa', bots = 4, per = 400, maxEvents = 6000, ramp = false } = {}) {
@@ -49,7 +57,8 @@ export function fuzzGame({ seed = 1, mode = 'ffa', bots = 4, per = 400, maxEvent
     return out;
   };
   const payload = () => { const P = pool(), o = {}; const n = R(6); for (let i = 0; i < n; i++) { const k = pick(KEYS); const r = R(10); o[k] = r === 0 ? [pick(P), pick(P)] : r === 1 ? { gold: pick(P), itemIds: [pick(P)], petIds: [pick(P)], give: {}, want: {} } : pick(P); } return o; };
-  const hostileBurst = (n) => { for (let i = 0; i < n; i++) { hostile++; const e = apply(pick(types), payload(), pick([...ids, ...ids, 'spec', 'nobody']), 'hostile'); if (!e) accepted++; } };
+  const shaped = (type) => { const P = pool(), o = {}; for (const k of SHAPES[type] || []) { if (R(8) === 0) continue; const r = R(12); o[k] = /Ids$/.test(k) ? [pick(P), pick(P)].slice(0, 1 + R(2)) : (k === 'give' || k === 'want' || k === 'trade') ? { gold: pick([0, 1, 5, 50, pick(P)]), itemIds: [pick(P)].slice(0, R(2)), petIds: [pick(P)].slice(0, R(2)), give: { gold: 1 }, want: {} } : r === 0 ? pick(junk) : pick(P); } return o; };
+  const hostileBurst = (n) => { for (let i = 0; i < n; i++) { hostile++; const type = pick(types); const who = pick([...ids, ...ids, ...ids, 'spec', 'nobody']); const pl = R(3) ? shaped(type) : payload(); if (R(2) && pl && 'playerId' in pl) pl.playerId = who; const e = apply(type, pl, who, 'hostile'); if (!e) accepted++; } };
   // Mutants of a real action are the sharper half: the right event with one field wrong, from the wrong seat, or twice.
   const mutants = (a) => { if (budget <= 0 || R(4)) return; const P = pool(); const keys = Object.keys(a.payload || {});
     const tries = [[a.type, a.payload, pick([...ids, 'spec'])], [a.type, a.payload, a.actor], [a.type, {}, a.actor]];

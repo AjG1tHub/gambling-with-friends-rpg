@@ -23,3 +23,10 @@ test('a phone cannot name Object\'s own properties as ids, and a non-list ...Ids
   const e = r.try('PET_TEAM', { petIds: 99999 }, 'p0'); assert.ok(!e || e.code !== undefined, 'refused or accepted, not thrown raw'); assert.ok(!(e instanceof TypeError));
   structuredClone(r.state);
 });
+
+test('a seat\'s presence and standing are its own: another phone cannot unseat it, mark it gone or take it', () => {
+  const r = room().join(names4);
+  for (const type of ['SPECTATE', 'PLAYER_LEAVE', 'PLAYER_RECONNECT', 'PLAYER_SEEN']) assert.equal(r.try(type, { playerId: 'p1', deviceId: 'thief' }, 'p0')?.code, 'forbidden', type);
+  assert.ok(r.state.seats.includes('p1')); assert.equal(r.state.players.p1.deviceId, 'd1');
+  assert.equal(r.try('PLAYER_RECONNECT', { playerId: 'p1', deviceId: 'd1' }, 'p1'), null); assert.equal(r.try('PLAYER_LEAVE', { playerId: 'p1' }, 'system'), null); assert.equal(r.try('SPECTATE', { playerId: 'p1' }, 'gm'), null);
+});
