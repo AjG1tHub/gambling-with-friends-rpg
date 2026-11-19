@@ -48,7 +48,7 @@ function fightCard({ state, h, gm }) {
     const seed = hash32(`${state.seed}:${f.id}:${f.exchanges || 0}:${Date.now()}`);
     const res = playMonsterTurn(state, { now: Date.now(), B: (g) => group(state, g) }, makeRng(seed), { now: Date.now() });
     if (!res) return toast('The monster has nothing to fight with', 'bad');
-    if (await gm('MONSTER_ACT', { itemId: res.itemId, mult: res.mult, label: res.label, crit: !!res.crit, stake: res.stake, snapshot: res.snapshot || null, rigUsed: res.rigUsed, gmPick: false })) toast(`${m.name}: ${res.label}`);
+    if (await gm('MONSTER_ACT', { itemId: res.itemId, mult: res.mult, label: res.label, crit: !!res.crit, stake: res.stake, snapshot: res.snapshot || null, rigUsed: res.rigUsed, gmPick: false, petControl: res.petControl || null })) toast(`${m.name}: ${res.label}`);
   };
   box.append(h('div', { class: 'gm-bar' },
     h('button', { class: m.gmControlled ? 'primary' : '', onClick: () => gm('GM_TAKEOVER', { monsterId: m.id, on: !m.gmControlled }) }, m.gmControlled ? 'You control it — release' : 'Take over'),

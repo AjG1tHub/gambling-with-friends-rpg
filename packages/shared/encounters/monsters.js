@@ -7,10 +7,12 @@
 // Contracts for the fight module:
 //   - `items` are full Item records (built here from items36.json, never imported from the items module); the
 //     monster stakes from its own Health.
-//   - `linkedTo` (The Grey): the two monsters share Health — a hit on one is mirrored to the other.
-//     `special: 'mindlink'` also lets it control the player's active pet for one attack on its turn.
+//   - `linkedTo` (The Grey): the two monsters share Health — a hit on one is mirrored to the other
+//     (fight.js › monsterHealth). `special: 'mindlink'` also lets it control the player's active pet for one
+//     attack on its turn (fight.js › playMonsterTurn / MONSTER_ACT { petControl }).
 //   - `parts` (The Litter): five cats, each with its own health; an item only hurts the part whose `family`
-//     matches, and the monster dies when every part is dead. `health` is the sum, kept for the TV bar.
+//     matches, and the monster dies when every part is dead. `health` is the sum, kept for the TV bar
+//     (fight.js › monsterHealth with { family }).
 //   - `special: 'passive'` (Dungheap) never attacks; `special: 'hightable'` makes every player at the table stake.
 //   - monsters.tierScale is applied to Health here and to monster damage by the chaos outgoing mod in
 //     handlers/wheels.js, so the fight module must not scale it again.
@@ -26,6 +28,9 @@ export const SPECIES = Object.fromEntries(raw.species.map(s => [s.id, s]));
 export const speciesOf = (id) => SPECIES[id] || null;
 export const speciesInRegion = (regionId, role = 'common') => raw.species.filter(s => s.regionId === regionId && s.role === role);
 const ITEM36 = Object.fromEntries(items36.items.map(i => [i.id, i]));
+const FAMILY_BY_GAME = Object.fromEntries(items36.items.map(i => [i.gameId, i.family]));
+// The game family of a hit, for the Litter: the item's own, else its game's (pet attacks name only a game).
+export const familyOf = (item) => item?.family || FAMILY_BY_GAME[item?.gameId] || null;
 const LANDABLE_FALLBACK = ['plain', 'arena', 'wheel', 'event'];
 const WEAPON_FOOTPRINT = { w: 1, h: 3 };       // one-hand weapons and spells are 1×3 in the grid (SPEC › Inventory grid)
 
@@ -136,10 +141,11 @@ export function generateMonsters(state, ctx) {
   }
   // Dungheaps on blocker hexes.
   for (const h of Object.values(state.map.hexes)) if (h.type === 'blocker' && !h.monsterId) spawnMonster(state, ctx, 'dungheap', h.key);
-  // The Grey mind-links with another monster of its region (or anywhere, if alone).
+  // The Grey mind-links with another monster of its region (or anywhere, if alone). Never a boss or a raid: shared
+  // Health would let a party drain the Citadel's boss through the small grey thing beside it.
   for (const m of Object.values(state.monsters)) {
     if (m.special !== 'mindlink' || m.linkedTo) continue;
-    const others = Object.values(state.monsters).filter(o => o.id !== m.id && !o.dead && !o.linkedTo && !o.final && !o.blocker && o.special !== 'mindlink');
+    const others = Object.values(state.monsters).filter(o => o.id !== m.id && !o.dead && !o.linkedTo && !o.boss && !o.blocker && o.special !== 'mindlink');
     const same = others.filter(o => o.regionId === m.regionId);
     const pick = (same.length ? rng.pick(same) : others.length ? rng.pick(others) : null);
     if (pick) { m.linkedTo = pick.id; pick.linkedTo = m.id; }

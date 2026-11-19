@@ -6,9 +6,9 @@
 //   PET_HATCH_PICK {index}                         keep the species on wheel 0, 1 or 2 (a dud keeps nothing)
 //   PET_SWITCH {petId}                             change the active pet; costs the turn's move
 //   PET_ATTACK {petId?, attackIndex, mult, label}  actor-authoritative result of the pet's minigame (played on the
-//        phone in chips mode with the pet's Power as the pool). This module applies monster damage itself by
-//        editing state.monsters[id].health through a ledger row (kind 'monsterHealth'); the fight module does
-//        not need to do anything for pet hits. Heals (healTrainer / healSelf) and Gold attacks pay out instead.
+//        phone in chips mode with the pet's Power as the pool). Monster damage goes through the fight module's
+//        monsterHealth / monsterDied (hitMonster below), outside the item damage pipeline: no gear or Chaos mods.
+//        Heals (healTrainer / healSelf) and Gold attacks pay out instead.
 //   PET_BATTLE_START {opponentId, petId?, wager?}  pet vs pet; PET_BATTLE_LOCK {attackIndex} from each side,
 //        resolved with the seeded 'pets' stream using each attack's stake as its weight.
 // Hooks: petHooks.beforeCharacterHit → info.redirectToPet (the fight module moves the damage with power());
@@ -28,6 +28,8 @@ import { insert } from '../characters/grid.js';
 import { actingCharacter, consumeOne } from './inventory.js';
 import { teamCap } from './creation.js';
 import { setCooldown } from './classes.js';
+import { monsterHealth, monsterDied } from './fight.js';
+import { familyOf } from '../encounters/monsters.js';
 
 export const SPECIES = petsData.species;
 export const speciesDef = (id) => SPECIES.find(s => s.id === id) || null;
@@ -74,11 +76,14 @@ export function checkFaint(state, ctx, c, pet) {
 // For the fight module when it prefers a helper over power(): the active pet takes `amount`.
 export function petTakesHit(state, ctx, c, pet, amount, why = 'hit') { movePower(state, pet, -Math.abs(amount), why, ctx); return checkFaint(state, ctx, c, pet); }
 
-export function hitMonster(state, ctx, m, amount, why) {
-  const before = m.health; m.health = Math.max(0, m.health - Math.round(amount));
-  state.ledgerSeq = (state.ledgerSeq || 0) + 1; state.ledger.push({ n: state.ledgerSeq, ts: ctx.now, kind: 'monsterHealth', charId: m.id, amount: -Math.round(amount), moved: m.health - before, why });
-  if (m.health <= 0 && !m.dead) { m.dead = true; note(state, `${m.name} is slain`, 'fight', ctx.now); }
-  return before - m.health;
+// A pet's hit moves the monster's Health the way an item's does (fight.js › monsterHealth: the ledger row, the
+// Litter's cats by the attack's game family, the Grey's link), and a pet's kill is a kill like any other: the
+// trainer gets the loot, the XP and the count, and the fight ends (it used to leave a dead monster with its loot
+// still on it and the fight open).
+export function hitMonster(state, ctx, m, amount, why, { gameId = null, byId = null } = {}) {
+  const dealt = -monsterHealth(state, m, -Math.round(amount), why, ctx, { family: familyOf({ gameId }) });
+  if (m.health <= 0 && !m.dead) monsterDied(state, ctx, m, byId);
+  return dealt;
 }
 
 // ── the Triple Pet Wheel ─────────────────────────────────────────
@@ -166,7 +171,7 @@ register({
       else if (atk.effect === 'healSelf') { gainPower(state, ctx, c, pet, amount, atk.name); note(state, `${pet.name} restores ${amount} Power${label}`, 'pet', ctx.now); }
       else if (atk.effect === 'gold') { gold(state, c, amount, `${pet.name}: ${atk.name}`, ctx); if (state.stats[pid]) state.stats[pid].goldEarned += amount; note(state, `${pet.name} scratches up ${amount} Gold${label}`, 'pet', ctx.now); }
       else if (!m) refuse('no monster to hit', 'target');
-      else { if (m.dead) refuse(`${m.name} is already down`, 'target'); const dealt = hitMonster(state, ctx, m, amount, `${pet.name}: ${atk.name}`); if (atk.effect === 'eatTurn') m.skipTurns = (m.skipTurns || 0) + 1; if (state.stats[pid]) { state.stats[pid].damageDealt += dealt; state.stats[pid].hits += 1; if (m.dead) { state.stats[pid].kills += 1; c.kills = (c.kills || 0) + 1; } } note(state, `${pet.name}'s ${atk.name} hits ${m.name} for ${dealt}${label}`, 'pet', ctx.now); }
+      else { if (m.dead) refuse(`${m.name} is already down`, 'target'); const dealt = hitMonster(state, ctx, m, amount, `${pet.name}: ${atk.name}`, { gameId: atk.gameId, byId: c.id }); if (atk.effect === 'eatTurn') m.skipTurns = (m.skipTurns || 0) + 1; if (state.stats[pid]) { state.stats[pid].damageDealt += dealt; state.stats[pid].hits += 1; } note(state, `${pet.name}'s ${atk.name} hits ${m.name} for ${dealt}${label}`, 'pet', ctx.now); }
       gainPower(state, ctx, c, pet, P.winPower, 'a winning attack');
     } else if (mult < 1) {
       const lost = Math.round(stake * (1 - mult)); movePower(state, pet, -lost, `${atk.name} fails`, ctx);

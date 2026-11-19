@@ -13,7 +13,7 @@
 import { register, refuse, requireGm, requirePhase, requireActor } from '../reducer.js';
 import { characterOf, note, livingCharacters, currentPlayerId } from '../state.js';
 import { hooks as runHooks } from './run.js';
-import { damageHooks, deathHooks, legendaryEffects, consumables, engine } from '../hooks.js';
+import { damageHooks, deathHooks, lootHooks, legendaryEffects, consumables, engine } from '../hooks.js';
 import { health, maxHealth as moveMaxHealth, gold } from '../health.js';
 import { streamRng } from '../rng.js';
 import { group } from '../balance.js';
@@ -229,6 +229,14 @@ function giltWear(state, ctx, c) {
   if (changed) afterWornChange(state, ctx, c);
 }
 damageHooks.afterHit.push((state, ctx, info) => { giltWear(state, ctx, charOfInfo(state, info.attackerId)); if (info.targetKind === 'character') giltWear(state, ctx, charOfInfo(state, info.targetId)); });
+// Loot rarity (wheels.js › rollRarity runs these for every roll made for a character: chests, the Fortune and Fate
+// items, monster drops): the Gilt four-piece rolls one rarity higher everywhere, a Fortunate affix by its value in
+// the region it names. A roll for nobody (the Shop shelf) is untouched.
+lootHooks.rarity.push((state, ctx, info) => {
+  const c = info.charId ? state.characters[info.charId] : null; if (!c) return;
+  if (hasSetBonus(c, 'gilt')) info.rarityIndex += 1;
+  info.rarityIndex += wornAffixes(c).filter(a => a.kind === 'economy' && a.effect === 'rarity' && (!a.target?.region || a.target.region === info.regionId)).reduce((s, a) => s + Number(a.value || 0), 0);
+});
 damageHooks.afterMiss.push((state, ctx, info) => {
   const a = charOfInfo(state, info.attackerId); if (!a) return;
   giltWear(state, ctx, a); if (info.targetKind === 'character') giltWear(state, ctx, charOfInfo(state, info.targetId));

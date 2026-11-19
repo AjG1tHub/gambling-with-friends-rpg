@@ -22,7 +22,7 @@ export const heldHooks = { onHold: [], onRelease: [] };
 // Late-bound engine calls for modules that cannot import their owner without a cycle (inventory.js → fight.js/death.js).
 export const engine = { killCharacter: null, monsterDied: null };
 export const seatHooks = { beforeKick: [] };                               // (state, ctx, player) — run.js ends a kicked mover's turn, challenge.js voids their challenge
-export const letterHooks = { onDeliver: [], onIntercept: [] };
+export const letterHooks = { onSend: [], onDeliver: [], onIntercept: [] };   // (state, ctx, { letter }); onSend may refuse (economy.js checks a trade sent by letter)
 export const petHooks = { beforeCharacterHit: [] };                        // pets fight first: may redirect a hit (info.redirectToPet = petId)
 export const classActives = {};     // { [activeId]: (state, ctx, character, payload) => void }
 export const consumables = {};      // { [consumableId]: (state, ctx, character, payload) => void }
