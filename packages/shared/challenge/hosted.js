@@ -215,6 +215,10 @@ export function atCap(game, now) { if (!game) return null; if (game.done) return
 export function capped(game, now) { const g = clone(game); if (g.done) return g; const r = atCap(g, now); return finish(g, r?.winnerId ?? null, { now, flawless: !!r?.flawless }); }
 export function phoneView(game, playerId, now) {
   if (!game) return null; const def = GAMES[game.game]; if (!def) return null;
+  // A bystander has no hand in the duel: every game's own view reads that player's progress and threw for anyone
+  // else, which took the whole Play screen down on every other phone while a quick-math, trivia, typing or memory
+  // duel ran (found 19 Nov by a bot table with phones watching).
+  if (!isPlayer(game, playerId)) return { game: game.game, you: playerId, opponent: null, watching: true, done: game.done, winnerId: game.winnerId, draw: game.draw, flawless: game.flawless };
   return { game: game.game, you: playerId, opponent: isPlayer(game, playerId) ? other(game, playerId) : null, done: game.done, winnerId: game.winnerId, draw: game.draw, flawless: game.flawless, ...def.phoneView(game, playerId, now) };
 }
 export function tvView(game, now) {

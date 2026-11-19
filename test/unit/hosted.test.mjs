@@ -154,3 +154,13 @@ test('contract: unknown players, finished games and unknown games are ignored; v
   const pv = hosted.phoneView(g, 'a'); assert.equal(pv.game, 'highestcard'); assert.equal(pv.opponent, 'b'); assert.equal(pv.done, false);
   const tv = hosted.tvView(g); assert.equal(tv.aId, 'a'); assert.equal(tv.bId, 'b');
 });
+
+// 19 Nov: every other phone at the table builds this view too (challengeView runs before the "not my duel" return).
+test('a bystander\'s view of every hosted duel is safe: no hand, no throw', () => {
+  for (const game of hosted.PURPOSE_BUILT) {
+    const g = hosted.create(5, entry(game), ids, T0);
+    const v = hosted.phoneView(g, 'someone-else', T0 + 1000);
+    assert.equal(v.watching, true, game); assert.equal(v.opponent, null); assert.equal(v.game, g.game);
+    assert.ok(hosted.phoneView(g, ids.aId, T0 + 1000) && !hosted.phoneView(g, ids.aId, T0 + 1000).watching, `${game}: a player still gets their hand`);
+  }
+});

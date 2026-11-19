@@ -20,7 +20,7 @@ export function createLocalBackend({ namespace = 'default', store = null, latenc
   if (channel && typeof channel.unref === 'function') channel.unref();
   const tabId = shortId('tab');
   const emit = (roomId, event) => { for (const fn of listeners.get(roomId) || []) { try { fn(event); } catch (e) { console.error(e); } } };
-  if (channel) channel.onmessage = (m) => { if (m.data?.sender !== tabId && m.data?.roomId) emit(m.data.roomId, m.data.event); };
+  if (channel) channel.onmessage = (m) => { if (m.data?.sender !== tabId && m.data?.roomId && m.data.event) emit(m.data.roomId, m.data.event); };
   const delay = (v) => (latencyMs ? new Promise(res => setTimeout(() => res(v), latencyMs)) : Promise.resolve(v));
 
   const rooms = () => read('rooms', {});
