@@ -191,3 +191,30 @@ the defender's next slot — the owed-turn machinery then made the order look ra
   the local backend from the join screen.
 
 Still open from the night: AJ's own list of what the phones did wrong (ask him — no 🐞 reports were filed).
+
+## QA nights (2–5 Nov) and the finishing pass (18–19 Nov 2026, cloud sessions)
+
+Three overnight sessions against the local ws backend in Chromium, then one live check on Netlify + Supabase.
+
+- **QA nights (merged to `main` on 18 Nov):** item icon 404s; 360px phone overflow; Teams start guard; odds sentence;
+  the TV holding a wheel-game result (picture, log, ticker and, later, sound) until the wheel lands; 8-seat TV layout
+  and recap; a defender blocked by the starting Pet Wheel; a phone back from airplane mode or another app taking its
+  seat back from a silence proxy; the room-creating GM console never pinging presence (the TV thought no GM was
+  online); side bets on the phone; fight log order; the final boss in the fog; GM console tables on a laptop; the
+  phone clock warning; GM undo restarting the clock; kicking the mover mid-run.
+- **Spec audit (18 Nov):** every event in `events.js` was checked for a caller on a real screen, and SPEC.md walked
+  section by section. Built as a result: votes, trades and auctions from phones and the GM console
+  (`apps/phone/screens/table.js`, GM › Run); `LEGENDARY_USE` + `USE_SPECS` for the eleven use effects; the four
+  special Legendary weapons; the Legendary passives nothing read; `REVIVE` (Shop and Phoenix Feather); Nerve's free
+  re-stake; the Whale's crit bonus; the GM inventory panel; pet renames through `PET_RENAME`.
+- **Tutorial opening:** `ramp.steps` is now move, gear, fight, challenge, classpets, all. The starting Pet Wheel is
+  deferred to the turn fights unlock (`pets.js` turnStart), the phone's tab bar grows with the ramp, and side bets,
+  auction bids, Legendary use and revives are in `LOCKS`.
+- **Balance changes:** `ramp.steps` (above); new `health.gritReviveDiscountPerPoint` 0.05, `health.nerveRestakeAt` 5,
+  `legendaries.jokerCount` 2. Nothing else moved.
+- **Gates added:** small-phone, tv-layout, reconnect, offline, sidebet, modes, gm-layout, clock, qa (in CI),
+  table-business, features, ramp. `unittests.md` + `tools/test-report.mjs` run all of them and screenshot the result.
+- **Ops:** `.github/workflows/keepwarm.yml` pings Supabase daily. Live check 18 Nov: room QMKE end to end, ~110 ms
+  per action.
+- **Still not built:** Croupier `rigwheel` (level 20), crest image upload, `HOF_IMPORT`. **Still placeholder:** all
+  art and sound. **Still untested:** real phones, a forced Realtime drop on the live backend.
