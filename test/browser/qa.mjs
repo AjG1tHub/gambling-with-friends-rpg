@@ -124,7 +124,9 @@ try {
     const tvState = await stateOf(tv);
     ok(tvState.log.some(l => /reports a bug/.test(l.text)), 'the TV log has the report line');
     ok(!tvState.log.some(l => l.text.includes(r.label) || /reward/i.test(l.text)), 'the TV log has no reward line');
-    const tvText = await tv.evaluate(() => document.body.innerText);
+    // The How-to-play card "See something broken?" cycles on the TV during creation and says "a secret reward wheel"
+    // in general terms: that sentence is not the leak this looks for (it failed a CI run when the card was up).
+    const tvText = (await tv.evaluate(() => document.body.innerText)).replace(/spins a secret reward wheel for bug hunters/gi, '');
     // The label itself ("Potion", "Reroll"…) can legitimately appear in a How-to-play card cycling on the TV during
     // creation (CI flake, 19 Nov), so the label is checked against the TV's own log and ticker, the phrases everywhere.
     const tvLogText = await tv.evaluate(() => [...document.querySelectorAll('.rail-log, .tv-log, #tvLog, .tv-foot')].map(e => e.innerText).join(' '));
