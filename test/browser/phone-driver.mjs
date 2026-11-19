@@ -17,7 +17,7 @@ export const turnView = (ph) => ph.evaluate(() => {
   return { me, phase: s.phase, mover: s.moverId, turnIdx: s.turnIdx, turnPhase: s.turnPhase, pos: c?.pos || null, dead: !!c?.dead, moved: !!c?.usedThisTurn?.moved, hatching: !!c?.hatching,
     prompt: s.pendingPrompt && (s.pendingPrompt.playerId === me || s.pendingPrompt.targetId === me) ? { kind: s.pendingPrompt.kind, mine: s.pendingPrompt.playerId === me, source: s.pendingPrompt.source || null } : null,
     fight: f ? { playerId: f.playerId, turn: f.turn, game: !!(f.game && !f.game.result), kind: f.kind } : null,
-    session: ms ? { movesLeft: ms.movesLeft, stepsTaken: ms.stepsTaken, atomic: !!ms.atomic, awaiting: ms.awaiting || null } : null,
+    session: ms ? { movesLeft: ms.movesLeft, stepsTaken: ms.stepsTaken, lastDir: ms.lastDir ?? null, atomic: !!ms.atomic, awaiting: ms.awaiting || null } : null,
     challenge: !!(ch && (ch.attackerId === me || ch.defenderId === me)), held: !!s.held[me] && !s.held[me].owedWait, lastError: s.lastError && Date.now() - s.lastError.ts < 3000 ? `${s.lastError.type}: ${s.lastError.message}` : null };
 });
 export async function answerPrompt(ph, pr) {
@@ -70,7 +70,11 @@ export async function playTurn(ph, { label = 'turn', timeoutMs = 60000, avoidMon
       const steps = ph.locator(avoidMonsters ? '.rosette .hexbtn.ok:not(.hot)' : '.rosette .hexbtn.ok');
       const hub = ph.locator('.rosette .hub:not([disabled])');
       const n = await steps.count();
-      if (v.session.movesLeft > 0 && n) await steps.nth((v.turnIdx + v.session.stepsTaken) % n).click();   // vary the direction turn by turn
+      // Vary the direction turn by turn, but never step straight back where we came from: on some maps a plod of 2
+      // returned every character to the start hex and the lap check saw nobody move (hourly run, 19 Nov).
+      const back = v.session.stepsTaken > 0 && v.session.lastDir != null ? (v.session.lastDir + 3) % 6 : -1;
+      const pickIdx = n ? await ph.evaluate(([sel, back, k]) => { const all = [...document.querySelectorAll('.rosette .hexbtn')]; const ok = [...document.querySelectorAll(sel)].map(b => all.indexOf(b)); const fwd = ok.filter(d => d !== back); const use = fwd.length ? fwd : ok; return ok.indexOf(use[k % use.length]); }, [avoidMonsters ? '.rosette .hexbtn.ok:not(.hot)' : '.rosette .hexbtn.ok', back, v.turnIdx + v.session.stepsTaken]) : -1;
+      if (v.session.movesLeft > 0 && n && pickIdx >= 0) await steps.nth(pickIdx).click();
       else if (await hub.count()) await hub.first().click();
       else if (await ph.locator('.rosette .hexbtn.ok').count()) await ph.locator('.rosette .hexbtn.ok').first().click();
       else await sleep(300);
