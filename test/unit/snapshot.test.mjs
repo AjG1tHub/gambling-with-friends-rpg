@@ -41,3 +41,25 @@ test('pack / unpack: shared objects stay shared, Infinity survives, an old snaps
   assert.ok(!('__aliases' in s), 'pack does not write on the live state');
   const old = unpack(JSON.parse(JSON.stringify(s))); assert.equal(old.characters.c1.worn.mainhand, old.characters.c1.items.i1); assert.equal(old.monsters.m.items[0].charges, Infinity);
 });
+
+// The same through the real room session and a backend that stores JSON: phones that open mid-game start from the
+// TV's snapshot and must agree with the TV at the end.
+test('phones that join mid-game from the TV\'s snapshot agree with the TV at the end of the night', async () => {
+  const { createLocalBackend } = await import('../../packages/shared/backend/local.js');
+  const { openRoom, createRoom } = await import('../../packages/shared/room.js');
+  const be = createLocalBackend({ namespace: 'snap-' + Math.random() });
+  const tv = await createRoom(be, { code: 'SNPB', seed: 6, mode: 'ffa', tier: 1, size: 'regular', gmPinHash: 'h', role: 'tv', snapshotEvery: 25 });
+  const rng = makeRng(77); const ids = []; const late = []; let n = 0, last = 0;
+  const send = async (type, payload, actor) => { n++; await tv.dispatch(type, payload, actor); const e = tv.state.lastError; if (n % 150 === 0 && late.length < 4) late.push(await openRoom(be, { code: 'SNPB', role: 'phone' })); return e && e.type === type ? e : null; };
+  for (let i = 0; i < 4; i++) { ids.push('bot' + i); await send('PLAYER_JOIN', { playerId: 'bot' + i, name: 'Bot ' + i, deviceId: 'd' + i }, 'system'); }
+  await send('CREATION_OPEN', {}, 'gm');
+  for (let g = 0; g < 4000 && tv.state.phase !== 'ended' && n < 700; g++) { let acted = false; const A = tv.state, now = Date.now();
+    if (A.phase === 'creation' || A.phase === 'lobby') { for (const id of ids) { const a = nextAction(tv.state, id, rng, now, {}); if (a && !(await send(a.type, a.payload, a.actor))) acted = true; } if (!acted) { await send('RUN_START', {}, 'gm'); acted = true; } }
+    else { for (const a of tableDuties(tv.state, rng, now)) if (!(await send(a.type, a.payload, a.actor))) acted = true;
+      for (const id of [currentPlayerId(tv.state), ...ids.filter(i => i !== currentPlayerId(tv.state))].filter(Boolean)) { const a = nextAction(tv.state, id, rng, now, {}); if (!a) continue; if (!(await send(a.type, a.payload, a.actor))) acted = true; if (a.type === 'TURN_END') break; } }
+    if (acted) last = g; else if (g - last > 40) { await send('TURN_END', {}, 'gm'); last = g; } }
+  await new Promise(r => setTimeout(r, 20));
+  assert.ok(late.length >= 3 && tv.state.turnIdx > 20, `the game ran (${n} events, ${late.length} late phones)`);
+  for (const [i, ph] of late.entries()) { assert.equal(ph.lastSeq, tv.lastSeq); const d = diff(JSON.parse(strip(tv.state)), JSON.parse(strip(ph.state))); assert.equal(d, null, `late phone ${i} differs at ${d}`); }
+  [tv, ...late].forEach(s => s.close());
+});
