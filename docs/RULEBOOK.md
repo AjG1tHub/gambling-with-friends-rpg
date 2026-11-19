@@ -2,7 +2,7 @@
 
 Generated from `data/*.json` and `data/balance.json` by `tools/build-rulebook.mjs`; do not edit by hand. The phone's rules sheet renders the same sections from `data/rulebook.generated.json`.
 
-Contents: [The game in one paragraph](#concept) · [Your turn](#turn) · [Classes](#classes) · [Stats, XP and levels](#stats) · [The 36 weapons and spells](#items) · [How to play each one](#howto) · [Consumables](#consumables) · [Inventory: the cage and the paper doll](#grid) · [Boots and movement](#boots) · [What each hex does](#tiles) · [Regions](#map) · [Health, death and Blood Pacts](#health) · [PvP: the Challenge Wheel](#challenge) · [Wheels](#wheels) · [Named Legendaries](#legendaries) · [Blockcraft armour sets](#sets) · [Pets](#pets) · [Letters, alliances and votes](#social) · [How a run ends](#end)
+Contents: [The game in one paragraph](#concept) · [Your turn](#turn) · [Classes](#classes) · [Stats, XP and levels](#stats) · [The 36 weapons and spells](#items) · [How to play each one](#howto) · [Consumables](#consumables) · [Inventory: the cage and the paper doll](#grid) · [Boots and movement](#boots) · [What each hex does](#tiles) · [Regions](#map) · [Health, death and Blood Pacts](#health) · [PvP: the Challenge Wheel](#challenge) · [Wheels](#wheels) · [Named Legendaries](#legendaries) · [Blockcraft armour sets](#sets) · [Pets](#pets) · [Letters, alliances, votes, trades, auctions and side bets](#social) · [How a run ends](#end)
 
 ## The game in one paragraph <a id="concept"></a>
 
@@ -190,7 +190,7 @@ Inn heal: 15, once per visit. Void hexes (Black Water, Chasm, Wall) are never en
 
 Health is what you stake, lose and deal. It starts from the Buy-in Wheel (80 to 150) or a flat 100, and comes back only through healing: potions, the Mend and Briefcase spells, the Inn. Your exact Health is hidden: the TV and other phones show only your third (over 66%, 33% to 66%, under 33%) through the lantern on your sprite.
 
-Death: a fight with a monster is to the death. Dying to a monster drops everything in your grid plus 1 random worn item on the hex, you miss 1 turn and wake at the Graveyard at 50% Health. Dying to a player or a boss: the same drops, but the winner chooses which worn item to take, you miss 2 turns and lose 1 level. A Phoenix Feather used before the killing blow cancels death; in PvE and Teams a teammate can revive you early at the Graveyard with one.
+Death: a fight with a monster is to the death. Dying to a monster drops everything in your grid plus 1 random worn item on the hex, you miss 1 turn and wake at the Graveyard at 50% Health. Dying to a player or a boss: the same drops, but the winner chooses which worn item to take, you miss 2 turns and lose 1 level. A Phoenix Feather used before the killing blow cancels death; in PvE and Teams a teammate can revive you early at the Graveyard with one (they stand on your Graveyard hex and burn it). Anyone standing on a Shop can also buy a dead player back for 100 Gold, less 5% per point of their Grit above 3. With Nerve 5 or more, the first stake you lose in a run comes straight back: the one free re-stake of the night.
 
 Blood Pact: borrow up to 50 Health at the Blood Bank, repay with 25% interest within 4 of your turns or the Collector takes 10 Health a turn until it is settled. At most 2 pacts open at once.
 
@@ -377,9 +377,15 @@ Every pet has 4 attacks, each a minigame roll with its own stake paid from the p
 | Mucklings | Soot | Common | Mucklings → Muckheap → The Great Heap | Pile On (chuckaluck, 10), Splat (plinko, 10), Gilt Heap (scratch, 8), Rainbow Heap (bigwheel, 12) |
 | Notorious Moon | Soot | Rare | Notorious Moon → Gibbous Grin → Full Notoriety | Tide (hilo, 10), Eclipse (fifty, 12), Crater (plinko, 12), Lullaby (hilo, 10) |
 
-## Letters, alliances and votes <a id="social"></a>
+## Letters, alliances, votes, trades, auctions and side bets <a id="social"></a>
 
-Letters work like post: as many as you like on your own turn, 1 while it is not, each delivered after 2 of the recipient's turns. A player standing on the courier hex, or wearing a Spyglass, reads a letter in transit first and may pass it, destroy it or (Trickster) forge the reply. Alliances are proposed and accepted by letter; allies are never hit by each other's Area items. The table may vote 1 time a night to send someone to the Graveyard.
+Letters work like post: as many as you like on your own turn, 1 while it is not, each delivered after 2 of the recipient's turns. A player standing on the courier hex, or wearing a Spyglass, reads a letter in transit first and may pass it, destroy it or (Trickster) forge the reply. Alliances are proposed and accepted by letter; allies are never hit by each other's Area items. The table may vote 1 time a night to send someone to the Graveyard: any player calls it on their own turn (two taps), every phone gets a secret ballot for 30 seconds, the most ballots dies. The GM can open a Chaos vote the same way.
+
+Trades: open an item in your Cage, tap Trade, pick who and what you ask for it (a gift, or Gold). Their phone shows both sides with Accept and Decline; an accepted trade settles at the next end of turn and fails if either side no longer has what was promised. Auctions: on an Arena hex an item's sheet has Auction it, and the GM can put up a house lot. Every phone seals one Gold bid (minimum 10); after 30 seconds the TV reveals every bid and the highest wins. A player's sale pays them the bid less the house's 10%.
+
+Side bets (when the GM switches them on): a player not in the fight or challenge on the table may stake up to 20 Health on who wins it, at even money; spectators bet for a win/loss record only. A draw voids the bet.
+
+The tutorial opening (a room option, on by default at tier 1) opens the game one piece per turn of your own: turn 1 moving, turn 2 shops and the Cage, turn 3 fights and your first pet, turn 4 challenges, turn 5 your class active and pet battles, turn 6 everything in this section. Your phone only shows what is open.
 
 ## How a run ends <a id="end"></a>
 
