@@ -1,6 +1,6 @@
 # Balance
 
-Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 333 tunables in 29 groups.
+Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit by hand. 335 tunables in 29 groups.
 
 ## Changing a value
 
@@ -34,6 +34,8 @@ Generated from `data/balance.json` by `tools/build-balance-doc.mjs`; do not edit
 | `health.tellHigh` | 0.66 | fraction | Characters | Above this fraction of max the lantern burns full. |
 | `health.tellLow` | 0.33 | fraction | Characters | Below this fraction the lantern is almost out. |
 | `health.gritReducePerPoint` | 0.03 | fraction | Stats | Damage taken reduced per Grit point. |
+| `health.nerveRestakeAt` | 5 | points | Stats | Nerve needed for the one free re-stake a night: the first lost stake of the run comes back. |
+| `health.gritReviveDiscountPerPoint` | 0.05 | fraction | Stats | Shop revive price cut per point of the buyer's Grit above neutral (capped at half price). |
 | `health.greedStreakBonus` | 0.05 | fraction | Stats | Damage multiplier added per Greed point while on a win streak. |
 | `health.nerveClockSeconds` | 5 | seconds | Stats | Shot clock seconds added per Nerve point above 3. |
 

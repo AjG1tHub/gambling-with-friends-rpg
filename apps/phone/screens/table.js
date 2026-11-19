@@ -5,6 +5,7 @@ import { voteView } from '../../../packages/shared/handlers/social.js';
 import { amountPicker, nameOf, redraw } from './prompts.js';
 import { group } from '../../../packages/shared/balance.js';
 import { unlocked } from '../../../packages/shared/handlers/ramp.js';
+import { reviveOptions } from '../../../packages/shared/handlers/revive.js';
 
 const itemName = (state, ownerId, id) => { const c = Object.values(state.characters).find(x => x.playerId === ownerId); return c?.items?.[id]?.name || 'an item'; };
 const petName = (state, ownerId, id) => { const c = Object.values(state.characters).find(x => x.playerId === ownerId); return (c?.pets || []).find(p => p.id === id)?.name || 'a pet'; };
@@ -71,4 +72,13 @@ export function tableVoteCall(api) {
   const hot = Date.now() - armed < 6000;
   return h('section', { class: 'ph-sect table-biz' }, h('button', { class: hot ? 'danger' : 'ghost', onClick: () => { if (hot) { armed = 0; dispatch('VOTE_OPEN', { kind: 'table' }); } else { armed = Date.now(); redraw(api); } } }, hot ? 'Really call it: the table votes someone into the Graveyard' : `Call the table vote (${S.tableVotesPerNight - (state.tableVotesUsed || 0)} left tonight)`),
     h('p', { class: 'muted small' }, `Everyone votes in secret for ${S.voteSeconds} seconds; the name with the most ballots dies.`));
+}
+
+// Bring a dead player back early: for Gold at a Shop, or with a Phoenix Feather at their Graveyard (PvE-only, Teams).
+export function revivePanel(api) {
+  const { state, me, h, dispatch } = api; const opts = reviveOptions(state, me); if (!opts.length) return null;
+  return h('section', { class: 'ph-sect table-biz revive' }, h('h3', {}, 'The dead'),
+    opts.map(o => h('button', { class: 'big', disabled: !!o.why, title: o.why || '', onClick: () => dispatch('REVIVE', { targetId: o.targetId, how: o.how }) }, o.how === 'shop' ? `Buy ${o.name} back (${o.price} Gold)` : `🪶 Burn a Phoenix Feather for ${o.name}`)),
+    opts.some(o => o.why) ? h('p', { class: 'muted ital' }, opts.find(o => o.why).why) : null,
+    h('p', { class: 'muted small' }, 'They wake at their Graveyard now instead of missing turns. Grit makes the Shop price cheaper.'));
 }

@@ -23,6 +23,7 @@ import './handlers/challenge.js';
 import './handlers/social.js';
 import './handlers/qa.js';
 import './handlers/ramp.js';
+import './handlers/revive.js';
 export * from './reducer.js';
 export * from './state.js';
 export * from './events.js';

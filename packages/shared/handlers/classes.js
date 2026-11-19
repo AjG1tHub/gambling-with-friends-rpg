@@ -22,7 +22,7 @@ import { classActives, damageHooks, deathHooks } from '../hooks.js';
 import { health } from '../health.js';
 import { streamRng } from '../rng.js';
 import * as hex from '../hex.js';
-import { hasUpgrade, classDef } from '../characters/character.js';
+import { hasUpgrade, classDef, effectiveStats } from '../characters/character.js';
 import * as G from '../characters/grid.js';
 
 const posOf = (c) => c?.pos ? hex.parse(c.pos) : null;
@@ -97,6 +97,20 @@ damageHooks.outgoing.push((state, ctx, info) => {
   if (a.classId === 'enforcer' && info.targetKind === 'character') { mult *= 1 + CH.enforcerPvpBonus; info.notes.push('Enforcer: vs players'); }
   if (a.classId === 'enforcer' && hasUpgrade(a, 'firsthit') && state.fight && a.flags.firstHitFight !== state.fight.id) { a.flags.firstHitFight = state.fight.id; mult *= 1 + CH.enforcerPvpBonus; info.notes.push('Enforcer: first hit'); }
   if (mult !== 1) info.mult *= mult;
+  // Whale, level 5 (critplus): a crit pays the game's multiplier plus classes.whaleCritBonus. (Data only until 19 Nov.)
+  if (a.classId === 'whale' && hasUpgrade(a, 'critplus') && info.crit && info.mult > 0) { info.mult += C.whaleCritBonus; info.notes.push('Whale: crit bonus'); }
+});
+
+// Nerve's "one free re-stake a night" (SPEC.md › Stats): with Nerve at health.nerveRestakeAt or more, the first stake a
+// character loses in the run comes straight back. The phone's Self tab promised this from the start; nothing did it.
+damageHooks.afterMiss.push((state, ctx, info) => {
+  if (info.attackerKind && info.attackerKind !== 'character') return;
+  const a = charOf(state, info.attackerId); if (!a || a.freeRestakeUsed || a.dead) return;
+  const lost = Number(info.loss ?? info.lost) || 0; if (lost <= 0) return;
+  let nerve = 0; try { nerve = effectiveStats(state, a).nerve || 0; } catch { nerve = a.stats?.nerve || 0; }
+  if (nerve < ctx.B('health').nerveRestakeAt) return;
+  a.freeRestakeUsed = true; health(state, a, lost, 'Nerve: free re-stake', ctx);
+  info.notes?.push('Nerve: free re-stake'); note(state, `${a.name}'s nerve holds: the ${lost} staked comes back (the one free re-stake of the night)`, 'fight', ctx.now);
 });
 damageHooks.incoming.push((state, ctx, info) => {
   if (info.targetKind !== 'character') return;

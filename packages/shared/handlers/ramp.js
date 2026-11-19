@@ -36,7 +36,7 @@ export const LOCKS = {
   ITEM_USE: 'fight', PET_ATTACK: 'fight', AREA_OPEN: 'fight', FIGHT_START: 'fight',
   CHALLENGE_CALL: 'challenge', BOUNTY_PLACE: 'challenge',
   LETTER_SEND: 'social', ALLIANCE_PROPOSE: 'social', VOTE_OPEN: 'social', TRADE_OFFER: 'social', AUCTION_OPEN: 'social', AUCTION_BID: 'social', SIDE_BET: 'social',
-  LEGENDARY_USE: 'gear',
+  LEGENDARY_USE: 'gear', REVIVE: 'gear',
   PET_BATTLE_START: 'pets', CLASS_ACTIVE: 'class',
 };
 

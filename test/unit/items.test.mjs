@@ -310,3 +310,18 @@ test('resolveHit: the "X hits Y" line is logged before the kill it causes (TV lo
   assert.ok(iHit >= 0 && iDead >= 0, lines.join(' | '));
   assert.ok(iHit < iDead, `hit line (${iHit}) must come before the kill line (${iDead}): ${lines.join(' | ')}`);
 });
+
+test('Nerve: the first lost stake of the run comes back at Nerve 5+, once; Whale critplus adds to a crit', () => {
+  const r = playingRoom(); const st = r.state, c = r.char(0); const m = mkMonster({ id: 'm8', items: [makeItem(st, { gameId: 'fifty' })] }); st.monsters.m8 = m;
+  const w = makeItem(st, { gameId: 'fifty' }); c.items[w.id] = w;
+  const ctx = { now: r.now(), B: (g) => B[g], isGm: true, actor: 'tv', payload: {} };
+  const miss = () => resolveHit(st, ctx, { attackerId: c.id, attackerKind: 'character', targetId: 'm8', targetKind: 'monster', item: w, stake: 10, mult: 0, label: 'LOSE' });
+  c.stats.nerve = 3; c.freeRestakeUsed = false; let h0 = c.health; miss(); assert.ok(c.health < h0, 'Nerve 3: the stake is lost'); assert.equal(c.freeRestakeUsed, false);
+  c.stats.nerve = 6; h0 = c.health; miss(); assert.equal(c.health, h0, 'Nerve 6: the first lost stake comes back'); assert.equal(c.freeRestakeUsed, true);
+  h0 = c.health; miss(); assert.ok(c.health < h0, 'only once a night');
+  // Whale crit bonus
+  m.health = m.maxHealth = 500; c.classId = 'whale'; c.upgrades = [];
+  const hit = (crit) => resolveHit(st, ctx, { attackerId: c.id, attackerKind: 'character', targetId: 'm8', targetKind: 'monster', item: w, stake: 10, mult: 2, label: 'WIN', crit }).damage;
+  const plain = hit(true); c.upgrades = ['critplus']; const boosted = hit(true), noCrit = hit(false);
+  assert.ok(boosted > plain, `critplus adds to a crit (${plain} → ${boosted})`); assert.equal(noCrit, plain, 'no crit, no bonus');
+});

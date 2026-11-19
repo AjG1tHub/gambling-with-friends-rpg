@@ -19,6 +19,8 @@
     "tellHigh": { "v": 0.66, "unit": "fraction", "spec": "Characters", "note": "Above this fraction of max the lantern burns full." },
     "tellLow": { "v": 0.33, "unit": "fraction", "spec": "Characters", "note": "Below this fraction the lantern is almost out." },
     "gritReducePerPoint": { "v": 0.03, "unit": "fraction", "spec": "Stats", "note": "Damage taken reduced per Grit point." },
+    "nerveRestakeAt": { "v": 5, "unit": "points", "spec": "Stats", "note": "Nerve needed for the one free re-stake a night: the first lost stake of the run comes back." },
+    "gritReviveDiscountPerPoint": { "v": 0.05, "unit": "fraction", "spec": "Stats", "note": "Shop revive price cut per point of the buyer's Grit above neutral (capped at half price)." },
     "greedStreakBonus": { "v": 0.05, "unit": "fraction", "spec": "Stats", "note": "Damage multiplier added per Greed point while on a win streak." },
     "nerveClockSeconds": { "v": 5, "unit": "seconds", "spec": "Stats", "note": "Shot clock seconds added per Nerve point above 3." }
   },

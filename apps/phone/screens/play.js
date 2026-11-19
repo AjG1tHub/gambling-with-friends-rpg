@@ -18,7 +18,7 @@ import { creationScreen } from './creation.js';
 import { fightScreen, attackMenu, classActiveRow } from './fight.js';
 import { challengeScreen, challengeBanner } from './challenge.js';
 import { sideBetPanel } from './sidebet.js';
-import { tablePanels, tableVoteCall } from './table.js';
+import { tablePanels, tableVoteCall, revivePanel } from './table.js';
 import { exactHealthVisible } from '../../../packages/shared/characters/character.js';
 import { renderPrompt, hatchingScreen, areaWindow, waitingScreen, sect, why, amountPicker, itemRow, nameOf, gridItems, weapons, consumables, playHooks, redraw } from './prompts.js';
 
@@ -148,6 +148,7 @@ function actionScreen(api) {
   if (can('gear')) consumablesPanel(api);
   if (can('class')) classActiveRow(api, null, null);
   emoteRow(api);
+  { const rv = can('gear') ? revivePanel(api) : null; if (rv) screen.append(rv); }
   { const tv = can('challenge') ? tableVoteCall(api) : null; if (tv) screen.append(tv); }
   const boots = bootsOf(c);
   if (boots?.unique === 'movetwice' && (c.usedThisTurn?.moves || 0) === 1) screen.append(h('button', { class: 'primary big', onClick: () => dispatch('MOVE_ROLL', {}) }, 'Move again'));
