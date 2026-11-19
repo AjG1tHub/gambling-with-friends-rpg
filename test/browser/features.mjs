@@ -18,7 +18,8 @@ try {
   const shop = Object.values(st.map.hexes).find(h => h.type === 'shop'); ok(!!shop, `a Shop hex exists (${shop?.key})`);
   await R.gmDo('GM_GOLD', { playerId: mover, amount: 300 });
   await R.gmDo('GM_HEALTH', { playerId: deadId, amount: -9999 });
-  st = await stateOf(R.tv); ok(charOf(st, deadId).dead === true, `${deadName} is dead`);
+  await waitFor(R.tv, (id) => Object.values(window.__gwf.session.state.characters).find(c => c.playerId === id)?.dead === true, `${deadName} is dead`, deadId);   // the TV hears of it a beat after the GM page
+  st = await stateOf(R.tv);
   await R.gmDo('GM_TELEPORT', { playerId: mover, hex: shop.key });
   await stayPut(ph, R.names[mi]);
   await waitFor(ph, () => window.__gwf.session.state.turnPhase === 'action', 'action phase on the Shop', undefined, 20000);

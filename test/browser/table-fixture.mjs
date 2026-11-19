@@ -72,7 +72,9 @@ export async function newRoom(tag, { mode = 'ffa', classes = ['Whale', 'Whale', 
   }
   await gm.locator('.gm-nav button').first().click(); await gm.click('button:has-text("Start the run")');
   await waitFor(tv, () => window.__gwf.session.state.phase === 'playing', `${tag}: run started`); await sleep(800);
-  const gmDo = async (type, payload) => { const err = await gm.evaluate(async ([t, p]) => { const s = window.__gwf.session; const b = Date.now(); await s.dispatch(t, p, 'gm'); const e = s.state.lastError; return e && e.type === t && e.ts >= b ? e.message : null; }, [type, payload]); if (err) throw new Error(`${type} refused: ${err}`); };
+  const gmDo = async (type, payload) => { const err = await gm.evaluate(async ([t, p]) => { const s = window.__gwf.session; const b = Date.now(); await s.dispatch(t, p, 'gm'); const e = s.state.lastError; return e && e.type === t && e.ts >= b ? e.message : null; }, [type, payload]); if (err) throw new Error(`${type} refused: ${err}`);
+    // The TV hears of it a beat after the GM page: do not hand back until it has caught up, so the next read of the TV is true.
+    const n = await gm.evaluate(() => window.__gwf.session.state.eventCount || 0); await waitFor(tv, (k) => (window.__gwf.session.state.eventCount || 0) >= k, '', n, 8000).catch(() => {}); };
   const ids = []; for (const ph of phones) ids.push(await meOf(ph));
   return { gm, tv, phones, ids, names, gmDo, code, gmCtx, tvCtx, close: async () => { await gmCtx.close(); await tvCtx.close(); for (const p of phones) await p.context().close(); } };
 }
