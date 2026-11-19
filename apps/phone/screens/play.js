@@ -19,6 +19,7 @@ import { fightScreen, attackMenu, classActiveRow } from './fight.js';
 import { challengeScreen, challengeBanner } from './challenge.js';
 import { sideBetPanel } from './sidebet.js';
 import { tablePanels, tableVoteCall } from './table.js';
+import { exactHealthVisible } from '../../../packages/shared/characters/character.js';
 import { renderPrompt, hatchingScreen, areaWindow, waitingScreen, sect, why, amountPicker, itemRow, nameOf, gridItems, weapons, consumables, playHooks, redraw } from './prompts.js';
 
 const B = (state) => ({ B: (g) => group(state, g), now: Date.now(), payload: {}, actor: 'phone', isGm: false });
@@ -233,7 +234,7 @@ function attackPanel(api, here) {
     if (!ui.weapon || !ws.some(w => w.id === ui.weapon)) ui.weapon = ws[0]?.id || null;
     const tc = characterOf(state, ui.target); const G = group(state, 'gold');
     const robCap = Math.floor((tc?.gold || 0) * G.robberyMaxFraction), poorer = Math.min(c.gold || 0, tc?.gold || 0);
-    box.append(h('div', { class: 'tag' }, 'Target'), h('div', { class: 'chips' }, others.map(x => h('button', { class: `chip ${x.p.id === ui.target ? 'on' : ''}`, onClick: () => { ui.target = x.p.id; redraw(api); } }, `${x.pc.crest || ''} ${x.p.name}`, h('span', { class: `lantern ${tellOf(x.pc)}` })))));
+    box.append(h('div', { class: 'tag' }, 'Target'), h('div', { class: 'chips' }, others.map(x => h('button', { class: `chip ${x.p.id === ui.target ? 'on' : ''}`, onClick: () => { ui.target = x.p.id; redraw(api); } }, `${x.pc.crest || ''} ${x.p.name}${exactHealthVisible(state, c.id, x.pc.id) ? ` ${x.pc.health}/${x.pc.maxHealth}` : ''}`, h('span', { class: `lantern ${tellOf(x.pc)}` })))));
     const calls = [['duel', 'Duel', state.gm.duelsEnabled === false ? 'Duels are off tonight' : state.mode === 'pve' ? 'not in PvE' : !ws.length ? 'needs a weapon' : ''], ['wager', 'Wager', poorer <= 0 ? 'neither of you has Gold' : ''], ['robbery', 'Robbery', state.mode === 'pve' ? 'not in PvE' : robCap <= 0 ? 'nothing worth robbing' : '']];
     if (!calls.find(x => x[0] === ui.call && !x[2])) ui.call = (calls.find(x => !x[2]) || calls[0])[0];
     box.append(h('div', { class: 'tag' }, 'Call'), h('div', { class: 'chips' }, calls.map(([k, label, no]) => h('button', { class: `chip ${k === ui.call ? 'on' : ''}`, disabled: !!no, title: no, onClick: () => { ui.call = k; redraw(api); } }, label))));
